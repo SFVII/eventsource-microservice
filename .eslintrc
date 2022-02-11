@@ -1,0 +1,31 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "extends": [
+    "eslint:recommended"
+  ],
+  "rules": {
+    "no-console": 0,
+    "trailing-comma": 0,
+    "prefer-for-of": 0,
+    "no-conditional-assignment": 0,
+    "no-bitwise": 0,
+    "no-unused-expression": 0,
+    "interface-name": 0,
+    "object-literal-sort-keys": 0,
+    "variable-name":0,
+    "no-var-requires": 0,
+    "no-explicit-any" :0,
+    "no-unused-vars" : 0,
+    "no-async-promise-executor": 0,
+    "no-undef": 0,
+    "no-extra-boolean-cast" : 0,
+    "no-useless-catch": 0
+  },
+  "env" : {
+    "node": true
+  }
+}
