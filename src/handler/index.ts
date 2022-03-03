@@ -21,8 +21,8 @@ import {
     jsonEvent
 } from "../core/global";
 
-
-const EventHandler = (mongoose: any) => {
+// @ts-ignore
+const EventHandler = (mongoose: any)  => {
     const _EventCollection = EventCollection(mongoose);
     return class _EventHandler {
         protected methods: Method;

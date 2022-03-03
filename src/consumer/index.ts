@@ -95,8 +95,8 @@ const EventConsumer = (mongoose: any) => {
                     causationRoute: event.metadata.causationRoute
                 });
             }
-            console.log('send event to >', event.$causationId, template);
-            await this.client.appendToStream(event.$causationId, [template]).catch((err: any) => {
+            console.log('send event to >', event.metatada.$causationId, template);
+            await this.client.appendToStream(event.metada.$causationId, [template]).catch((err: any) => {
                 console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
             })
         }

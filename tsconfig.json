@@ -8,6 +8,7 @@
     "moduleResolution": "node",
     "sourceMap": false,
     "outDir": "lib",
+    "declaration": false,
     "resolveJsonModule": true,
     "strictNullChecks": true,
     "typeRoots": [
@@ -25,6 +26,6 @@
     "src/*/"
   ],
   "exclude": [
-    "dist"
+    "lib"
   ]
 }
