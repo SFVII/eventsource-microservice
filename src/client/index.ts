@@ -139,10 +139,10 @@ const EventsPlugin = (mongoose: any) => {
 
         private async eventCompletedHandler(streamName: string, EventId: string) {
             let data = null;
-            console.log('------> stream', this.stream);
+            / console.log('------> stream', this.stream);
             const stream = this.client.subscribeToStream(streamName, {
                 fromRevision: this.StartRevision,
-                resolveLinkTos: true
+                resolveLinkTos: true,
             })
             // @ts-ignore
             console.log('GO THIS STREAM OKKKK looop');
@@ -152,7 +152,7 @@ const EventsPlugin = (mongoose: any) => {
                 if (event && event.metadata?.$correlationId === EventId
                     && (event.metadata?.state === 'completed' || event.metadata?.state === 'error')) {
                     data = event.data;
-                    this.StartRevision = BigInt(event.revision);
+                    this.StartRevision = BigInt(event.revision) > BigInt(100n) ? BigInt(event.revision - 100n) : this.StartRevision;
                     break;
                 }
             }
