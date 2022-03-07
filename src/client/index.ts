@@ -208,6 +208,7 @@ const EventsPlugin = (mongoose: any) => {
                         if (event && event.metadata?.$correlationId === EventId) {
                             console.log('---processStateChecker--- EventId %s', EventId)
                             console.log('---processStateChecker--- state %s', event.metadata?.state)
+                            console.log('---processStateChecker--- data', event.data);
                             switch (event.metadata?.state) {
                                 // In case of delivered we allow user to renew the entry
                                 case 'delivered':
