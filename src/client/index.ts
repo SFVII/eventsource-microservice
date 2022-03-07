@@ -212,22 +212,25 @@ const EventsPlugin = (mongoose: any) => {
                             switch (event.metadata?.state) {
                                 // In case of delivered we allow user to renew the entry
                                 case 'delivered':
-                                    break;
+                                    subscription.destroy();
+                                    return null;
                                 // In case of complete we send the last information to the user
                                 case 'completed':
-                                    data = event.data;
-                                    break;
+                                    subscription.destroy();
+                                    return event.data;
                                 // In case of processing we transparency send the user to the pending room
                                 case 'processing':
-                                    data = event.metadata?.state
-                                    break;
+                                    subscription.destroy();
+                                    return event.metadata?.state
                             }
                         }
                     }
+
                 }
             } catch (err) {
                 console.error('Error EventsPlugin.processStateChecker', err)
             }
+
             return data;
         }
 
