@@ -85,7 +85,7 @@ const EventsPlugin = (mongoose: any) => {
                           payload: any,
                           streamName: string,
                           causationRoute: string[]) {
-            const eventEnd = this.template(method, payload, {
+            const eventEnd = this.template(method, null, {
                 $correlationId: requestId,
                 state: 'delivered',
                 $causationId: streamName,
