@@ -58,32 +58,28 @@ const EventsPlugin = (mongoose: any) => {
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                delivered: async () => {
-                    const eventEnd = this.template(method, payload, {
-                        $correlationId: requestId,
-                        state: 'delivered',
-                        $causationId: this.streamName,
-                        causationRoute: this.causationRoute
-                    })
-                    await this.appendToStream(this.streamName, eventEnd);
-                }
+                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute)
             };
         }
 
+        private async delivered(requestId, method, payload, streamName, causationRoute) {
+            const eventEnd = this.template(method, payload, {
+                $correlationId: requestId,
+                state: 'delivered',
+                $causationId: streamName,
+                causationRoute: causationRoute
+            })
+            const doIt = (appendToStream: (name:string, eventEnd:any) => void) => async () => {
+                await appendToStream(streamName, eventEnd);
+            }
+            return doIt(this.appendToStream)
+        }
         public async update(data: DataModel | DataModel[]) {
             const method = 'update';
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                delivered: async () => {
-                    const eventEnd = this.template(method, payload, {
-                        $correlationId: requestId,
-                        state: 'delivered',
-                        $causationId: this.streamName,
-                        causationRoute: this.causationRoute
-                    })
-                    await this.appendToStream(this.streamName, eventEnd);
-                }
+                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute)
             };
         }
 
@@ -92,15 +88,7 @@ const EventsPlugin = (mongoose: any) => {
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                delivered: async () => {
-                    const eventEnd = this.template(method, payload, {
-                        $correlationId: requestId,
-                        state: 'delivered',
-                        $causationId: this.streamName,
-                        causationRoute: this.causationRoute
-                    })
-                    await this.appendToStream(this.streamName, eventEnd);
-                }
+                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute)
             };
         }
 
