@@ -6,23 +6,25 @@
  **  @Description
  ***********************************************************/
 import {
-    EventCollection,
-    EventType,
-    IAvailableEvent,
-    IEvenStoreConfig, IEventHandlerGroup, IListStreamSubscription,
-    IStartRevision,
-    ITemplateEvent,
-    Method,
-    PersistentSubscription,
-    EventStoreDBClient,
     bigInt,
     END,
-    persistentSubscriptionSettingsFromDefaults,
-    jsonEvent
+    EventCollection,
+    EventStoreDBClient,
+    EventType,
+    IAvailableEvent,
+    IEvenStoreConfig,
+    IEventHandlerGroup,
+    IListStreamSubscription,
+    IStartRevision,
+    ITemplateEvent,
+    jsonEvent,
+    Method,
+    PersistentSubscription,
+    persistentSubscriptionSettingsFromDefaults
 } from "../core/global";
 
 // @ts-ignore
-const EventHandler = (mongoose: any)  => {
+const EventHandler = (mongoose: any) => {
     const _EventCollection = EventCollection(mongoose);
     return class _EventHandler {
         protected methods: Method;
@@ -93,11 +95,11 @@ const EventHandler = (mongoose: any)  => {
                 const nextRoute: string | undefined = Routes.shift();
                 console.log('Nex Route', nextRoute)
                 if (nextRoute) {
-                    if (event.state === "error") {
+                    if (event.metadata && event.metadata.state === "error") {
                         const template = this.template(event.type, event.data, {
                             $correlationId: event.metadata.$correlationId,
-                            $causationId: event.$causationId,
-                            state: event.state,
+                            $causationId: event.metadata.$causationId,
+                            state: event.metatada.state,
                             causationRoute: null
                         });
                         console.log('send event to >', event.streamId, template);

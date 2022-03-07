@@ -91,7 +91,7 @@ const EventConsumer = (mongoose: any) => {
                 template = this.template(event.type, data, {
                     $correlationId: event.metadata.$correlationId,
                     $causationId: event.streamId,
-                    state: event.state,
+                    state: event.metadata.state,
                     causationRoute: event.metadata.causationRoute
                 });
             }
