@@ -140,19 +140,15 @@ const EventsPlugin = (mongoose: any) => {
         private async eventCompletedHandler(method: MethodList, EventId: string) {
             let data = null;
             console.log('------> stream', this.stream);
-            if (!this.stream)
-                await this.init();
-            console.log('-----> stream again', this.stream);
-            if (this.stream) {
-                // @ts-ignore
-                for await (const resolvedEvent of this.stream) {
-                    const {event}: any = resolvedEvent;
-                    console.log('received event---->', event)
-                    if (event && event.metadata?.$correlationId === EventId
-                        && (event.metadata?.state === 'completed' || event.metadata?.state === 'error')) {
-                        data = event.data;
-                        break;
-                    }
+            // @ts-ignore
+            console.log('GO THIS STREAM OKKKK looop');
+            for await (const resolvedEvent of this.stream) {
+                const {event}: any = resolvedEvent;
+                console.log('received event---->', event)
+                if (event && event.metadata?.$correlationId === EventId
+                    && (event.metadata?.state === 'completed' || event.metadata?.state === 'error')) {
+                    data = event.data;
+                    break;
                 }
             }
             return data;
