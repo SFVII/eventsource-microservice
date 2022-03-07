@@ -58,7 +58,7 @@ const EventsPlugin = (mongoose: any) => {
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
+                ack: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
             };
         }
 
@@ -67,7 +67,7 @@ const EventsPlugin = (mongoose: any) => {
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
+                ack: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
             };
         }
 
@@ -76,7 +76,7 @@ const EventsPlugin = (mongoose: any) => {
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
+                ack: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
             };
         }
 
@@ -209,7 +209,7 @@ const EventsPlugin = (mongoose: any) => {
                                 // In case of complete we send the last information to the user
                                 case 'completed':
                                     subscription.destroy();
-                                    return event.data;
+                                    return {data: event.data, revision: event.revision}
                                 // In case of processing we transparency send the user to the pending room
                                 case 'processing':
                                     subscription.destroy();
