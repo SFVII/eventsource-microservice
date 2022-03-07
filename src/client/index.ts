@@ -91,10 +91,8 @@ const EventsPlugin = (mongoose: any) => {
                 $causationId: streamName,
                 causationRoute: causationRoute
             })
-            const doIt = (appendToStream: (name: string, eventEnd: any) => void) => async () => {
-                await appendToStream(streamName, eventEnd);
-            }
-            return doIt(this.appendToStream)
+            const appendToStream = this.appendToStream.bind(this);
+            return () => appendToStream(streamName, eventEnd)
         }
 
         private async EventMiddlewareEmitter(data: DataModel | DataModel[], method: MethodList) {
