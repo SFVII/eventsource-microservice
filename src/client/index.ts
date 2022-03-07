@@ -195,10 +195,12 @@ const EventsPlugin = (mongoose: any) => {
         private async processStateChecker(EventId: string) {
             let data: any = null;
             try {
+                console.log('---processStateChecker--- EventId %s', EventId)
                 const subscription = this.getMainStream();
                 if (subscription) {
                     for await (const resolvedEvent of subscription) {
                         const event: any = resolvedEvent.event;
+                        console.log('---processStateChecker--- state %s', event.metadata?.state)
                         if (event && event.metadata?.$correlationId === EventId) {
                             switch (event.metadata?.state) {
                                 // In case of delivered we allow user to renew the entry
