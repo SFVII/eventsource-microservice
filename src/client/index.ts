@@ -62,18 +62,6 @@ const EventsPlugin = (mongoose: any) => {
             };
         }
 
-        private async delivered(requestId, method, payload, streamName, causationRoute) {
-            const eventEnd = this.template(method, payload, {
-                $correlationId: requestId,
-                state: 'delivered',
-                $causationId: streamName,
-                causationRoute: causationRoute
-            })
-            const doIt = (appendToStream: (name:string, eventEnd:any) => void) => async () => {
-                await appendToStream(streamName, eventEnd);
-            }
-            return doIt(this.appendToStream)
-        }
         public async update(data: DataModel | DataModel[]) {
             const method = 'update';
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
@@ -90,6 +78,23 @@ const EventsPlugin = (mongoose: any) => {
                 payload: payload,
                 delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute)
             };
+        }
+
+        private async delivered(requestId: string,
+                                method: 'create' | 'update' | 'delete',
+                                payload: any,
+                                streamName: string,
+                                causationRoute: string[]) {
+            const eventEnd = this.template(method, payload, {
+                $correlationId: requestId,
+                state: 'delivered',
+                $causationId: streamName,
+                causationRoute: causationRoute
+            })
+            const doIt = (appendToStream: (name: string, eventEnd: any) => void) => async () => {
+                await appendToStream(streamName, eventEnd);
+            }
+            return doIt(this.appendToStream)
         }
 
         private async EventMiddlewareEmitter(data: DataModel | DataModel[], method: MethodList) {
