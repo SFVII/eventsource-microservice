@@ -139,6 +139,10 @@ const EventsPlugin = (mongoose: any) => {
 
         private async eventCompletedHandler(method: MethodList, EventId: string) {
             let data = null;
+            console.log('------> stream', this.stream);
+            if (!this.stream)
+                await this.init();
+            console.log('-----> stream again', this.stream);
             if (this.stream) {
                 // @ts-ignore
                 for await (const resolvedEvent of this.stream) {
