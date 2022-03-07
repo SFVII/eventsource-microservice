@@ -93,7 +93,7 @@ const EventsPlugin = (mongoose: any) => {
             })
             console.log('------->')
             const appendToStream = this.appendToStream.bind(this);
-            return () => setTimeout(() => appendToStream(streamName, eventEnd), 200)
+            return () => setTimeout(() => appendToStream(streamName, eventEnd), 500)
         }
 
         private async EventMiddlewareEmitter(data: DataModel | DataModel[], method: MethodList) {
