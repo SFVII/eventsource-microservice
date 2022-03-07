@@ -80,7 +80,7 @@ const EventsPlugin = (mongoose: any) => {
             };
         }
 
-        private async delivered(requestId: string,
+        private  delivered(requestId: string,
                                 method: 'create' | 'update' | 'delete',
                                 payload: any,
                                 streamName: string,
