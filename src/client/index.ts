@@ -58,7 +58,7 @@ const EventsPlugin = (mongoose: any) => {
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute)
+                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
             };
         }
 
@@ -67,7 +67,7 @@ const EventsPlugin = (mongoose: any) => {
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute)
+                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
             };
         }
 
@@ -76,23 +76,24 @@ const EventsPlugin = (mongoose: any) => {
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute)
+                delivered: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
             };
         }
 
-        private  delivered(requestId: string,
-                                method: 'create' | 'update' | 'delete',
-                                payload: any,
-                                streamName: string,
-                                causationRoute: string[]) {
+        private delivered(requestId: string,
+                          method: 'create' | 'update' | 'delete',
+                          payload: any,
+                          streamName: string,
+                          causationRoute: string[]) {
             const eventEnd = this.template(method, payload, {
                 $correlationId: requestId,
                 state: 'delivered',
                 $causationId: streamName,
                 causationRoute: causationRoute
             })
+            console.log('------->')
             const appendToStream = this.appendToStream.bind(this);
-            return () => appendToStream(streamName, eventEnd)
+            return () => setTimeout(() => appendToStream(streamName, eventEnd), 200)
         }
 
         private async EventMiddlewareEmitter(data: DataModel | DataModel[], method: MethodList) {
