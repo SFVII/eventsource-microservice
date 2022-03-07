@@ -111,7 +111,9 @@ const EventsPlugin = (mongoose: any) => {
             if (state === "processing") {
                 console.log('Is Processing', state);
                 return await this.eventCompletedHandler(streamName, requestId);
-            } else if (!state) {
+            } else if (state) {
+                return {payload: state, requestId};
+            } else {
                 const template = this.template(method, data, {
                     $correlationId: requestId,
                     state: 'processing',
@@ -139,13 +141,13 @@ const EventsPlugin = (mongoose: any) => {
 
         private async eventCompletedHandler(streamName: string, EventId: string) {
             let data = null;
-            / console.log('------> stream', this.stream);
+            // console.log('------> stream', this.stream);
             const stream = this.client.subscribeToStream(streamName, {
                 fromRevision: this.StartRevision,
                 resolveLinkTos: true,
             })
             // @ts-ignore
-            console.log('GO THIS STREAM OKKKK looop');
+            //console.log('GO THIS STREAM OKKKK looop');
             for await (const resolvedEvent of stream) {
                 const {event}: any = resolvedEvent;
                 console.log('received event---->', event)
