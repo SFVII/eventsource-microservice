@@ -214,6 +214,9 @@ const EventsPlugin = (mongoose: any) => {
                                 case 'processing':
                                     subscription.destroy();
                                     return event.metadata?.state
+                                case 'error':
+                                    subscription.destroy();
+                                    return {data: event.data, revision: event.revision}
                             }
                         }
                     }

@@ -84,7 +84,7 @@ const EventConsumer = (mongoose: any) => {
                     $correlationId: event.metadata.$correlationId,
                     $causationId: event.streamId,
                     state: status,
-                    causationRoute: null
+                    causationRoute: []
                 });
 
             } else {
