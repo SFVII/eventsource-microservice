@@ -57,7 +57,7 @@ const EventsPlugin = (mongoose: any) => {
             const method = 'create';
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
-                payload: payload,
+                data: payload,
                 ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
             };
         }
@@ -66,7 +66,7 @@ const EventsPlugin = (mongoose: any) => {
             const method = 'update';
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
-                payload: payload,
+                data: payload,
                 ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
             };
         }
@@ -75,7 +75,7 @@ const EventsPlugin = (mongoose: any) => {
             const method = 'delete';
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
-                payload: payload,
+                data: payload,
                 ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
             };
         }
@@ -209,14 +209,14 @@ const EventsPlugin = (mongoose: any) => {
                                 // In case of complete we send the last information to the user
                                 case 'completed':
                                     subscription.destroy();
-                                    return {data: event.data, revision: event.revision}
+                                    return {data: event.data}
                                 // In case of processing we transparency send the user to the pending room
                                 case 'processing':
                                     subscription.destroy();
                                     return event.metadata?.state
                                 case 'error':
                                     subscription.destroy();
-                                    return {data: event.data, revision: event.revision}
+                                    return {data: event.data}
                             }
                         }
                     }
