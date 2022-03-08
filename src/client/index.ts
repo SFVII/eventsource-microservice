@@ -209,14 +209,14 @@ const EventsPlugin = (mongoose: any) => {
                                 // In case of complete we send the last information to the user
                                 case 'completed':
                                     subscription.destroy();
-                                    return {data: event.data}
+                                    return event.data
                                 // In case of processing we transparency send the user to the pending room
                                 case 'processing':
                                     subscription.destroy();
                                     return event.metadata?.state
                                 case 'error':
                                     subscription.destroy();
-                                    return {data: event.data}
+                                    return event.data
                             }
                         }
                     }
