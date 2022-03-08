@@ -106,7 +106,7 @@ const EventHandler = (mongoose: any) => {
                         await this.client.appendToStream(event.streamId, [template]).catch((err: any) => {
                             console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
                         })
-                    } else {
+                    } else if (event.metadata && (event.metadata.state === 'processing')) {
                         const template = this.template(event.type, event.data, {
                             $correlationId: event.metadata.$correlationId,
                             $causationId: event.streamId,
@@ -117,8 +117,10 @@ const EventHandler = (mongoose: any) => {
                         await this.client.appendToStream(nextRoute, [template]).catch((err: any) => {
                             console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err);
                         })
+                    } else if (event.metadata.state === 'delivered') {
+                        // @todo check if event.nack exist
+                        //event.ack(event);
                     }
-
                 }
             } else {
                 console.warn('BAD EVENT FORMAT', event)
