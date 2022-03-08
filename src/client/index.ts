@@ -58,7 +58,7 @@ const EventsPlugin = (mongoose: any) => {
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                ack: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
+                ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
             };
         }
 
@@ -67,7 +67,7 @@ const EventsPlugin = (mongoose: any) => {
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                ack: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
+                ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
             };
         }
 
@@ -76,7 +76,7 @@ const EventsPlugin = (mongoose: any) => {
             const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
             return {
                 payload: payload,
-                ack: this.delivered(requestId, method, payload, this.streamName, this.causationRoute).bind(this)
+                ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
             };
         }
 
@@ -85,7 +85,7 @@ const EventsPlugin = (mongoose: any) => {
                           payload: any,
                           streamName: string,
                           causationRoute: string[]) {
-            const eventEnd = this.template(method, null, {
+            const eventEnd = this.template(method, payload, {
                 $correlationId: requestId,
                 state: 'delivered',
                 $causationId: streamName,

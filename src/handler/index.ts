@@ -90,7 +90,7 @@ const EventHandler = (mongoose: any) => {
 
         private async handler(event: any) {
             if (Array.isArray(event.metadata.causationRoute)) {
-                console.log('EventHandler', event.metadata.causationRoute)
+                console.log('EventHandler', event.metadata.causationRoute, event.metadata.state)
                 const Routes = event.metadata.causationRoute;
                 const nextRoute: string | undefined = Routes.shift();
                 console.log('Nex Route', nextRoute)
