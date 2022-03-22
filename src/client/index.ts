@@ -101,7 +101,6 @@ const EventsPlugin = (mongoose: any) => {
             const streamName = `${this.streamName}`
             let state: DataModel | DataModel[] | "processing" | null = await this.processStateChecker(requestId);
             if (state === "processing") {
-                console.log('Is Processing', state);
                 return await this.eventCompletedHandler(streamName, requestId);
             } else if (state) {
                 return {payload: state, requestId};
@@ -133,16 +132,13 @@ const EventsPlugin = (mongoose: any) => {
 
         private async eventCompletedHandler(streamName: string, EventId: string) {
             let data = null;
-            // console.log('------> stream', this.stream);
             const stream = this.client.subscribeToStream(streamName, {
                 fromRevision: this.StartRevision,
                 resolveLinkTos: true,
             })
             // @ts-ignore
-            //console.log('GO THIS STREAM OKKKK looop');
             for await (const resolvedEvent of stream) {
                 const {event}: any = resolvedEvent;
-                console.log('received event---->', event)
                 if (event && event.metadata?.$correlationId === EventId
                     && (event.metadata?.state === 'completed' || event.metadata?.state === 'error')) {
                     data = event.data;
@@ -198,9 +194,6 @@ const EventsPlugin = (mongoose: any) => {
                         const event: any = resolvedEvent.event;
 
                         if (event && event.metadata?.$correlationId === EventId) {
-                            console.log('---processStateChecker--- EventId %s', EventId)
-                            console.log('---processStateChecker--- state %s', event.metadata?.state)
-                            console.log('---processStateChecker--- data', event.data);
                             switch (event.metadata?.state) {
                                 // In case of delivered we allow user to renew the entry
                                 case 'delivered':
