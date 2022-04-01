@@ -6,26 +6,33 @@
  **  @Description
  ***********************************************************/
 import {
+    bigInt,
+    END,
     EventCollection,
-    EventType,
-    IAvailableEvent, IEvenStoreConfig, IEventHandlerGroup, IQueue,
-    IStartRevisionValues,
-    ITemplateEvent, Method,
-    MethodList,
-    PersistentSubscriptionBase, StreamSubscription,
-    PersistentSubscription,
     EventEmitter,
     EventStoreDBClient,
-    bigInt,
-    persistentSubscriptionSettingsFromDefaults,
+    EventType,
+    IAvailableEvent,
+    IEvenStoreConfig,
+    IEventHandlerGroup,
+    IQueue,
+    IQueueCustom,
+    IStartRevisionValues,
+    ITemplateEvent,
     jsonEvent,
-    END
+    Method,
+    MethodList,
+    PersistentSubscription,
+    PersistentSubscriptionBase,
+    persistentSubscriptionSettingsFromDefaults,
+    StreamSubscription
 } from "../core/global";
 
 
 const EventConsumer = (mongoose: any) => {
     const _EventCollection = EventCollection(mongoose);
     return class _EventConsumer {
+        public QueueTTL = 200;
         protected methods: Method;
         protected streamName: string;
         protected group: string;
@@ -34,15 +41,23 @@ const EventConsumer = (mongoose: any) => {
         private client: EventStoreDBClient;
         private StartRevision: IStartRevisionValues;
         private stream: StreamSubscription;
-        private Queue: IQueue = {
-            create: [],
-            update: [],
-            delete: []
-        };
+        private readonly customQueue: boolean;
+        private readonly Queue: IQueue | IQueueCustom;
 
         constructor(EvenStoreConfig: IEvenStoreConfig,
                     StreamName: string,
-                    group: IEventHandlerGroup = 'consumers') {
+                    group: IEventHandlerGroup = 'consumers', customQueue = false) {
+            this.customQueue = customQueue;
+            if (customQueue) this.Queue = {
+                create: {},
+                update: {},
+                delete: {}
+            }
+            else this.Queue = {
+                create: [],
+                update: [],
+                delete: []
+            }
             this.streamName = StreamName;
             this.group = group;
             this.client = new EventStoreDBClient(
@@ -64,11 +79,18 @@ const EventConsumer = (mongoose: any) => {
             })
         }
 
-        public AddToQueue(type: MethodList, ResolvedEvent: StreamSubscription, taskQueue: () => Promise<any>) {
-            if (this.Queue && this.Queue[type]) {
+        public AddToQueue(type: MethodList, ResolvedEvent: StreamSubscription, name?: string) {
+            if (this.customQueue && name && this.Queue && this.Queue[type]) {
+                // @ts-ignore
+                if (!this.Queue[type][name]) this.Queue[type][name] = [];
+                // @ts-ignore
+                this.Queue[type][name].push(ResolvedEvent);
+            } else if (!name && this.Queue && this.Queue[type]) {
                 // @ts-ignore
                 this.Queue[type].push(ResolvedEvent);
-            } else console.log('Error _EventConsumer.AddToQueue Queue does not exist')
+            } else {
+                console.log('Error _EventConsumer.AddToQueue Queue does not exist')
+            }
         }
 
         public async SaveRevision(revision: bigint) {
@@ -125,15 +147,34 @@ const EventConsumer = (mongoose: any) => {
             setInterval(() => {
                 Object.keys(this.Queue).forEach((type: MethodList) => {
                     // @ts-ignore
-                    if (this.Queue && this.Queue[type] && (this.Queue[type] as StreamSubscription[])?.length) {
-                        const stack = (this.Queue[type] as StreamSubscription[]).splice(
-                            0,
-                            ((this.Queue[type] as StreamSubscription[])?.length > 200 ? 200 : this.Queue[type]?.length)
-                        )
-                        this.eventEmitter.emit(type, stack);
+                    if (this.customQueue) {
+                        // @ts-ignore
+                        Object.keys(this.Queue[type]).forEach((subkey: string) => {
+                            // @ts-ignore
+                            if (this.Queue && this.Queue[type] && this.Queue[type][subkey]
+                                // @ts-ignore
+                                && (this.Queue[type][subkey] as StreamSubscription[])?.length) {
+                                const stack = (this.Queue[type] as StreamSubscription[]).splice(
+                                    0,
+                                    // @ts-ignore
+                                    ((this.Queue[type][subkey])?.length > 200 ? 200 : this.Queue[type][subkey]?.length)
+                                )
+                                this.eventEmitter.emit(type + '.' + subkey, stack);
+                            }
+                        })
+                    } else {
+                        // @ts-ignore
+                        if (this.Queue && this.Queue[type] && (this.Queue[type] as StreamSubscription[])?.length) {
+                            const stack = (this.Queue[type] as StreamSubscription[]).splice(
+                                0,
+                                // @ts-ignore
+                                ((this.Queue[type] as StreamSubscription[])?.length > 200 ? 200 : this.Queue[type]?.length)
+                            )
+                            this.eventEmitter.emit(type, stack);
+                        }
                     }
                 });
-            }, 200);
+            }, this.QueueTTL);
         }
 
         private SubscribeToPersistent(streamName: string) {

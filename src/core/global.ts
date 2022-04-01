@@ -40,7 +40,11 @@ type IStream = {
     [V in MethodList]?: StreamSubscription
 };
 type IQueue = {
-    [V in MethodList]?: StreamSubscription[]
+    [V in MethodList]?: StreamSubscription[];
+}
+
+type IQueueCustom = {
+    [V in MethodList]?: { [key: string]: StreamSubscription[] }
 }
 
 interface ITemplateEvent {
@@ -84,7 +88,6 @@ interface IListStreamSubscription {
 }
 
 
-
 export {
     EventEmitter,
     bigInt,
@@ -104,6 +107,7 @@ export {
     IReadStreamConfig,
     IEvenStoreConfig,
     IQueue,
+    IQueueCustom,
     IStream,
     ITemplateEvent,
     EventType,
