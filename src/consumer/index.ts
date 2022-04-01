@@ -154,7 +154,8 @@ const EventConsumer = (mongoose: any) => {
                             if (this.Queue && this.Queue[type] && this.Queue[type][subkey]
                                 // @ts-ignore
                                 && (this.Queue[type][subkey] as StreamSubscription[])?.length) {
-                                const stack = (this.Queue[type] as StreamSubscription[]).splice(
+                                // @ts-ignore
+                                const stack = (this.Queue[type][subkey] as StreamSubscription[]).splice(
                                     0,
                                     // @ts-ignore
                                     ((this.Queue[type][subkey])?.length > 200 ? 200 : this.Queue[type][subkey]?.length)
