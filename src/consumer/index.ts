@@ -123,6 +123,14 @@ const EventConsumer = (mongoose: any) => {
             })
         }
 
+        public async ack(event: any) {
+            await this.subscription.ack(event);
+            await _EventCollection.updateOne({
+                StreamName: this.streamName,
+                IsCreatedPersistent: true
+            }, {Revision: event.event.revision, UpdatedDate: new Date()}, {upsert: true}).exec();
+        }
+
         private async init() {
             const availableEvent: IAvailableEvent = await _EventCollection.findOne({
                 StreamName: this.streamName,
@@ -149,20 +157,23 @@ const EventConsumer = (mongoose: any) => {
                     // @ts-ignore
                     if (this.customQueue) {
                         // @ts-ignore
-                        Object.keys(this.Queue[type]).forEach((subkey: string) => {
+                        if (this.Queue[type] && Object.keys(this.Queue[type]).length) {
                             // @ts-ignore
-                            if (this.Queue && this.Queue[type] && this.Queue[type][subkey]
+                            Object.keys(this.Queue[type]).forEach((subkey: string) => {
                                 // @ts-ignore
-                                && (this.Queue[type][subkey] as StreamSubscription[])?.length) {
-                                // @ts-ignore
-                                const stack = (this.Queue[type][subkey] as StreamSubscription[]).splice(
-                                    0,
+                                if (this.Queue && this.Queue[type] && this.Queue[type][subkey]
                                     // @ts-ignore
-                                    ((this.Queue[type][subkey])?.length > 200 ? 200 : this.Queue[type][subkey]?.length)
-                                )
-                                this.eventEmitter.emit(type + '.' + subkey, stack);
-                            }
-                        })
+                                    && (this.Queue[type][subkey] as StreamSubscription[])?.length) {
+                                    // @ts-ignore
+                                    const stack = (this.Queue[type][subkey] as StreamSubscription[]).splice(
+                                        0,
+                                        // @ts-ignore
+                                        ((this.Queue[type][subkey])?.length > 200 ? 200 : this.Queue[type][subkey]?.length)
+                                    )
+                                    this.eventEmitter.emit(type + '.' + subkey, stack);
+                                }
+                            })
+                        } else console.log('Queue is currently empty [%s]', type)
                     } else {
                         // @ts-ignore
                         if (this.Queue && this.Queue[type] && (this.Queue[type] as StreamSubscription[])?.length) {
@@ -205,10 +216,9 @@ const EventConsumer = (mongoose: any) => {
                     }),
                     {credentials: this.credentials}
                 )
-                if (!exist) await _EventCollection.updateOne({
-                    StreamName: streamName,
-                    IsCreatedPersistent: true
-                }, {upsert: true}).exec();
+                await _EventCollection.updateOne({
+                    StreamName: streamName
+                }, {IsCreatedPersistent: true}, {upsert: true}).exec();
                 return true;
             } catch (err) {
                 console.error('Error EventHandler.CreatePersistentSubscription', err);
