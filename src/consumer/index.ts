@@ -173,7 +173,7 @@ const EventConsumer = (mongoose: any) => {
                                     this.eventEmitter.emit(type + '.' + subkey, stack);
                                 }
                             })
-                        } else console.log('Queue is currently empty [%s]', type)
+                        }
                     } else {
                         // @ts-ignore
                         if (this.Queue && this.Queue[type] && (this.Queue[type] as StreamSubscription[])?.length) {

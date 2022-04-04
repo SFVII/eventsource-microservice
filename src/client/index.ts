@@ -111,9 +111,7 @@ const EventsPlugin = (mongoose: any) => {
                     $causationId: this.streamName,
                     causationRoute: this.causationRoute
                 })
-                console.log('My template ---_> ', template)
                 const event = await this.appendToStream(streamName, template);
-                console.log('My fresh Event', streamName, event)
                 if (event) {
                     state = await this.eventCompletedHandler(streamName, requestId);
                 }

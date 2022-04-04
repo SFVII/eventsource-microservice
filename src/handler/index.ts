@@ -69,14 +69,14 @@ const EventHandler = (mongoose: any) => {
                     this.stream[EventStream.StreamName] = this.SubscribeToPersistent(EventStream.StreamName);
             }
             Object.keys(this.stream).forEach((name: string) => this.dispatcher(this.stream[name]))
-            console.log(this.stream);
+           // console.log(this.stream);
             console.log(availableEvent);
         }
 
         private async dispatcher(subscription: PersistentSubscription) {
             for await (const resolvedEvent of subscription) {
                 const {event} = resolvedEvent;
-                console.log('Resolved Event --->', event);
+               // console.log('Resolved Event --->', event);
                 if (event) {
                     await this.handler(event);
                     await subscription.ack(resolvedEvent);
@@ -93,7 +93,7 @@ const EventHandler = (mongoose: any) => {
                 console.log('EventHandler', event.metadata.causationRoute, event.metadata.state)
                 const Routes = event.metadata.causationRoute;
                 const nextRoute: string | undefined = Routes.shift();
-                console.log('Nex Route', nextRoute)
+                console.log('Next Route', nextRoute)
                 if (nextRoute) {
                     if (event.metadata && event.metadata.state === "error") {
                         const template = this.template(event.type, event.data, {
@@ -102,7 +102,7 @@ const EventHandler = (mongoose: any) => {
                             state: event.metatada.state,
                             causationRoute: null
                         });
-                        console.log('send event to >', event.streamId, template);
+                        //console.log('send event to >', event.streamId, template);
                         await this.client.appendToStream(event.streamId, [template]).catch((err: any) => {
                             console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
                         })
@@ -113,7 +113,7 @@ const EventHandler = (mongoose: any) => {
                             state: Routes.length ? "processing" : "completed",
                             causationRoute: Routes
                         });
-                        console.log('send event to >', nextRoute, template);
+                       // console.log('send event to >', nextRoute, template);
                         await this.client.appendToStream(nextRoute, [template]).catch((err: any) => {
                             console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err);
                         })
