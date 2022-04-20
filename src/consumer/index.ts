@@ -6,7 +6,6 @@
  **  @Description
  ***********************************************************/
 import {
-    bigInt,
     END,
     EventCollection,
     EventEmitter,
@@ -24,7 +23,7 @@ import {
     MethodList,
     PersistentSubscription,
     PersistentSubscriptionBase,
-    persistentSubscriptionSettingsFromDefaults,
+    persistentSubscriptionSettingsFromDefaults, START,
     StreamSubscription
 } from "../core/global";
 
@@ -101,6 +100,7 @@ const EventConsumer = (mongoose: any) => {
 
         public async handler(event: any, data: any, status: string | null = null) {
             let template;
+            let statement;
             if (status === "error") {
                 template = this.template(event.type, data, {
                     $correlationId: event.metadata.$correlationId,
@@ -108,7 +108,11 @@ const EventConsumer = (mongoose: any) => {
                     state: status,
                     causationRoute: []
                 });
-
+                statement = this.template(event.type, data, {
+                    $correlationId: event.metadata.$correlationId,
+                    $causationId: event.streamId,
+                    state: 'error'
+                });
             } else {
                 template = this.template(event.type, data, {
                     $correlationId: event.metadata.$correlationId,
@@ -116,7 +120,17 @@ const EventConsumer = (mongoose: any) => {
                     state: event.metadata.state,
                     causationRoute: event.metadata.causationRoute
                 });
+                statement = this.template(event.type, data, {
+                    $correlationId: event.metadata.$correlationId,
+                    $causationId: event.streamId,
+                    state: 'completed'
+                });
             }
+
+            await this.client.appendToStream(this.streamName, [statement]).catch((err: any) => {
+                console.error(`Error EventHandler.handler.appendToStream.savePosition.${event.streamId}`, err);
+            })
+
             console.log('send event to >', event.metadata.$causationId, template);
             await this.client.appendToStream(event.metadata.$causationId, [template]).catch((err: any) => {
                 console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
@@ -125,10 +139,10 @@ const EventConsumer = (mongoose: any) => {
 
         public async ack(event: any) {
             await this.subscription.ack(event);
-            await _EventCollection.updateOne({
-                StreamName: this.streamName,
-                IsCreatedPersistent: true
-            }, {Revision: event.event.revision, UpdatedDate: new Date()}, {upsert: true}).exec();
+            /*  await _EventCollection.updateOne({
+                  StreamName: this.streamName,
+                  IsCreatedPersistent: true
+              }, {Revision: event.event.revision, UpdatedDate: new Date()}, {upsert: true}).exec();*/
         }
 
         private async init() {
@@ -140,12 +154,10 @@ const EventConsumer = (mongoose: any) => {
                 'IsCreatedPersistent'
             ]).lean();
             if (availableEvent) {
-                this.StartRevision = availableEvent.Revision ? (bigInt(availableEvent.Revision).add(1).valueOf() as unknown as bigint) : END;
-                const status = await this.CreatePersistentSubscription(
-                    this.streamName,
-                    availableEvent.IsCreatedPersistent);
-                if (status)
-                    this.stream = this.SubscribeToPersistent(this.streamName);
+                // availableEvent.Revision ? (bigInt(availableEvent.Revision).add(1).valueOf() as unknown as bigint) : END;
+               // const state = await this.CreatePersistentSubscription(this.streamName);
+                this.StartRevision = START;
+                this.stream = this.SubscribeToPersistent(this.streamName);
                 this.eventEmitter.emit('ready', true);
                 this.QueueListener();
             }
@@ -204,9 +216,9 @@ const EventConsumer = (mongoose: any) => {
             })
         }
 
-        private async CreatePersistentSubscription(streamName: string, exist: boolean = false): Promise<boolean> {
+        private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
             try {
-                if (exist) await this.client.deletePersistentSubscription(streamName, this.group)
+                //  if (exist) await this.client.deletePersistentSubscription(streamName, this.group)
                 await this.client.createPersistentSubscription(
                     streamName,
                     this.group,
@@ -221,12 +233,13 @@ const EventConsumer = (mongoose: any) => {
                 }, {IsCreatedPersistent: true}, {upsert: true}).exec();
                 return true;
             } catch (err) {
+
                 console.error('Error EventHandler.CreatePersistentSubscription', err);
                 return false;
             }
         }
-    }
 
+    }
 }
 
 

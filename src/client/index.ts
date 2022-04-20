@@ -91,7 +91,6 @@ const EventsPlugin = (mongoose: any) => {
                 $causationId: streamName,
                 causationRoute: causationRoute
             })
-            console.log('------->')
             const appendToStream = this.appendToStream.bind(this);
             return () => setTimeout(() => appendToStream(streamName, eventEnd), 500)
         }

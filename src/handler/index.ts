@@ -20,7 +20,7 @@ import {
     jsonEvent,
     Method,
     PersistentSubscription,
-    persistentSubscriptionSettingsFromDefaults
+    persistentSubscriptionSettingsFromDefaults, START
 } from "../core/global";
 
 // @ts-ignore
@@ -60,30 +60,26 @@ const EventHandler = (mongoose: any) => {
             ]).lean();
             this.streamName = availableEvent.map((event: IAvailableEvent) => event.StreamName);
             for (const EventStream of availableEvent) {
-                this.StartRevision[EventStream.StreamName] = EventStream.Revision ? (bigInt(EventStream.Revision).add(1).valueOf() as unknown as bigint) : END;
-                console.log(this.StartRevision[EventStream.StreamName], EventStream.Revision)
-                const status = await this.CreatePersistentSubscription(
-                    EventStream.StreamName,
-                    EventStream.IsCreatedPersistent);
-                if (status)
-                    this.stream[EventStream.StreamName] = this.SubscribeToPersistent(EventStream.StreamName);
+                this.StartRevision[EventStream.StreamName] = START;
+                await this.CreatePersistentSubscription(EventStream.StreamName);
+                this.stream[EventStream.StreamName] = this.SubscribeToPersistent(EventStream.StreamName);
             }
             Object.keys(this.stream).forEach((name: string) => this.dispatcher(this.stream[name]))
-           // console.log(this.stream);
+            // console.log(this.stream);
             console.log(availableEvent);
         }
 
         private async dispatcher(subscription: PersistentSubscription) {
             for await (const resolvedEvent of subscription) {
                 const {event} = resolvedEvent;
-               // console.log('Resolved Event --->', event);
+                // console.log('Resolved Event --->', event);
                 if (event) {
                     await this.handler(event);
                     await subscription.ack(resolvedEvent);
-                    await _EventCollection.updateOne({StreamName: event.streamId}, {
-                        Revision: event.revision,
-                        UpdateDate: new Date()
-                    }).exec()
+                    /* await _EventCollection.updateOne({StreamName: event.streamId}, {
+                         Revision: event.revision,
+                         UpdateDate: new Date()
+                     }).exec()*/
                 }
             }
         }
@@ -113,7 +109,7 @@ const EventHandler = (mongoose: any) => {
                             state: Routes.length ? "processing" : "completed",
                             causationRoute: Routes
                         });
-                       // console.log('send event to >', nextRoute, template);
+                        // console.log('send event to >', nextRoute, template);
                         await this.client.appendToStream(nextRoute, [template]).catch((err: any) => {
                             console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err);
                         })
@@ -142,9 +138,8 @@ const EventHandler = (mongoose: any) => {
             )
         }
 
-        private async CreatePersistentSubscription(streamName: string, exist: boolean = false): Promise<boolean> {
+        private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
             try {
-                if (exist) await this.client.deletePersistentSubscription(streamName, this.group)
                 await this.client.createPersistentSubscription(
                     streamName,
                     this.group,
@@ -154,13 +149,16 @@ const EventHandler = (mongoose: any) => {
                     }),
                     {credentials: this.credentials}
                 )
-                if (!exist) await _EventCollection.updateOne({
+                await _EventCollection.updateOne({
                     StreamName: streamName,
                     IsCreatedPersistent: true
                 }).exec();
                 return true;
             } catch (err) {
-                console.error('Error EventHandler.CreatePersistentSubscription', err);
+                if (err.toString().toLowerCase().includes('EXIST') || err.toLowerCase().includes('exist')) {
+                    console.log('Persistent subscription %s already exist', streamName)
+                    return true;
+                } else console.error('Error EventHandler.CreatePersistentSubscription', err);
                 return false;
             }
         }

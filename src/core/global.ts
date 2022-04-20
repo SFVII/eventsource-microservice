@@ -8,6 +8,7 @@
 import {
     BACKWARDS,
     END,
+    START,
     EventData,
     EventStoreDBClient,
     jsonEvent,
@@ -98,6 +99,7 @@ export {
     jsonEvent,
     EventStoreDBClient,
     END,
+    START,
     IDataLinkEvent,
     IEventHandlerGroup,
     IListStreamSubscription,
