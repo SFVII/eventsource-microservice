@@ -108,28 +108,14 @@ const EventConsumer = (mongoose: any) => {
                     state: status,
                     causationRoute: []
                 });
-                statement = this.template(event.type, data, {
-                    $correlationId: event.metadata.$correlationId,
-                    $causationId: event.streamId,
-                    state: 'error'
-                });
-            } else {
+            } else  {
                 template = this.template(event.type, data, {
                     $correlationId: event.metadata.$correlationId,
                     $causationId: event.streamId,
                     state: event.metadata.state,
                     causationRoute: event.metadata.causationRoute
                 });
-                statement = this.template(event.type, data, {
-                    $correlationId: event.metadata.$correlationId,
-                    $causationId: event.streamId,
-                    state: 'completed'
-                });
             }
-
-            await this.client.appendToStream(this.streamName, [statement]).catch((err: any) => {
-                console.error(`Error EventHandler.handler.appendToStream.savePosition.${event.streamId}`, err);
-            })
 
             console.log('send event to >', event.metadata.$causationId, template);
             await this.client.appendToStream(event.metadata.$causationId, [template]).catch((err: any) => {
