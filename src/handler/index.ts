@@ -6,8 +6,6 @@
  **  @Description
  ***********************************************************/
 import {
-    bigInt,
-    END,
     EventCollection,
     EventStoreDBClient,
     EventType,
@@ -20,7 +18,8 @@ import {
     jsonEvent,
     Method,
     PersistentSubscription,
-    persistentSubscriptionSettingsFromDefaults, START
+    persistentSubscriptionSettingsFromDefaults,
+    START
 } from "../core/global";
 
 // @ts-ignore
@@ -155,7 +154,8 @@ const EventHandler = (mongoose: any) => {
                 }).exec();
                 return true;
             } catch (err) {
-                if (err.toString().toLowerCase().includes('EXIST') || err.toLowerCase().includes('exist')) {
+                const error = (err ? err.toString() : "").toLowerCase();
+                if (error.includes('EXIST') || error.includes('exist')) {
                     console.log('Persistent subscription %s already exist', streamName)
                     return true;
                 } else console.error('Error EventHandler.CreatePersistentSubscription', err);
