@@ -222,10 +222,11 @@ const EventsPlugin = (mongoose: any) => {
         private async init() {
             const streamName = `${this.streamName}`;
             const exist: IEventCollection = await _EventCollection.findOne({StreamName: streamName}).lean();
-            this.StartRevision = exist && exist.Revision ? BigInt(exist.Revision) : END;
+            this.StartRevision = END;
             if (!exist) {
-                await this.appendToStream(streamName, this.template('init', {init: true},
-                    {state: 'stalled'}))
+                console.log('Stream Does not exist')
+                /*await this.appendToStream(streamName, this.template('init', {init: true},
+                    {state: 'stalled'}))*/
             }
 
         }

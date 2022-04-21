@@ -141,7 +141,7 @@ const EventConsumer = (mongoose: any) => {
             ]).lean();
             if (availableEvent) {
                 // availableEvent.Revision ? (bigInt(availableEvent.Revision).add(1).valueOf() as unknown as bigint) : END;
-               // const state = await this.CreatePersistentSubscription(this.streamName);
+                const state = await this.CreatePersistentSubscription(this.streamName);
                 this.StartRevision = START;
                 this.stream = this.SubscribeToPersistent(this.streamName);
                 this.eventEmitter.emit('ready', true);
