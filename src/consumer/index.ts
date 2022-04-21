@@ -140,6 +140,7 @@ const EventConsumer = (mongoose: any) => {
                 'IsCreatedPersistent'
             ]).lean();
             if (availableEvent) {
+                console.log('consumer init >', this.streamName)
                 // availableEvent.Revision ? (bigInt(availableEvent.Revision).add(1).valueOf() as unknown as bigint) : END;
                 const state = await this.CreatePersistentSubscription(this.streamName);
                 this.StartRevision = START;
@@ -204,6 +205,13 @@ const EventConsumer = (mongoose: any) => {
 
         private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
             try {
+                console.log({
+                    name : streamName,
+                    group : this.group,
+                    startFrom: this.StartRevision,
+                    resolveLinkTos: true,
+                    credentials : {credentials: this.credentials}
+                })
                 //  if (exist) await this.client.deletePersistentSubscription(streamName, this.group)
                 await this.client.createPersistentSubscription(
                     streamName,
