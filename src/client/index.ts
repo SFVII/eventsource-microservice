@@ -21,6 +21,7 @@ import {
     md5,
     Method,
     MethodList,
+    persistentSubscriptionSettingsFromDefaults,
     StreamSubscription
 } from "../core/global";
 import {IEventCollection} from "../core/mongo-plugin";
@@ -221,13 +222,9 @@ const EventsPlugin = (mongoose: any) => {
 
         private async init() {
             const streamName = `${this.streamName}`;
-            const exist: IEventCollection = await _EventCollection.findOne({StreamName: streamName}).lean();
+          //  const exist: IEventCollection = await _EventCollection.findOne({StreamName: streamName}).lean();
             this.StartRevision = END;
-            if (!exist) {
-                console.log('Stream Does not exist')
-                /*await this.appendToStream(streamName, this.template('init', {init: true},
-                    {state: 'stalled'}))*/
-            }
+            await this.CreatePersistentSubscription(this.streamName);
 
         }
 
@@ -241,6 +238,29 @@ const EventsPlugin = (mongoose: any) => {
 
         private GenerateEventInternalId(data: DataModel | DataModel[], method: MethodList) {
             return md5(JSON.stringify({payload: data, method}));
+        }
+
+        private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
+            try {
+                //  if (exist) await this.client.deletePersistentSubscription(streamName, this.group)
+                await this.client.createPersistentSubscription(
+                    streamName,
+                    'customer',
+                    persistentSubscriptionSettingsFromDefaults({
+                        startFrom: this.StartRevision,
+                        resolveLinkTos: true
+                    }),
+                    {credentials: this.credentials}
+                )
+                await _EventCollection.updateOne({
+                    StreamName: streamName
+                }, {IsCreatedPersistent: true}, {upsert: true}).exec();
+                return true;
+            } catch (err) {
+
+                console.error('Error EventHandler.CreatePersistentSubscription', err);
+                return false;
+            }
         }
     };
 }
