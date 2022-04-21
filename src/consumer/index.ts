@@ -217,7 +217,7 @@ const EventConsumer = (mongoose: any) => {
                     streamName,
                     this.group,
                     persistentSubscriptionSettingsFromDefaults({
-                        startFrom: this.StartRevision,
+                        startFrom: END,
                         resolveLinkTos: true
                     }),
                     {credentials: this.credentials}
