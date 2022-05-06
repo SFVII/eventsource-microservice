@@ -8,13 +8,13 @@
 import {
     BACKWARDS,
     END,
-    START,
     EventData,
     EventStoreDBClient,
     jsonEvent,
     JSONType,
     PersistentSubscriptionBase,
     persistentSubscriptionSettingsFromDefaults,
+    START,
     StreamSubscription
 } from "@eventstore/db-client";
 import md5 from "md5";
@@ -28,6 +28,8 @@ enum EMethodList {
     create,
     update,
     delete,
+    recover,
+    worker,
     init
 }
 
@@ -46,11 +48,11 @@ type IQueue = {
 
 type IQueueCustom = {
     [V in MethodList]?: { [key: string]: StreamSubscription[] }
-}
+} & IQueue
 
 interface ITemplateEvent {
     $correlationId?: string;
-    state?: 'processing' | 'completed' | 'stalled' | 'delivered' | 'error'
+    state?: 'processing' | 'completed' | 'stalled' | 'delivered' | 'error' | 'system'
 
     [key: string]: any;
 }

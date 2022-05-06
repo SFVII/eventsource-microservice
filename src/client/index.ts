@@ -29,17 +29,16 @@ import {IEventCollection} from "../core/mongo-plugin";
 const EventsPlugin = (mongoose: any) => {
     const _EventCollection = EventCollection(mongoose);
     return class _EventsPlugin<DataModel extends JSONType> {
-        protected methods: Method;
+        protected methods: string[];
         protected streamName: string;
         protected client: EventStoreDBClient;
         protected credentials: IEvenStoreConfig["credentials"];
         private StartRevision: IStartRevisionValues;
         private stream: StreamSubscription;
         private readonly causationRoute: string[];
-
         constructor(EvenStoreConfig: IEvenStoreConfig,
                     streamName: string,
-                    methods: Method,
+                    methods: string[],
                     causationRoute: string[]) {
             this.methods = methods;
             this.streamName = streamName;
@@ -50,39 +49,22 @@ const EventsPlugin = (mongoose: any) => {
             this.credentials = EvenStoreConfig.credentials;
             this.causationRoute = causationRoute;
             this.init().catch((err) => {
+                for (const method of this.methods) {
+                    // @ts-ignore
+                    this[method] = async (data:DataModel | DataModel[]) => {
+                        const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
+                        return {
+                            data: payload,
+                            ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
+                        };
+                    }
+                }
                 console.log('EventsPlugin', err);
             })
         }
 
-        public async add(data: DataModel | DataModel[]) {
-            const method = 'create';
-            const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
-            return {
-                data: payload,
-                ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
-            };
-        }
-
-        public async update(data: DataModel | DataModel[]) {
-            const method = 'update';
-            const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
-            return {
-                data: payload,
-                ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
-            };
-        }
-
-        public async delete(data: DataModel | DataModel[]) {
-            const method = 'delete';
-            const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
-            return {
-                data: payload,
-                ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
-            };
-        }
-
         private delivered(requestId: string,
-                          method: 'create' | 'update' | 'delete',
+                          method: string,
                           payload: any,
                           streamName: string,
                           causationRoute: string[]) {
@@ -96,7 +78,7 @@ const EventsPlugin = (mongoose: any) => {
             return () => setTimeout(() => appendToStream(streamName, eventEnd), 500)
         }
 
-        private async EventMiddlewareEmitter(data: DataModel | DataModel[], method: MethodList) {
+        private async EventMiddlewareEmitter(data: DataModel | DataModel[], method: string) {
             const requestId = this.GenerateEventInternalId(data, method);
             const streamName = `${this.streamName}`
             let state: DataModel | DataModel[] | "processing" | null = await this.processStateChecker(requestId);
@@ -142,6 +124,7 @@ const EventsPlugin = (mongoose: any) => {
                     data = event.data;
                     this.StartRevision = BigInt(event.revision) > BigInt(100n) ? BigInt(event.revision - 100n) : this.StartRevision;
                     break;
+
                 }
             }
             await stream.unsubscribe();
@@ -195,6 +178,7 @@ const EventsPlugin = (mongoose: any) => {
                             switch (event.metadata?.state) {
                                 // In case of delivered we allow user to renew the entry
                                 case 'delivered':
+
                                     subscription.destroy();
                                     return null;
                                 // In case of complete we send the last information to the user
@@ -228,7 +212,7 @@ const EventsPlugin = (mongoose: any) => {
 
         }
 
-        private template(type: EventType, data: DataModel | DataModel[] | any, metadata: ITemplateEvent) {
+        private template(type: string, data: DataModel | DataModel[] | any, metadata: ITemplateEvent) {
             return jsonEvent({
                 type,
                 data,
@@ -236,7 +220,7 @@ const EventsPlugin = (mongoose: any) => {
             })
         }
 
-        private GenerateEventInternalId(data: DataModel | DataModel[], method: MethodList) {
+        private GenerateEventInternalId(data: DataModel | DataModel[], method: string) {
             return md5(JSON.stringify({payload: data, method}));
         }
 

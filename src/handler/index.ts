@@ -8,7 +8,6 @@
 import {
     EventCollection,
     EventStoreDBClient,
-    EventType,
     IAvailableEvent,
     IEvenStoreConfig,
     IEventHandlerGroup,
@@ -71,14 +70,9 @@ const EventHandler = (mongoose: any) => {
         private async dispatcher(subscription: PersistentSubscription) {
             for await (const resolvedEvent of subscription) {
                 const {event} = resolvedEvent;
-                // console.log('Resolved Event --->', event);
                 if (event) {
                     await this.handler(event);
                     await subscription.ack(resolvedEvent);
-                    /* await _EventCollection.updateOne({StreamName: event.streamId}, {
-                         Revision: event.revision,
-                         UpdateDate: new Date()
-                     }).exec()*/
                 }
             }
         }
@@ -87,7 +81,7 @@ const EventHandler = (mongoose: any) => {
             if (Array.isArray(event.metadata.causationRoute)) {
                 console.log('EventHandler', event.metadata.causationRoute, event.metadata.state)
                 const Routes = event.metadata.causationRoute;
-                const nextRoute: string | undefined = Routes.shift();
+                const nextRoute: string | string[] | undefined = Routes.shift();
                 console.log('Next Route', nextRoute)
                 if (nextRoute) {
                     if (event.metadata && event.metadata.state === "error") {
@@ -102,16 +96,33 @@ const EventHandler = (mongoose: any) => {
                             console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
                         })
                     } else if (event.metadata && (event.metadata.state === 'processing')) {
-                        const template = this.template(event.type, event.data, {
-                            $correlationId: event.metadata.$correlationId,
-                            $causationId: event.streamId,
-                            state: Routes.length ? "processing" : "completed",
-                            causationRoute: Routes
-                        });
+
+                        if (nextRoute && Array.isArray(nextRoute)) {
+                            const template = this.template(event.type, event.data, {
+                                $correlationId: event.metadata.$correlationId,
+                                $causationId: event.streamId,
+                                state: "system",
+                                causationRoute: null
+                            });
+                            nextRoute.forEach((route: string) => this.client.appendToStream(route, [template])
+                                .catch((err: any) => {
+                                    console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err);
+                                }))
+                            event.metadata.causationRoute = Routes;
+                            await this.handler(event);
+                        } else {
+                            const template = this.template(event.type, event.data, {
+                                $correlationId: event.metadata.$correlationId,
+                                $causationId: event.streamId,
+                                state: Routes.length ? "processing" : "completed",
+                                causationRoute: Routes
+                            });
+                            await this.client.appendToStream(nextRoute, [template]).catch((err: any) => {
+                                console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err);
+                            })
+                        }
                         // console.log('send event to >', nextRoute, template);
-                        await this.client.appendToStream(nextRoute, [template]).catch((err: any) => {
-                            console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err);
-                        })
+
                     } else if (event.metadata.state === 'delivered') {
                         // @todo check if event.nack exist
                         //event.ack(event);
@@ -122,7 +133,7 @@ const EventHandler = (mongoose: any) => {
             }
         }
 
-        private template(type: EventType, data: any, metadata: ITemplateEvent) {
+        private template(type: string, data: any, metadata: ITemplateEvent) {
             return jsonEvent({
                 type,
                 data,

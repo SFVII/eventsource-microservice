@@ -23,10 +23,10 @@ import {
     MethodList,
     PersistentSubscription,
     PersistentSubscriptionBase,
-    persistentSubscriptionSettingsFromDefaults, START,
+    persistentSubscriptionSettingsFromDefaults,
+    START,
     StreamSubscription
 } from "../core/global";
-
 
 const EventConsumer = (mongoose: any) => {
     const _EventCollection = EventCollection(mongoose);
@@ -40,23 +40,17 @@ const EventConsumer = (mongoose: any) => {
         private client: EventStoreDBClient;
         private StartRevision: IStartRevisionValues;
         private stream: StreamSubscription;
-        private readonly customQueue: boolean;
         private readonly Queue: IQueue | IQueueCustom;
 
         constructor(EvenStoreConfig: IEvenStoreConfig,
                     StreamName: string,
-                    group: IEventHandlerGroup = 'consumers', customQueue = false) {
-            this.customQueue = customQueue;
-            if (customQueue) this.Queue = {
-                create: {},
-                update: {},
-                delete: {}
-            }
-            else this.Queue = {
-                create: [],
-                update: [],
-                delete: []
-            }
+                    queue: IQueue | IQueueCustom = {
+                        create: [],
+                        update: [],
+                        delete: []
+                    }, group: IEventHandlerGroup = 'consumers') {
+            //   this.customQueue = customQueue;
+            this.Queue = {...queue, ...{worker: []}}
             this.streamName = StreamName;
             this.group = group;
             this.client = new EventStoreDBClient(
@@ -72,6 +66,9 @@ const EventConsumer = (mongoose: any) => {
             return <PersistentSubscriptionBase<any>>this.stream;
         }
 
+
+
+
         on(key: 'ready' & MethodList, callback: (message: any) => void) {
             this.eventEmitter.on(key, (msg: any) => {
                 callback(msg)
@@ -79,7 +76,7 @@ const EventConsumer = (mongoose: any) => {
         }
 
         public AddToQueue(type: MethodList, ResolvedEvent: StreamSubscription, name?: string) {
-            if (this.customQueue && name && this.Queue && this.Queue[type]) {
+            if (!Array.isArray(this.Queue[type]) && name && this.Queue && this.Queue[type]) {
                 // @ts-ignore
                 if (!this.Queue[type][name]) this.Queue[type][name] = [];
                 // @ts-ignore
@@ -108,7 +105,7 @@ const EventConsumer = (mongoose: any) => {
                     state: status,
                     causationRoute: []
                 });
-            } else  {
+            } else {
                 template = this.template(event.type, data, {
                     $correlationId: event.metadata.$correlationId,
                     $causationId: event.streamId,
@@ -154,7 +151,7 @@ const EventConsumer = (mongoose: any) => {
             setInterval(() => {
                 Object.keys(this.Queue).forEach((type: MethodList) => {
                     // @ts-ignore
-                    if (this.customQueue) {
+                    if (!Array.isArray(this.Queue[type])) {
                         // @ts-ignore
                         if (this.Queue[type] && Object.keys(this.Queue[type]).length) {
                             // @ts-ignore
@@ -206,11 +203,11 @@ const EventConsumer = (mongoose: any) => {
         private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
             try {
                 console.log({
-                    name : streamName,
-                    group : this.group,
-                    startFrom: this.StartRevision,
+                    name: streamName,
+                    group: this.group,
+                    startFrom: END,
                     resolveLinkTos: true,
-                    credentials : {credentials: this.credentials}
+                    credentials: {credentials: this.credentials}
                 })
                 //  if (exist) await this.client.deletePersistentSubscription(streamName, this.group)
                 await this.client.createPersistentSubscription(
