@@ -6,6 +6,7 @@
  **  @Description
  ***********************************************************/
 import {
+    END,
     EventStoreDBClient,
     IEvenStoreConfig,
     IEventHandlerGroup,
@@ -221,7 +222,7 @@ class EventHandler {
         this.stream = {};
         for (const stream of this.streamList) {
             console.log('subscribe to stream > %s', stream)
-            this.StartRevision[stream] = START;
+            this.StartRevision[stream] = END;
             await this.CreatePersistentSubscription(stream).catch((err: any) => console.warn('warning', err));
             this.stream[stream] = this.SubscribeToPersistent(stream);
         }

@@ -102,7 +102,7 @@ class EventsPlugin<DataModel> {
     private async eventCompletedHandler(streamName: string, EventId: string) {
         let data = null;
         const stream = this.client.subscribeToStream(streamName, {
-            fromRevision: this.StartRevision,
+            fromRevision: END,
             resolveLinkTos: true,
         })
         // @ts-ignore
