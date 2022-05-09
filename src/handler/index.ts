@@ -242,27 +242,23 @@ class EventHandler {
         if (Array.isArray(event.metadata.causationRoute)) {
             const Routes = event.metadata.causationRoute;
             const nextRoute: string | string[] | undefined = Routes.shift();
-            console.log('[EVENT TRACK] [%s] Incoming event (route > %s) \t\tnext event (%s)',
-                event.metadata.state.toUpperCase(),
-                nextRoute,
-                (Routes && Routes.length ? Routes[0] : 'COMPLETED'))
-            if (nextRoute) {
+            if (event.metadata && event.metadata.state === "error") {
+                console.log('[EVENT TRACK] [%s] Incoming event error details: ', event.data)
+                const template = this.template(event.type, event.data, {
+                    $correlationId: event.metadata.$correlationId,
+                    $causationId: event.metadata.$causationId,
+                    state: event.metatada.state,
+                    causationRoute: null
+                });
+                await this.client.appendToStream(event.streamId, [template]).catch((err: any) => {
+                    console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
+                })
+            } else if (nextRoute) {
                 console.log('[EVENT TRACK] [%s] Incoming event (route > %s) \t\tnext event (%s)',
                     event.metadata.state.toUpperCase(),
                     nextRoute,
                     (Routes && Routes.length ? Routes[0] : 'COMPLETED'))
-                if (event.metadata && event.metadata.state === "error") {
-                    const template = this.template(event.type, event.data, {
-                        $correlationId: event.metadata.$correlationId,
-                        $causationId: event.metadata.$causationId,
-                        state: event.metatada.state,
-                        causationRoute: null
-                    });
-                    //console.log('send event to >', event.streamId, template);
-                    await this.client.appendToStream(event.streamId, [template]).catch((err: any) => {
-                        console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
-                    })
-                } else if (event.metadata && (event.metadata.state === 'processing')) {
+                if (event.metadata && (event.metadata.state === 'processing')) {
 
                     if (nextRoute && Array.isArray(nextRoute)) {
                         const template = this.template(event.type, event.data, {
@@ -302,12 +298,11 @@ class EventHandler {
                             console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err))))
                 } else if (event.metadata.state === 'delivered') {
                     // @todo check if event.nack exist
-                    event.ack(event);
+
                 }
             } else {
                 console.log('[EVENT TRACK] [%s] last step event )',
                     event.metadata.state.toUpperCase())
-                event.ack(event);
             }
         } else {
             console.warn('BAD EVENT FORMAT', event)
