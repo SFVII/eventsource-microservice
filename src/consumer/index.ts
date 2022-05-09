@@ -24,6 +24,7 @@ import {
     START,
     StreamSubscription
 } from "../core/global";
+import {JSONEventType} from "@eventstore/db-client";
 
 class EventConsumer {
     public QueueTTL = 200;
@@ -80,7 +81,7 @@ class EventConsumer {
         })
     }
 
-    public AddToQueue(type: MethodList, ResolvedEvent: EventType, name?: string) {
+    public AddToQueue(type: MethodList, ResolvedEvent: JSONEventType, name?: string) {
         if (!Array.isArray(this.Queue[type]) && name && this.Queue && this.Queue[type]) {
             // @ts-ignore
             if (!this.Queue[type][name]) this.Queue[type][name] = [];
