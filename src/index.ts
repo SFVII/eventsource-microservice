@@ -10,27 +10,21 @@
 import EventHandler from "./handler";
 import EventConsumer from "./consumer";
 import EventsPlugin from "./client";
-import {IEvenStoreConfig, IEventHandlerGroup, Method, JSONType, IQueue, IQueueCustom} from "./core/global";
+import {IEvenStoreConfig, IEventHandlerGroup, IQueue, IQueueCustom, ITriggerList, JSONType} from "./core/global";
 
 
-class _EventsPlugin<T> {}
-class _EventConsumer {}
-class _EventHandler {}
+export type IClient = { new<DataModel extends JSONType>(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]): EventsPlugin<DataModel>}
+export type IConsumer = { new(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue: IQueue | IQueueCustom, group?: IEventHandlerGroup): EventConsumer }
+export type IHandler = { new(EvenStoreConfig: IEvenStoreConfig, streamList?: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup): EventHandler }
 
-
-export type IClient = { new<DataModel extends JSONType>(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]): _EventsPlugin<DataModel>; prototype: _EventsPlugin<any> }
-export type IConsumer = { new(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue:IQueue | IQueueCustom, group?: IEventHandlerGroup): _EventConsumer; prototype: _EventConsumer }
-export type IHandler = { new(EvenStoreConfig: IEvenStoreConfig, group?: IEventHandlerGroup): _EventHandler; prototype: _EventHandler }
-
-const Instance = (type: 'handler' | 'consumer' | 'client', mongoose: any): EventHandler | IConsumer | IClient => {
+const Instance = <T>(type: 'handler' | 'consumer' | 'client'): IClient | IConsumer | IHandler => {
     switch (type) {
         case 'handler':
-            // @ts-ignore
             return EventHandler;
         case 'consumer':
-            return EventConsumer(mongoose);
+            return EventConsumer;
         case 'client':
-            return EventsPlugin(mongoose);
+            return EventsPlugin;
     }
 }
 
