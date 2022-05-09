@@ -9,14 +9,14 @@ import { IEvenStoreConfig, IEventHandlerGroup, ITriggerList, Method } from "../c
 declare class EventHandler {
     protected methods: Method;
     protected streamName: string[];
-    protected globalStreamName: string;
+    protected group: string;
     protected streamList: string[];
     protected credentials: IEvenStoreConfig["credentials"];
     protected triggerOnComplete: ITriggerList[];
     private client;
     private StartRevision;
     private stream;
-    constructor(EvenStoreConfig: IEvenStoreConfig, dispatcherList: string[], triggerOnComplete?: ITriggerList[], globalStreamName?: IEventHandlerGroup);
+    constructor(EvenStoreConfig: IEvenStoreConfig, streamList: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup);
     private init;
     private dispatcher;
     private handler;
