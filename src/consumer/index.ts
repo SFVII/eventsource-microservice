@@ -61,6 +61,18 @@ class EventConsumer {
         return <PersistentSubscriptionBase<any>>this.stream;
     }
 
+    exchange(stream: string, type: MethodList, id: string, data: any) {
+        const template = this.template(type, data, {
+            $correlationId: id,
+            $causationId: this.streamName,
+            state: 'trigger',
+            causationRoute: []
+        });
+        this.client.appendToStream(stream, [template]).catch((err: any) => {
+            console.error(`Error EventHandler.handler.appendToStream.${id}`, err);
+        }).catch()
+    }
+
 
     on(key: 'ready' & MethodList, callback: (message: any) => void) {
         this.eventEmitter.on(key, (msg: any) => {

@@ -37,7 +37,7 @@ type MethodList = keyof typeof EMethodList;
 type Method = MethodList[];
 type IStartRevisionValues = bigint | 'start' | 'end'
 type EventType = keyof typeof EMethodList;
-type IEventHandlerGroup = 'dispatch' | 'consumers';
+type IEventHandlerGroup = 'dispatch' | 'consumers' | 'global-event-handler';
 type IDataLinkEvent = [string, any];
 type IStream = {
     [V in MethodList]?: StreamSubscription

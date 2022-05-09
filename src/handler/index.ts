@@ -191,7 +191,7 @@ try {
 class EventHandler {
     protected methods: Method;
     protected streamName: string[];
-    protected group: string;
+    protected globalStreamName: string;
     protected streamList: string[];
     protected credentials: IEvenStoreConfig["credentials"];
     protected triggerOnComplete: ITriggerList[] = [];
@@ -200,11 +200,11 @@ class EventHandler {
     private stream: IListStreamSubscription;
 
     constructor(EvenStoreConfig: IEvenStoreConfig,
-                streamList: string[],
+                dispatcherList: string[],
                 triggerOnComplete: ITriggerList[] = [],
-                group: IEventHandlerGroup = 'dispatch') {
-        this.group = group;
-        this.streamList = streamList;
+                globalStreamName: IEventHandlerGroup = 'global-event-handler') {
+        this.globalStreamName = globalStreamName;
+        this.streamList = dispatcherList;
         this.triggerOnComplete = triggerOnComplete || [];
         this.client = new EventStoreDBClient(
             EvenStoreConfig.connexion,
@@ -316,8 +316,8 @@ class EventHandler {
 
     private SubscribeToPersistent(streamName: string) {
         return this.client.subscribeToPersistentSubscription(
+            this.globalStreamName,
             streamName,
-            this.group,
             {
                 bufferSize: 10
             }
@@ -327,8 +327,8 @@ class EventHandler {
     private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
         try {
             await this.client.createPersistentSubscription(
+                this.globalStreamName,
                 streamName,
-                this.group,
                 persistentSubscriptionSettingsFromDefaults({
                     startFrom: this.StartRevision[streamName],
                     resolveLinkTos: true
