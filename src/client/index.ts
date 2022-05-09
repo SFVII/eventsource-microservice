@@ -21,7 +21,7 @@ import {
     StreamSubscription
 } from "../core/global";
 
-class EventsPlugin<DataModel extends JSONType> {
+class EventsPlugin<DataModel> {
     protected methods: string[];
     protected streamName: string;
     protected client: EventStoreDBClient;

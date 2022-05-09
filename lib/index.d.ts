@@ -8,9 +8,9 @@
 import EventHandler from "./handler";
 import EventConsumer from "./consumer";
 import EventsPlugin from "./client";
-import { IEvenStoreConfig, IEventHandlerGroup, IQueue, IQueueCustom, ITriggerList, JSONType } from "./core/global";
+import { IEvenStoreConfig, IEventHandlerGroup, IQueue, IQueueCustom, ITriggerList } from "./core/global";
 export declare type IClient = {
-    new <DataModel extends JSONType>(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]): EventsPlugin<DataModel>;
+    new <DataModel>(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]): EventsPlugin<DataModel>;
 };
 export declare type IConsumer = {
     new (EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue: IQueue | IQueueCustom, group?: IEventHandlerGroup): EventConsumer;
