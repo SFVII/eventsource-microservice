@@ -63,13 +63,13 @@ class EventConsumer {
 
     exchange(stream: string, type: MethodList, data: any) {
         const template = this.template(type, data, {
-            $correlationId: id,
+            //$correlationId: id,
             $causationId: this.streamName,
             state: 'trigger',
             causationRoute: []
         });
         this.client.appendToStream(stream, [template]).catch((err: any) => {
-            console.error(`Error EventHandler.handler.appendToStream.${id}`, err);
+            console.error(`Error EventHandler.handler.appendToStream`, err);
         }).catch()
     }
 
