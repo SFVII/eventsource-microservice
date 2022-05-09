@@ -5,7 +5,7 @@
  **  @Date 10/02/2022
  **  @Description
  ***********************************************************/
-import { IEvenStoreConfig, IEventHandlerGroup, IQueue, IQueueCustom, Method, MethodList, PersistentSubscription, StreamSubscription } from "../core/global";
+import { EventType, IEvenStoreConfig, IEventHandlerGroup, IQueue, IQueueCustom, Method, MethodList, PersistentSubscription } from "../core/global";
 declare class EventConsumer {
     QueueTTL: number;
     protected methods: Method;
@@ -21,7 +21,7 @@ declare class EventConsumer {
     get subscription(): PersistentSubscription;
     exchange(stream: string, type: MethodList, data: any): void;
     on(key: 'ready' & MethodList & string, callback: (message: any) => void): void;
-    AddToQueue(type: MethodList, ResolvedEvent: StreamSubscription, name?: string): void;
+    AddToQueue(type: MethodList, ResolvedEvent: EventType, name?: string): void;
     handler(event: any, data: any, status?: string | null): Promise<void>;
     ack(event: any): Promise<void>;
     private init;

@@ -80,7 +80,7 @@ class EventConsumer {
         })
     }
 
-    public AddToQueue(type: MethodList, ResolvedEvent: StreamSubscription, name?: string) {
+    public AddToQueue(type: MethodList, ResolvedEvent: EventType, name?: string) {
         if (!Array.isArray(this.Queue[type]) && name && this.Queue && this.Queue[type]) {
             // @ts-ignore
             if (!this.Queue[type][name]) this.Queue[type][name] = [];
