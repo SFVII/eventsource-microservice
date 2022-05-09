@@ -17,8 +17,7 @@ import {
     jsonEvent,
     Method,
     PersistentSubscription,
-    persistentSubscriptionSettingsFromDefaults,
-    START
+    persistentSubscriptionSettingsFromDefaults
 } from "../core/global";
 
 // @ts-ignore
@@ -248,6 +247,10 @@ class EventHandler {
                 nextRoute,
                 (Routes && Routes.length ? Routes[0] : 'COMPLETED'))
             if (nextRoute) {
+                console.log('[EVENT TRACK] [%s] Incoming event (route > %s) \t\tnext event (%s)',
+                    event.metadata.state.toUpperCase(),
+                    nextRoute,
+                    (Routes && Routes.length ? Routes[0] : 'COMPLETED'))
                 if (event.metadata && event.metadata.state === "error") {
                     const template = this.template(event.type, event.data, {
                         $correlationId: event.metadata.$correlationId,
@@ -301,6 +304,10 @@ class EventHandler {
                     // @todo check if event.nack exist
                     event.ack(event);
                 }
+            } else {
+                console.log('[EVENT TRACK] [%s] last step event )',
+                    event.metadata.state.toUpperCase())
+                event.ack(event);
             }
         } else {
             console.warn('BAD EVENT FORMAT', event)
