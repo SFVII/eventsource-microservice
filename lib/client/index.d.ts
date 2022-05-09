@@ -25,6 +25,5 @@ declare class EventsPlugin<DataModel> {
     private init;
     private template;
     private GenerateEventInternalId;
-    private CreatePersistentSubscription;
 }
 export default EventsPlugin;

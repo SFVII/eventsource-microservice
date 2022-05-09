@@ -15,9 +15,7 @@ import {
     IStartRevisionValues,
     ITemplateEvent,
     jsonEvent,
-    JSONType,
     md5,
-    persistentSubscriptionSettingsFromDefaults,
     StreamSubscription
 } from "../core/global";
 
@@ -42,18 +40,16 @@ class EventsPlugin<DataModel> {
             EvenStoreConfig.credentials);
         this.credentials = EvenStoreConfig.credentials;
         this.causationRoute = causationRoute;
-        this.init().then(() => {
-            for (const method of this.methods) {
-                // @ts-ignore
-                this[method] = async (data: DataModel | DataModel[]) => {
-                    const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
-                    return {
-                        data: payload,
-                        ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
-                    };
-                }
+        for (const method of this.methods) {
+            // @ts-ignore
+            this[method] = async (data: DataModel | DataModel[]) => {
+                const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
+                return {
+                    data: payload,
+                    ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
+                };
             }
-        }).catch((err) => console.log('EventsPlugin', err));
+        }
     }
 
     private delivered(requestId: string,
@@ -184,10 +180,6 @@ class EventsPlugin<DataModel> {
     }
 
     private async init() {
-        const streamName = `${this.streamName}`;
-        //  const exist: IEventCollection = await _EventCollection.findOne({StreamName: streamName}).lean();
-        this.StartRevision = END;
-        await this.CreatePersistentSubscription(this.streamName);
 
     }
 
@@ -201,29 +193,6 @@ class EventsPlugin<DataModel> {
 
     private GenerateEventInternalId(data: DataModel | DataModel[], method: string) {
         return md5(JSON.stringify({payload: data, method}));
-    }
-
-    private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
-        try {
-            //  if (exist) await this.client.deletePersistentSubscription(streamName, this.group)
-            await this.client.createPersistentSubscription(
-                streamName,
-                'customer',
-                persistentSubscriptionSettingsFromDefaults({
-                    startFrom: this.StartRevision,
-                    resolveLinkTos: true
-                }),
-                {credentials: this.credentials}
-            )
-            return true;
-        } catch (err) {
-            const error = (err ? err.toString() : "").toLowerCase();
-            if (error.includes('EXIST') || error.includes('exist')) {
-                console.log('Persistent subscription %s already exist', streamName)
-                return true;
-            } else console.error('Error EventHandler.CreatePersistentSubscription', err);
-            return false;
-        }
     }
 }
 
