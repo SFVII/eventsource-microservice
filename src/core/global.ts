@@ -52,7 +52,7 @@ type IQueueCustom = {
 
 interface ITemplateEvent {
     $correlationId?: string;
-    state?: 'processing' | 'completed' | 'stalled' | 'delivered' | 'error' | 'system'
+    state?: 'processing' | 'completed' | 'stalled' | 'delivered' | 'error' | 'system' | 'trigger'
 
     [key: string]: any;
 }
@@ -90,8 +90,14 @@ interface IListStreamSubscription {
     [key: string]: PersistentSubscription;
 }
 
+interface ITriggerList {
+    causationId: string,
+    trigger: string[]
+}
+
 
 export {
+    ITriggerList,
     EventEmitter,
     bigInt,
     PersistentSubscription,

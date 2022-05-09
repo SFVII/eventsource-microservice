@@ -22,10 +22,11 @@ export type IClient = { new<DataModel extends JSONType>(EvenStoreConfig: IEvenSt
 export type IConsumer = { new(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue:IQueue | IQueueCustom, group?: IEventHandlerGroup): _EventConsumer; prototype: _EventConsumer }
 export type IHandler = { new(EvenStoreConfig: IEvenStoreConfig, group?: IEventHandlerGroup): _EventHandler; prototype: _EventHandler }
 
-const Instance = (type: 'handler' | 'consumer' | 'client', mongoose: any): IClient | IConsumer | IHandler => {
+const Instance = (type: 'handler' | 'consumer' | 'client', mongoose: any): EventHandler | IConsumer | IClient => {
     switch (type) {
         case 'handler':
-            return EventHandler(mongoose);
+            // @ts-ignore
+            return EventHandler;
         case 'consumer':
             return EventConsumer(mongoose);
         case 'client':
