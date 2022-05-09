@@ -61,7 +61,7 @@ class EventConsumer {
         return <PersistentSubscriptionBase<any>>this.stream;
     }
 
-    exchange(stream: string, type: MethodList, id: string, data: any) {
+    exchange(stream: string, type: MethodList, data: any) {
         const template = this.template(type, data, {
             $correlationId: id,
             $causationId: this.streamName,
