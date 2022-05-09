@@ -240,10 +240,12 @@ class EventHandler {
 
     private async handler(event: any) {
         if (Array.isArray(event.metadata.causationRoute)) {
-            console.log('EventHandler', event.metadata.causationRoute, event.metadata.state)
             const Routes = event.metadata.causationRoute;
             const nextRoute: string | string[] | undefined = Routes.shift();
-            console.log('next step > ', nextRoute)
+            console.log('[EVENT TRACK] [%s] Incoming event (route > %s) \t\tnext event (%s)',
+                event.metadata.state.toUpperCase(),
+                nextRoute,
+                (Routes && Routes.length ? Routes[0] : 'COMPLETED'))
             if (nextRoute) {
                 if (event.metadata && event.metadata.state === "error") {
                     const template = this.template(event.type, event.data, {
