@@ -19,4 +19,5 @@ export declare type IHandler = {
     new (EvenStoreConfig: IEvenStoreConfig, streamList?: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup): EventHandler;
 };
 declare const Instance: <T>(type: 'handler' | 'consumer' | 'client') => IClient | IConsumer | IHandler;
+export { EventHandler, EventConsumer, EventsPlugin };
 export default Instance;

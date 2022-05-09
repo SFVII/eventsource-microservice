@@ -13,7 +13,7 @@ import EventsPlugin from "./client";
 import {IEvenStoreConfig, IEventHandlerGroup, IQueue, IQueueCustom, ITriggerList, JSONType} from "./core/global";
 
 
-export type IClient = { new<DataModel extends JSONType>(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]): EventsPlugin<DataModel>}
+export type IClient = { new<DataModel extends JSONType>(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]): EventsPlugin<DataModel> }
 export type IConsumer = { new(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue: IQueue | IQueueCustom, group?: IEventHandlerGroup): EventConsumer }
 export type IHandler = { new(EvenStoreConfig: IEvenStoreConfig, streamList?: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup): EventHandler }
 
@@ -27,5 +27,5 @@ const Instance = <T>(type: 'handler' | 'consumer' | 'client'): IClient | IConsum
             return EventsPlugin;
     }
 }
-
+export {EventHandler, EventConsumer, EventsPlugin}
 export default Instance;
