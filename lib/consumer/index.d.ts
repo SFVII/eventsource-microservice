@@ -20,7 +20,7 @@ declare class EventConsumer {
     constructor(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue?: IQueue | IQueueCustom, group?: IEventHandlerGroup);
     get subscription(): PersistentSubscription;
     exchange(stream: string, type: MethodList, data: any): void;
-    on(key: 'ready' & MethodList, callback: (message: any) => void): void;
+    on(key: 'ready' & MethodList & string, callback: (message: any) => void): void;
     AddToQueue(type: MethodList, ResolvedEvent: StreamSubscription, name?: string): void;
     handler(event: any, data: any, status?: string | null): Promise<void>;
     ack(event: any): Promise<void>;

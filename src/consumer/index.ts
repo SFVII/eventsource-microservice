@@ -74,7 +74,7 @@ class EventConsumer {
     }
 
 
-    on(key: 'ready' & MethodList, callback: (message: any) => void) {
+    on(key: 'ready' & MethodList & string, callback: (message: any) => void) {
         this.eventEmitter.on(key, (msg: any) => {
             callback(msg)
         })
