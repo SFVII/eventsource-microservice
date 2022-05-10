@@ -23,7 +23,7 @@ declare type MethodList = keyof typeof EMethodList;
 declare type Method = MethodList[];
 declare type IStartRevisionValues = bigint | 'start' | 'end';
 declare type EventType = keyof typeof EMethodList;
-declare type IEventHandlerGroup = 'dispatch' | 'consumers' | 'global-event-handler';
+declare type IEventHandlerGroup = 'dispatch' | 'consumers' | 'global-event-handler' | string;
 declare type IDataLinkEvent = [string, any];
 declare type IStream = {
     [V in MethodList]?: StreamSubscription;
