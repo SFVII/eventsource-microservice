@@ -120,7 +120,7 @@ class EventConsumer {
             });
 
             // Publish final result
-            if (this.publish && event.metadata.state === "completed") {
+            if (this.publish) {
                 await this.client.appendToStream(this.streamName + '_publish', [template])
                     .catch((err: any) =>
                         console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err))
