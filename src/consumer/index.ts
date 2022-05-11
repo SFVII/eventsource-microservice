@@ -24,7 +24,7 @@ import {
     START,
     StreamSubscription
 } from "../core/global";
-import {JSONEventType} from "@eventstore/db-client";
+import {JSONEventType, PARK, PersistentAction, RETRY} from "@eventstore/db-client";
 
 class EventConsumer {
     public QueueTTL = 200;
@@ -43,7 +43,8 @@ class EventConsumer {
                 queue: IQueue | IQueueCustom = {
                     create: [],
                     update: [],
-                    delete: []
+                    delete: [],
+                    recover: [],
                 }, group: IEventHandlerGroup = 'consumers') {
 
         this.Queue = {...queue, ...{worker: []}}
@@ -123,7 +124,13 @@ class EventConsumer {
         await this.subscription.ack(event);
     }
 
+    public async nack( event: any, type: PersistentAction = PARK, reason: string = 'default') {
+        await this.subscription.nack(type, reason, event);
+    }
 
+    public async retry(event: any, reason: string = 'default') {
+        await this.subscription.nack(RETRY, reason, event);
+    }
     private async init() {
         await this.CreatePersistentSubscription(this.streamName);
         this.StartRevision = START;

@@ -6,7 +6,7 @@
  **  @Description
  ***********************************************************/
 import { IEvenStoreConfig, IEventHandlerGroup, IQueue, IQueueCustom, Method, MethodList, PersistentSubscription } from "../core/global";
-import { JSONEventType } from "@eventstore/db-client";
+import { JSONEventType, PersistentAction } from "@eventstore/db-client";
 declare class EventConsumer {
     QueueTTL: number;
     protected methods: Method;
@@ -25,6 +25,8 @@ declare class EventConsumer {
     AddToQueue(type: MethodList, ResolvedEvent: JSONEventType, name?: string): void;
     handler(event: any, data: any, status?: string | null): Promise<void>;
     ack(event: any): Promise<void>;
+    nack(event: any, type?: PersistentAction, reason?: string): Promise<void>;
+    retry(event: any, reason?: string): Promise<void>;
     private init;
     private QueueListener;
     private SubscribeToPersistent;
