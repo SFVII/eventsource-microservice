@@ -18,7 +18,7 @@ declare class EventConsumer {
     private StartRevision;
     private stream;
     private readonly Queue;
-    private publish;
+    private readonly publish;
     constructor(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue?: IQueue | IQueueCustom, publish?: boolean, group?: IEventHandlerGroup);
     get subscription(): PersistentSubscription;
     exchange(stream: string, type: MethodList, data: any): void;
