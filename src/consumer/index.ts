@@ -34,10 +34,10 @@ class EventConsumer {
     protected credentials: IEvenStoreConfig["credentials"];
     private eventEmitter = new EventEmitter();
     private client: EventStoreDBClient;
-    private StartRevision: IStartRevisionValues;
+    private StartRevision: IStartRevisionValues | null;
     private stream: StreamSubscription;
     private readonly Queue: IQueue | IQueueCustom;
-    private publish: boolean = false
+    private readonly publish: boolean = false
 
     constructor(EvenStoreConfig: IEvenStoreConfig,
                 StreamName: string,
@@ -50,7 +50,7 @@ class EventConsumer {
                 publish: boolean = false,
                 group: IEventHandlerGroup = 'consumers') {
 
-        this.publish = false;
+        this.publish = publish;
         this.Queue = {...queue, ...{worker: []}}
         this.streamName = StreamName;
         this.group = group;
@@ -147,7 +147,7 @@ class EventConsumer {
 
     private async init() {
         await this.CreatePersistentSubscription(this.streamName);
-        this.StartRevision = START;
+        this.StartRevision = null;
         this.stream = this.SubscribeToPersistent(this.streamName);
         this.eventEmitter.emit('ready', true);
         this.QueueListener();
