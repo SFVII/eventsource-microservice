@@ -13,7 +13,7 @@ export declare type IClient = {
     new <DataModel>(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]): EventsPlugin<DataModel>;
 };
 export declare type IConsumer = {
-    new (EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue: IQueue | IQueueCustom, group?: IEventHandlerGroup): EventConsumer;
+    new (EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue: IQueue | IQueueCustom, publish?: boolean, group?: IEventHandlerGroup): EventConsumer;
 };
 export declare type IHandler = {
     new (EvenStoreConfig: IEvenStoreConfig, streamList?: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup): EventHandler;

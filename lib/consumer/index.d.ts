@@ -18,12 +18,13 @@ declare class EventConsumer {
     private StartRevision;
     private stream;
     private readonly Queue;
-    constructor(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue?: IQueue | IQueueCustom, group?: IEventHandlerGroup);
+    private publish;
+    constructor(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue?: IQueue | IQueueCustom, publish?: boolean, group?: IEventHandlerGroup);
     get subscription(): PersistentSubscription;
     exchange(stream: string, type: MethodList, data: any): void;
     on(key: 'ready' & MethodList & string, callback: (message: any) => void): void;
     AddToQueue(type: MethodList, ResolvedEvent: JSONEventType, name?: string): void;
-    handler(event: any, data: any, status?: string | null): Promise<void>;
+    handler(event: any, data: any, status?: "error" | null): Promise<void>;
     ack(event: any): Promise<void>;
     nack(event: any, type?: PersistentAction, reason?: string): Promise<void>;
     retry(event: any, reason?: string): Promise<void>;

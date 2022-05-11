@@ -37,6 +37,7 @@ class EventConsumer {
     private StartRevision: IStartRevisionValues;
     private stream: StreamSubscription;
     private readonly Queue: IQueue | IQueueCustom;
+    private publish: boolean = false
 
     constructor(EvenStoreConfig: IEvenStoreConfig,
                 StreamName: string,
@@ -45,8 +46,11 @@ class EventConsumer {
                     update: [],
                     delete: [],
                     recover: [],
-                }, group: IEventHandlerGroup = 'consumers') {
+                },
+                publish: boolean = false,
+                group: IEventHandlerGroup = 'consumers') {
 
+        this.publish = false;
         this.Queue = {...queue, ...{worker: []}}
         this.streamName = StreamName;
         this.group = group;
@@ -57,6 +61,7 @@ class EventConsumer {
         this.init().catch((err) => {
             console.log('Error Constructor._EventHandler', err);
         })
+
     }
 
     get subscription(): PersistentSubscription {
@@ -97,7 +102,7 @@ class EventConsumer {
     }
 
 
-    public async handler(event: any, data: any, status: string | null = null) {
+    public async handler(event: any, data: any, status: "error" | null = null) {
         let template;
         if (status === "error") {
             template = this.template(event.type, data, {
@@ -113,24 +118,33 @@ class EventConsumer {
                 state: event.metadata.state,
                 causationRoute: event.metadata.causationRoute
             });
+
+            // Publish final result
+            if (this.publish && event.metadata.state === "completed") {
+                await this.client.appendToStream(this.streamName + '_publish', [template])
+                    .catch((err: any) =>
+                        console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err))
+            }
         }
         console.log('send event to > %s', event.metadata.$causationId);
         await this.client.appendToStream(event.metadata.$causationId, [template]).catch((err: any) => {
             console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
         })
+
     }
 
     public async ack(event: any) {
         await this.subscription.ack(event);
     }
 
-    public async nack( event: any, type: PersistentAction = PARK, reason: string = 'default') {
+    public async nack(event: any, type: PersistentAction = PARK, reason: string = 'default') {
         await this.subscription.nack(type, reason, event);
     }
 
     public async retry(event: any, reason: string = 'default') {
         await this.subscription.nack(RETRY, reason, event);
     }
+
     private async init() {
         await this.CreatePersistentSubscription(this.streamName);
         this.StartRevision = START;
