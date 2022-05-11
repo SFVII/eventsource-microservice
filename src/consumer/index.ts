@@ -37,7 +37,7 @@ class EventConsumer {
     private StartRevision: IStartRevisionValues | null;
     private stream: StreamSubscription;
     private readonly Queue: IQueue | IQueueCustom;
-    private readonly publish: boolean = false
+    private readonly publish: boolean;
 
     constructor(EvenStoreConfig: IEvenStoreConfig,
                 StreamName: string,
@@ -121,7 +121,8 @@ class EventConsumer {
 
             // Publish final result
             if (this.publish) {
-                await this.client.appendToStream(this.streamName + '_publish', [template])
+                console.log('stream ' + this.streamName)
+                this.client.appendToStream(this.streamName + '-publish', [template])
                     .catch((err: any) =>
                         console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err))
             }
