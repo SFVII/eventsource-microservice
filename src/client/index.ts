@@ -42,11 +42,14 @@ class EventsPlugin<DataModel> {
         this.causationRoute = causationRoute;
         for (const method of this.methods) {
             // @ts-ignore
-            this[method] = async (data: DataModel | DataModel[]) => {
-                const {payload, requestId} = await this.EventMiddlewareEmitter(data, method)
+            this[method] = async (data: DataModel | DataModel[], streamName?: string, causationRoute?: string[]) => {
+                const {payload, requestId} = await this.EventMiddlewareEmitter(data, method, streamName, causationRoute)
                 return {
                     data: payload,
-                    ack: this.delivered(requestId, method, payload, this.streamName, []).bind(this)
+                    ack: this.delivered(requestId, method, payload,
+                        streamName ? streamName : this.streamName,
+                        [])
+                        .bind(this)
                 };
             }
         }
@@ -67,9 +70,12 @@ class EventsPlugin<DataModel> {
         return () => setTimeout(() => appendToStream(streamName, eventEnd), 500)
     }
 
-    private async EventMiddlewareEmitter(data: DataModel | DataModel[], method: string) {
+    private async EventMiddlewareEmitter(data: DataModel | DataModel[],
+                                         method: string,
+                                         _streamName?: string,
+                                         causationRoute?: string[]) {
         const requestId = this.GenerateEventInternalId(data, method);
-        const streamName = `${this.streamName}`
+        const streamName = _streamName ? _streamName : this.streamName
         let state: DataModel | DataModel[] | "processing" | null = await this.processStateChecker(requestId);
         if (state === "processing") {
             return await this.eventCompletedHandler(streamName, requestId);
@@ -111,9 +117,9 @@ class EventsPlugin<DataModel> {
             if (event && event.metadata?.$correlationId === EventId
                 && (event.metadata?.state === 'completed' || event.metadata?.state === 'error')) {
                 data = event.data;
-                this.StartRevision = BigInt(event.revision) > BigInt(100n) ? BigInt(event.revision - 100n) : this.StartRevision;
+                /*this.StartRevision = BigInt(event.revision) > BigInt(100n)
+                    ? BigInt(event.revision - 100n) : this.StartRevision;*/
                 break;
-
             }
         }
         await stream.unsubscribe();
