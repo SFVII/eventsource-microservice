@@ -17,7 +17,7 @@ import {
     md5
 } from "../core/global";
 
-interface IMethodFunctionResponse {
+export interface IMethodFunctionResponse {
     data: any,
     ack: (requestId: string,
           method: string,
@@ -26,11 +26,11 @@ interface IMethodFunctionResponse {
           causationRoute: string[]) => void
 }
 
-type IMethodFunction<DataModel> = (
+export type IMethodFunction<DataModel> = (
     data: DataModel | DataModel[],
+    typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string,
     streamName?: string,
-    causationRoute?: string[],
-    typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string)
+    causationRoute?: string[])
     => Promise<IMethodFunctionResponse>
 
 class EventsPlugin<DataModel> {
@@ -60,8 +60,11 @@ class EventsPlugin<DataModel> {
         this.causationRoute = causationRoute;
         for (const method of this.methods) {
             // @ts-ignore
-            this[method] = async (data: DataModel | DataModel[], streamName?: string, causationRoute?: string[],
-                                  typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string) => {
+            this[method] = async (data: DataModel | DataModel[],
+                                  typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string,
+                                  streamName?: string,
+                                  causationRoute?: string[]
+            ) => {
                 const {
                     payload,
                     requestId

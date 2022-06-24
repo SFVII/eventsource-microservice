@@ -6,11 +6,11 @@
  **  @Description
  ***********************************************************/
 import { EventStoreDBClient, IEvenStoreConfig } from "../core/global";
-interface IMethodFunctionResponse {
+export interface IMethodFunctionResponse {
     data: any;
     ack: (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void;
 }
-declare type IMethodFunction<DataModel> = (data: DataModel | DataModel[], streamName?: string, causationRoute?: string[], typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string) => Promise<IMethodFunctionResponse>;
+export declare type IMethodFunction<DataModel> = (data: DataModel | DataModel[], typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string, streamName?: string, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
 declare class EventsPlugin<DataModel> {
     create: IMethodFunction<DataModel>;
     update: IMethodFunction<DataModel>;
