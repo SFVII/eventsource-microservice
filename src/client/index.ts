@@ -12,20 +12,38 @@ import {
     EventStoreDBClient,
     IEvenStoreConfig,
     IReadStreamConfig,
-    IStartRevisionValues,
     ITemplateEvent,
     jsonEvent,
-    md5,
-    StreamSubscription
+    md5
 } from "../core/global";
 
+interface IMethodFunctionResponse {
+    data: any,
+    ack: (requestId: string,
+          method: string,
+          payload: any,
+          streamName: string,
+          causationRoute: string[]) => void
+}
+
+type IMethodFunction<DataModel> = (
+    data: DataModel | DataModel[],
+    streamName?: string,
+    causationRoute?: string[],
+    typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string)
+    => Promise<IMethodFunctionResponse>
+
 class EventsPlugin<DataModel> {
+
+    public create: IMethodFunction<DataModel>;
+    public update: IMethodFunction<DataModel>;
+    public delete: IMethodFunction<DataModel>;
+    public recover: IMethodFunction<DataModel>;
+
     protected methods: string[];
     protected streamName: string;
     protected client: EventStoreDBClient;
     protected credentials: IEvenStoreConfig["credentials"];
-    private StartRevision: IStartRevisionValues;
-    private stream: StreamSubscription;
     private readonly causationRoute: string[];
 
     constructor(EvenStoreConfig: IEvenStoreConfig,
@@ -42,8 +60,12 @@ class EventsPlugin<DataModel> {
         this.causationRoute = causationRoute;
         for (const method of this.methods) {
             // @ts-ignore
-            this[method] = async (data: DataModel | DataModel[], streamName?: string, causationRoute?: string[]) => {
-                const {payload, requestId} = await this.EventMiddlewareEmitter(data, method, streamName, causationRoute)
+            this[method] = async (data: DataModel | DataModel[], streamName?: string, causationRoute?: string[],
+                                  typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string) => {
+                const {
+                    payload,
+                    requestId
+                } = await this.EventMiddlewareEmitter(data, method, streamName, causationRoute, typeOrigin)
                 return {
                     data: payload,
                     ack: this.delivered(requestId, method, payload,
@@ -73,7 +95,8 @@ class EventsPlugin<DataModel> {
     private async EventMiddlewareEmitter(data: DataModel | DataModel[],
                                          method: string,
                                          _streamName?: string,
-                                         causationRoute?: string[]) {
+                                         causationRoute?: string[],
+                                         typeOrigin?: string) {
         const requestId = this.GenerateEventInternalId(data, method);
         const streamName = _streamName ? _streamName : this.streamName
         let state: DataModel | DataModel[] | "processing" | null = await this.processStateChecker(requestId);
@@ -86,7 +109,8 @@ class EventsPlugin<DataModel> {
                 $correlationId: requestId,
                 state: 'processing',
                 $causationId: this.streamName,
-                causationRoute: this.causationRoute
+                causationRoute: this.causationRoute,
+                typeOrigin: typeOrigin ? typeOrigin : method
             })
             const event = await this.appendToStream(streamName, template);
             if (event) {
@@ -183,10 +207,6 @@ class EventsPlugin<DataModel> {
         }
 
         return data;
-    }
-
-    private async init() {
-
     }
 
     private template(type: string, data: DataModel | DataModel[] | any, metadata: ITemplateEvent) {

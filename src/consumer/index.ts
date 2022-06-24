@@ -109,14 +109,16 @@ class EventConsumer {
                 $correlationId: event.metadata.$correlationId,
                 $causationId: event.streamId,
                 state: status,
-                causationRoute: []
+                causationRoute: [],
+                typeOrigin : event.metadata.typeOrigin
             });
         } else {
             template = this.template(event.type, data, {
                 $correlationId: event.metadata.$correlationId,
                 $causationId: event.streamId,
                 state: event.metadata.state,
-                causationRoute: event.metadata.causationRoute
+                causationRoute: event.metadata.causationRoute,
+                typeOrigin : event.metadata.typeOrigin
             });
 
             // Publish final result
@@ -125,7 +127,8 @@ class EventConsumer {
                     $correlationId: event.metadata.$correlationId,
                     $causationId: event.streamId,
                     state: 'delivered',
-                    causationRoute: event.metadata.causationRoute
+                    causationRoute: event.metadata.causationRoute,
+                    typeOrigin : event.metadata.typeOrigin
                 });
                 this.client.appendToStream(this.streamName + '-publish', [publish])
                     .catch((err: any) =>
