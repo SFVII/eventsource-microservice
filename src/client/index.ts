@@ -72,6 +72,7 @@ class EventsPlugin<DataModel> {
                 return {
                     data: payload,
                     ack: this.delivered(requestId, method, payload,
+                        typeOrigin,
                         streamName ? streamName : this.streamName,
                         [])
                         .bind(this)
@@ -83,13 +84,15 @@ class EventsPlugin<DataModel> {
     private delivered(requestId: string,
                       method: string,
                       payload: any,
+                      typeOrigin: any,
                       streamName: string,
                       causationRoute: string[]) {
         const eventEnd = this.template(method, payload, {
             $correlationId: requestId,
             state: 'delivered',
             $causationId: streamName,
-            causationRoute: causationRoute
+            causationRoute: causationRoute,
+            typeOrigin: typeOrigin
         })
         const appendToStream = this.appendToStream.bind(this);
         return () => setTimeout(() => appendToStream(streamName, eventEnd), 500)
