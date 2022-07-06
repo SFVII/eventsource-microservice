@@ -33,6 +33,15 @@ export type IMethodFunction<DataModel> = (
     causationRoute?: string[])
     => Promise<IMethodFunctionResponse>
 
+
+export type IContributor = {
+    id?: string,
+    lastname?: string,
+    firstname?: string,
+    account?: string,
+    group?: string
+}
+
 class EventsPlugin<DataModel> {
 
     public create: IMethodFunction<DataModel>;
@@ -61,6 +70,7 @@ class EventsPlugin<DataModel> {
         for (const method of this.methods) {
             // @ts-ignore
             this[method] = async (data: DataModel | DataModel[],
+                                  contributor?: IContributor,
                                   typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string,
                                   streamName?: string,
                                   causationRoute?: string[]
@@ -68,7 +78,7 @@ class EventsPlugin<DataModel> {
                 const {
                     payload,
                     requestId
-                } = await this.EventMiddlewareEmitter(data, method, streamName, causationRoute, typeOrigin)
+                } = await this.EventMiddlewareEmitter(data, method, streamName, causationRoute, typeOrigin, contributor)
                 return {
                     data: payload,
                     ack: this.delivered(requestId, method, payload,
@@ -102,7 +112,8 @@ class EventsPlugin<DataModel> {
                                          method: string,
                                          _streamName?: string,
                                          causationRoute?: string[],
-                                         typeOrigin?: string) {
+                                         typeOrigin?: string,
+                                         contributor?: IContributor) {
         const requestId = this.GenerateEventInternalId(data, method);
         const streamName = _streamName ? _streamName : this.streamName
         let state: DataModel | DataModel[] | "processing" | null = await this.processStateChecker(requestId);
@@ -111,12 +122,19 @@ class EventsPlugin<DataModel> {
         } else if (state) {
             return {payload: state, requestId};
         } else {
+            let contributor_key: any = {}
+            if (contributor) {
+                for (const k in contributor) { // @ts-ignore
+                    contributor_key['contributor_' + k] = contributor[k]
+                }
+            }
             const template = this.template(method, data, {
                 $correlationId: requestId,
                 state: 'processing',
                 $causationId: this.streamName,
                 causationRoute: this.causationRoute,
-                typeOrigin: typeOrigin ? typeOrigin : method
+                typeOrigin: typeOrigin ? typeOrigin : method,
+                ...contributor_key
             })
             const event = await this.appendToStream(streamName, template);
             if (event) {

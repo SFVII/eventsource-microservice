@@ -11,6 +11,13 @@ export interface IMethodFunctionResponse {
     ack: (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void;
 }
 export declare type IMethodFunction<DataModel> = (data: DataModel | DataModel[], typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string, streamName?: string, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
+export declare type IContributor = {
+    id?: string;
+    lastname?: string;
+    firstname?: string;
+    account?: string;
+    group?: string;
+};
 declare class EventsPlugin<DataModel> {
     create: IMethodFunction<DataModel>;
     update: IMethodFunction<DataModel>;
