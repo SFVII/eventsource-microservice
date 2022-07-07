@@ -20,4 +20,5 @@ export declare type IHandler = {
 };
 declare const Instance: <T>(type: 'handler' | 'consumer' | 'client') => IClient | IConsumer | IHandler;
 export { EventHandler, EventConsumer, EventsPlugin };
+export { EventsPlugin as Client, EventHandler as Handler, EventConsumer as Consumer };
 export default Instance;

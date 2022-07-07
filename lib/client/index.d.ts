@@ -8,7 +8,7 @@
 import { EventStoreDBClient, IEvenStoreConfig } from "../core/global";
 export interface IMethodFunctionResponse {
     data: any;
-    ack: (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void;
+    ack: () => (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void;
 }
 export declare type IMethodFunction<DataModel, Type> = (data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[], contributor?: IContributor, typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type, streamName?: string, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
 export declare type IContributor = {

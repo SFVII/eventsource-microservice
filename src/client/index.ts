@@ -19,7 +19,7 @@ import {
 
 export interface IMethodFunctionResponse {
     data: any,
-    ack: (requestId: string,
+    ack: () => (requestId: string,
           method: string,
           payload: any,
           streamName: string,
@@ -88,16 +88,13 @@ class EventsPlugin<DataModel> {
             // @ts-ignore
             this[method] = async (data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
                                   contributor?: IContributor,
-                                  typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string,
-                                  streamName?: string,
-                                  causationRoute?: string[]
-
+                                  typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string
                                   // this.create({...}, {id: xxxx}, event.typeOrigin)
-            ) => {
+            ): Promise<{data : ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel[]>, ack : () => void}> => {
                 const {
                     payload,
                     requestId
-                } = await this.EventMiddlewareEmitter(data, method, streamName, causationRoute, typeOrigin, contributor)
+                } = await this.EventMiddlewareEmitter(data, method, this.streamName, typeOrigin, contributor)
                 return {
                     data: payload,
                     ack: this.delivered(
@@ -105,9 +102,9 @@ class EventsPlugin<DataModel> {
                         method,
                         payload,
                         typeOrigin,
-                        streamName,
+                        this.streamName,
                         contributor,
-                        streamName ? streamName : this.streamName)
+                        this.streamName)
                         .bind(this)
                 };
             }
@@ -130,13 +127,12 @@ class EventsPlugin<DataModel> {
             contributor
         })
         const appendToStream = this.appendToStream.bind(this);
-        return () => setTimeout(() => appendToStream(streamName, eventEnd), 500)
+        return () => setTimeout(() => appendToStream(streamName, eventEnd), 100)
     }
 
     private async EventMiddlewareEmitter(data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
                                          method: string,
                                          _streamName?: string,
-                                         causationRoute?: string[],
                                          typeOrigin?: string,
                                          contributor?: IContributor) {
         const requestId = this.GenerateEventInternalId(data, method);

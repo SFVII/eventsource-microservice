@@ -28,4 +28,5 @@ const Instance = <T>(type: 'handler' | 'consumer' | 'client'): IClient | IConsum
     }
 }
 export {EventHandler, EventConsumer, EventsPlugin}
+export {EventsPlugin as Client, EventHandler as Handler, EventConsumer as Consumer}
 export default Instance;
