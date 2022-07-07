@@ -104,19 +104,14 @@ class EventConsumer {
 
     public async handler(event: any, data: any, status: "error" | null = null) {
         let template;
-        let contributor_key = {}
-        for (const k of Object.keys(event.metadata).filter((e:string)=> e.startsWith('contributor_'))){
-            // @ts-ignore
-            contributor_key[k] = event.metadata[k]
-        }
         if (status === "error") {
             template = this.template(event.type, data, {
                 $correlationId: event.metadata.$correlationId,
                 $causationId: event.streamId,
                 state: status,
                 causationRoute: [],
-                typeOrigin : event.metadata.typeOrigin,
-                ...contributor_key
+                typeOrigin: event.metadata.typeOrigin,
+                contributor: event.metadata.contributor
             });
         } else {
 
@@ -125,8 +120,8 @@ class EventConsumer {
                 $causationId: event.streamId,
                 state: event.metadata.state,
                 causationRoute: event.metadata.causationRoute,
-                typeOrigin : event.metadata.typeOrigin,
-                ...contributor_key
+                typeOrigin: event.metadata.typeOrigin,
+                contributor: event.metadata.contributor
             });
 
             // Publish final result
@@ -137,8 +132,8 @@ class EventConsumer {
                     $causationId: event.streamId,
                     state: 'delivered',
                     causationRoute: event.metadata.causationRoute,
-                    typeOrigin : event.metadata.typeOrigin,
-                    ...contributor_key
+                    typeOrigin: event.metadata.typeOrigin,
+                    contributor: event.metadata.contributor
                 });
                 this.client.appendToStream(this.streamName + '-publish', [publish])
                     .catch((err: any) =>

@@ -12,7 +12,8 @@ export interface IMethodFunctionResponse {
 }
 export declare type IMethodFunction<DataModel> = (data: DataModel | DataModel[], typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string, streamName?: string, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
 export declare type IContributor = {
-    id?: string;
+    id_contact?: string;
+    id_nowteam?: string;
     lastname?: string;
     firstname?: string;
     account?: string;
