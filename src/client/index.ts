@@ -37,6 +37,7 @@ export type IMethodFunction<DataModel> = (
 export type IContributor = {
     id_contact?: string,
     id_nowteam?: string,
+    id_external?: string,
     lastname?: string,
     firstname?: string,
     account?: string,

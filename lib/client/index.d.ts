@@ -14,6 +14,7 @@ export declare type IMethodFunction<DataModel> = (data: DataModel | DataModel[],
 export declare type IContributor = {
     id_contact?: string;
     id_nowteam?: string;
+    id_external?: string;
     lastname?: string;
     firstname?: string;
     account?: string;
