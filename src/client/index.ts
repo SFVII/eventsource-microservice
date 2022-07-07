@@ -53,6 +53,7 @@ export type ModelEventWrapper<DataModel> = {
         sf?: string | undefined,
         [key: string]: string | undefined
     },
+    i18n?: { model?: string, language: string, fields: string[], shouldRenderJson?: boolean }
     origins?: [string, string][]
     value: DataModel | DataModel[]
     fields?: (keyof DataModel)[]
