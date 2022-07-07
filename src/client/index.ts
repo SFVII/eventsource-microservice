@@ -91,10 +91,11 @@ class EventsPlugin<DataModel> {
                                   typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string
                                   // this.create({...}, {id: xxxx}, event.typeOrigin)
             ): Promise<{ data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel[]>, ack: () => void }> => {
+                const _streamName = streamName
                 const {
                     payload,
                     requestId
-                } = await this.EventMiddlewareEmitter(data, method, this.streamName, typeOrigin, contributor)
+                } = await this.EventMiddlewareEmitter(data, method, _streamName, typeOrigin, contributor)
                 return {
                     data: payload,
                     ack: this.delivered(
@@ -102,9 +103,9 @@ class EventsPlugin<DataModel> {
                         method,
                         payload,
                         typeOrigin,
-                        this.streamName,
+                        _streamName,
                         contributor,
-                        this.streamName)
+                        _streamName)
                         .bind(this)
                 };
             }
@@ -118,6 +119,7 @@ class EventsPlugin<DataModel> {
                       streamName: string | undefined,
                       contributor: IContributor | undefined,
                       causationRoute: string | undefined) {
+        console.log('Delivered', requestId, method, payload, typeOrigin, streamName, contributor, causationRoute)
         const eventEnd = this.template(method, payload, {
             $correlationId: requestId,
             state: 'delivered',
@@ -127,7 +129,11 @@ class EventsPlugin<DataModel> {
             contributor
         })
         const appendToStream = this.appendToStream.bind(this);
-        return () => setTimeout(() => appendToStream(streamName, eventEnd), 100)
+        return () => {
+            console.log('OK ????')
+            appendToStream(streamName, eventEnd);
+            return true;
+        }
     }
 
     private async EventMiddlewareEmitter(data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
@@ -138,6 +144,7 @@ class EventsPlugin<DataModel> {
         const requestId = this.GenerateEventInternalId(data, method);
         const streamName = _streamName ? _streamName : this.streamName
         let state: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | "processing" | null = await this.processStateChecker(requestId);
+        console.log('my stream name', streamName)
         if (state === "processing") {
             return await this.eventCompletedHandler(streamName, requestId);
         } else if (state) {
