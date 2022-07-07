@@ -48,10 +48,14 @@ export type IContributor = {
 
 export type ModelEventWrapper<DataModel> = {
     model?: {
-        [key: string]: string
+        fs?: string | undefined,
+        db?: string | undefined,
+        sf?: string | undefined,
+        [key: string]: string | undefined
     },
-    value: DataModel
-    fields?: keyof DataModel[]
+    origins?: [string, string][]
+    value: DataModel | DataModel[]
+    fields?: (keyof DataModel)[]
 }
 
 class EventsPlugin<DataModel> {

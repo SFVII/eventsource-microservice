@@ -22,10 +22,14 @@ export declare type IContributor = {
 };
 export declare type ModelEventWrapper<DataModel> = {
     model?: {
-        [key: string]: string;
+        fs?: string | undefined;
+        db?: string | undefined;
+        sf?: string | undefined;
+        [key: string]: string | undefined;
     };
-    value: DataModel;
-    fields?: keyof DataModel[];
+    origins?: [string, string][];
+    value: DataModel | DataModel[];
+    fields?: (keyof DataModel)[];
 };
 declare class EventsPlugin<DataModel> {
     create: IMethodFunction<DataModel, 'create'>;
