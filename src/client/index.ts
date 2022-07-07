@@ -26,9 +26,10 @@ export interface IMethodFunctionResponse {
           causationRoute: string[]) => void
 }
 
-export type IMethodFunction<DataModel> = (
-    data: DataModel | DataModel[],
-    typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string,
+export type IMethodFunction<DataModel, Type> = (
+    data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
+    contributor?: IContributor,
+    typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type,
     streamName?: string,
     causationRoute?: string[])
     => Promise<IMethodFunctionResponse>
@@ -44,12 +45,21 @@ export type IContributor = {
     group?: string
 }
 
+
+export type ModelEventWrapper<DataModel> = {
+    model?: {
+        [key: string]: string
+    },
+    value: DataModel
+    fields?: keyof DataModel[]
+}
+
 class EventsPlugin<DataModel> {
 
-    public create: IMethodFunction<DataModel>;
-    public update: IMethodFunction<DataModel>;
-    public delete: IMethodFunction<DataModel>;
-    public recover: IMethodFunction<DataModel>;
+    public create: IMethodFunction<DataModel, 'create'>;
+    public update: IMethodFunction<DataModel, 'update'>;
+    public delete: IMethodFunction<DataModel, 'delete'>;
+    public recover: IMethodFunction<DataModel, 'recover'>;
 
     protected methods: string[];
     protected streamName: string;
@@ -71,7 +81,7 @@ class EventsPlugin<DataModel> {
         this.causationRoute = causationRoute;
         for (const method of this.methods) {
             // @ts-ignore
-            this[method] = async (data: DataModel | DataModel[],
+            this[method] = async (data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
                                   contributor?: IContributor,
                                   typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string,
                                   streamName?: string,
@@ -118,7 +128,7 @@ class EventsPlugin<DataModel> {
         return () => setTimeout(() => appendToStream(streamName, eventEnd), 500)
     }
 
-    private async EventMiddlewareEmitter(data: DataModel | DataModel[],
+    private async EventMiddlewareEmitter(data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
                                          method: string,
                                          _streamName?: string,
                                          causationRoute?: string[],
@@ -126,7 +136,7 @@ class EventsPlugin<DataModel> {
                                          contributor?: IContributor) {
         const requestId = this.GenerateEventInternalId(data, method);
         const streamName = _streamName ? _streamName : this.streamName
-        let state: DataModel | DataModel[] | "processing" | null = await this.processStateChecker(requestId);
+        let state: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | "processing" | null = await this.processStateChecker(requestId);
         if (state === "processing") {
             return await this.eventCompletedHandler(streamName, requestId);
         } else if (state) {
@@ -237,7 +247,7 @@ class EventsPlugin<DataModel> {
         return data;
     }
 
-    private template(type: string, data: DataModel | DataModel[] | any, metadata: ITemplateEvent) {
+    private template(type: string, data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | any, metadata: ITemplateEvent) {
         return jsonEvent({
             type,
             data,
@@ -245,7 +255,7 @@ class EventsPlugin<DataModel> {
         })
     }
 
-    private GenerateEventInternalId(data: DataModel | DataModel[], method: string) {
+    private GenerateEventInternalId(data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[], method: string) {
         return md5(JSON.stringify({payload: data, method}));
     }
 }

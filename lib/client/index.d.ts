@@ -10,7 +10,7 @@ export interface IMethodFunctionResponse {
     data: any;
     ack: (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void;
 }
-export declare type IMethodFunction<DataModel> = (data: DataModel | DataModel[], typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string, streamName?: string, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
+export declare type IMethodFunction<DataModel, Type> = (data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[], contributor?: IContributor, typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type, streamName?: string, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
 export declare type IContributor = {
     id_contact?: string;
     id_nowteam?: string;
@@ -20,11 +20,18 @@ export declare type IContributor = {
     account?: string;
     group?: string;
 };
+export declare type ModelEventWrapper<DataModel> = {
+    model?: {
+        [key: string]: string;
+    };
+    value: DataModel;
+    fields?: keyof DataModel[];
+};
 declare class EventsPlugin<DataModel> {
-    create: IMethodFunction<DataModel>;
-    update: IMethodFunction<DataModel>;
-    delete: IMethodFunction<DataModel>;
-    recover: IMethodFunction<DataModel>;
+    create: IMethodFunction<DataModel, 'create'>;
+    update: IMethodFunction<DataModel, 'update'>;
+    delete: IMethodFunction<DataModel, 'delete'>;
+    recover: IMethodFunction<DataModel, 'recover'>;
     protected methods: string[];
     protected streamName: string;
     protected client: EventStoreDBClient;
