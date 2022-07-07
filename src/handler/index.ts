@@ -81,7 +81,8 @@ class EventHandler {
                     $causationId: event.metadata.$causationId,
                     state: event.metadata.state,
                     causationRoute: null,
-                    typeOrigin: event.metadata.typeOrigin
+                    typeOrigin: event.metadata.typeOrigin,
+                    contributor : event.metadata?.contributor
                 });
                 await this.client.appendToStream(event.streamId, [template]).catch((err: any) => {
                     console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
@@ -99,7 +100,8 @@ class EventHandler {
                             $causationId: event.streamId,
                             state: "system",
                             causationRoute: null,
-                            typeOrigin: event.metadata.typeOrigin
+                            typeOrigin: event.metadata.typeOrigin,
+                            contributor : event.metadata?.contributor
                         });
                         nextRoute.forEach((route: string) => this.client.appendToStream(route, [template])
                             .catch((err: any) => {
@@ -113,7 +115,8 @@ class EventHandler {
                             $causationId: event.streamId,
                             state: Routes.length ? "processing" : "completed",
                             causationRoute: Routes,
-                            typeOrigin: event.metadata.typeOrigin
+                            typeOrigin: event.metadata.typeOrigin,
+                            contributor : event.metadata?.contributor
                         });
                         await this.client.appendToStream(nextRoute, [template]).catch((err: any) => {
                             console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err);
@@ -125,7 +128,8 @@ class EventHandler {
                         $causationId: event.streamId,
                         state: "trigger",
                         causationRoute: null,
-                        typeOrigin: event.metadata.typeOrigin
+                        typeOrigin: event.metadata.typeOrigin,
+                        contributor : event.metadata?.contributor
                     });
                     const list = this.triggerOnComplete.filter((trigger: ITriggerList) =>
                         trigger.causationId === event.metadata.$causationId && trigger.trigger.length)
