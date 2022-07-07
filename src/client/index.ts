@@ -20,10 +20,10 @@ import {
 export interface IMethodFunctionResponse {
     data: any,
     ack: () => (requestId: string,
-          method: string,
-          payload: any,
-          streamName: string,
-          causationRoute: string[]) => void
+                method: string,
+                payload: any,
+                streamName: string,
+                causationRoute: string[]) => void
 }
 
 export type IMethodFunction<DataModel, Type> = (
@@ -90,7 +90,7 @@ class EventsPlugin<DataModel> {
                                   contributor?: IContributor,
                                   typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string
                                   // this.create({...}, {id: xxxx}, event.typeOrigin)
-            ): Promise<{data : ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel[]>, ack : () => void}> => {
+            ): Promise<{ data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel[]>, ack: () => void }> => {
                 const {
                     payload,
                     requestId
@@ -160,7 +160,7 @@ class EventsPlugin<DataModel> {
     }
 
     private async appendToStream(streamName: string, template: EventData) {
-        return await this.client.appendToStream(streamName,
+        return await this.client.appendToStream(streamName || this.streamName,
             [template])
             .catch((err) => {
                 console.log('Error EventsPlugin.add', err)
