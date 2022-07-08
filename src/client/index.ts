@@ -41,8 +41,8 @@ export type IContributor = {
     id_external?: string,
     lastname?: string,
     firstname?: string,
-    account?: string,
-    group?: string
+    account?: string | Partial<any> & { _id: string },
+    group?: string | Partial<any> & { _id: string }
 }
 
 
@@ -57,6 +57,19 @@ export type ModelEventWrapper<DataModel> = {
     origins?: [string, string][]
     value: DataModel | DataModel[]
     fields?: (keyof DataModel)[]
+}
+
+
+export const addContributor = (contributor : IContributor = {
+    lastname: 'system',
+    firstname: 'system'
+}) => {
+
+    return {
+        ...contributor,
+        account: typeof contributor?.account !== "string" ? contributor?.account?._id : contributor?.account,
+        group: typeof contributor?.group !== "string" ? contributor?.group?._id : contributor?.group
+    }
 }
 
 class EventsPlugin<DataModel> {
@@ -126,7 +139,7 @@ class EventsPlugin<DataModel> {
             $causationId: streamName,
             causationRoute: causationRoute,
             typeOrigin: typeOrigin,
-            contributor
+            contributor: addContributor(contributor)
         })
         const appendToStream = this.appendToStream.bind(this);
         return () => {
@@ -156,7 +169,7 @@ class EventsPlugin<DataModel> {
                 $causationId: this.streamName,
                 causationRoute: this.causationRoute,
                 typeOrigin: typeOrigin ? typeOrigin : method,
-                contributor
+                contributor: addContributor(contributor)
             })
             const event = await this.appendToStream(streamName, template);
             if (event) {

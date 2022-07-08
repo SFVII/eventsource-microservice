@@ -103,6 +103,7 @@ class EventConsumer {
 
 
     public async handler(event: any, data: any, status: "error" | null = null) {
+        console.log('Contributor', event.metadata.contributor);
         let template;
         if (status === "error") {
             template = this.template(event.type, data, {

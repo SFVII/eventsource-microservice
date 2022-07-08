@@ -17,8 +17,12 @@ export declare type IContributor = {
     id_external?: string;
     lastname?: string;
     firstname?: string;
-    account?: string;
-    group?: string;
+    account?: string | Partial<any> & {
+        _id: string;
+    };
+    group?: string | Partial<any> & {
+        _id: string;
+    };
 };
 export declare type ModelEventWrapper<DataModel> = {
     model?: {
@@ -36,6 +40,15 @@ export declare type ModelEventWrapper<DataModel> = {
     origins?: [string, string][];
     value: DataModel | DataModel[];
     fields?: (keyof DataModel)[];
+};
+export declare const addContributor: (contributor?: IContributor) => {
+    account: string | undefined;
+    group: string | undefined;
+    id_contact?: string | undefined;
+    id_nowteam?: string | undefined;
+    id_external?: string | undefined;
+    lastname?: string | undefined;
+    firstname?: string | undefined;
 };
 declare class EventsPlugin<DataModel> {
     create: IMethodFunction<DataModel, 'create'>;
