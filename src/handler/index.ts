@@ -71,23 +71,24 @@ class EventHandler {
     }
 
     private async handler(event: any) {
-        if (Array.isArray(event.metadata.causationRoute)) {
-            const Routes = event.metadata.causationRoute;
-            const nextRoute: string | string[] | undefined = Routes.shift();
-            if (event.metadata && event.metadata.state === "error") {
-                console.log('[EVENT TRACK] [%s] Incoming event error details: ', event.data)
-                const template = this.template(event.type, event.data, {
-                    $correlationId: event.metadata.$correlationId,
-                    $causationId: event.metadata.$causationId,
-                    state: event.metadata.state,
-                    causationRoute: null,
-                    typeOrigin: event.metadata.typeOrigin,
-                    contributor : event.metadata?.contributor
-                });
-                await this.client.appendToStream(event.streamId, [template]).catch((err: any) => {
-                    console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
-                })
-            } else if (nextRoute) {
+
+        const Routes = event.metadata.causationRoute;
+        const nextRoute: string | string[] | undefined = Routes.shift();
+        if (event.metadata && event.metadata.state === "error") {
+            console.log('[EVENT TRACK] [%s] Incoming event error details: ', event.data)
+            const template = this.template(event.type, event.data, {
+                $correlationId: event.metadata.$correlationId,
+                $causationId: event.metadata.$causationId,
+                state: event.metadata.state,
+                causationRoute: null,
+                typeOrigin: event.metadata.typeOrigin,
+                contributor: event.metadata?.contributor
+            });
+            await this.client.appendToStream(event.streamId, [template]).catch((err: any) => {
+                console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
+            })
+        } else if (event.metadata && Array.isArray(event.metadata.causationRoute)) {
+            if (nextRoute) {
                 console.log('[EVENT TRACK] [%s] Incoming event (route > %s) \t\tnext event (%s)',
                     event.metadata.state.toUpperCase(),
                     nextRoute,
@@ -101,7 +102,7 @@ class EventHandler {
                             state: "system",
                             causationRoute: null,
                             typeOrigin: event.metadata.typeOrigin,
-                            contributor : event.metadata?.contributor
+                            contributor: event.metadata?.contributor
                         });
                         nextRoute.forEach((route: string) => this.client.appendToStream(route, [template])
                             .catch((err: any) => {
@@ -116,7 +117,7 @@ class EventHandler {
                             state: Routes.length ? "processing" : "completed",
                             causationRoute: Routes,
                             typeOrigin: event.metadata.typeOrigin,
-                            contributor : event.metadata?.contributor
+                            contributor: event.metadata?.contributor
                         });
                         await this.client.appendToStream(nextRoute, [template]).catch((err: any) => {
                             console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err);
@@ -129,7 +130,7 @@ class EventHandler {
                         state: "trigger",
                         causationRoute: null,
                         typeOrigin: event.metadata.typeOrigin,
-                        contributor : event.metadata?.contributor
+                        contributor: event.metadata?.contributor
                     });
                     const list = this.triggerOnComplete.filter((trigger: ITriggerList) =>
                         trigger.causationId === event.metadata.$causationId && trigger.trigger.length)
