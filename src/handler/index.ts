@@ -71,9 +71,6 @@ class EventHandler {
     }
 
     private async handler(event: any) {
-
-        const Routes = event.metadata.causationRoute;
-        const nextRoute: string | string[] | undefined = Routes.shift();
         if (event.metadata && event.metadata.state === "error") {
             console.log('[EVENT TRACK] [%s] Incoming event error details: ', event.data)
             const template = this.template(event.type, event.data, {
@@ -88,6 +85,8 @@ class EventHandler {
                 console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
             })
         } else if (event.metadata && Array.isArray(event.metadata.causationRoute)) {
+            const Routes = event.metadata.causationRoute;
+            const nextRoute: string | string[] | undefined = Routes.shift();
             if (nextRoute) {
                 console.log('[EVENT TRACK] [%s] Incoming event (route > %s) \t\tnext event (%s)',
                     event.metadata.state.toUpperCase(),
