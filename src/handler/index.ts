@@ -71,7 +71,9 @@ class EventHandler {
     }
 
     private async handler(event: any) {
-        if (event.metadata && event.metadata.state === "error") {
+        if (event.metadata && event.metadata.state === 'delivered') {
+            //
+        } else if (event.metadata && event.metadata.state === "error") {
             console.log('[EVENT TRACK] [%s] Incoming event error details: ', event.data)
             const template = this.template(event.type, event.data, {
                 $correlationId: event.metadata.$correlationId,
@@ -136,9 +138,6 @@ class EventHandler {
                     list.forEach((trigger) => trigger.trigger.forEach((stream: string) =>
                         this.client.appendToStream(stream, [template]).catch((err: any) =>
                             console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err))))
-                } else if (event.metadata.state === 'delivered') {
-                    // @todo check if event.nack exist
-
                 }
             } else {
                 console.log('[EVENT TRACK] [%s] last step event )', event.metadata.state.toUpperCase())
