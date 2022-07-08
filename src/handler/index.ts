@@ -141,8 +141,7 @@ class EventHandler {
 
                 }
             } else {
-                console.log('[EVENT TRACK] [%s] last step event )',
-                    event.metadata.state.toUpperCase())
+                console.log('[EVENT TRACK] [%s] last step event )', event.metadata.state.toUpperCase())
             }
         } else {
             console.warn('BAD EVENT FORMAT', event)
