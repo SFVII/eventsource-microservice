@@ -171,11 +171,14 @@ class EventsPlugin<DataModel> {
             let state: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | "processing" | null = await this.processStateChecker(requestId);
             console.log('my stream name', streamName, state)
             if (state === "processing") {
+                console.log('------------- processing')
                 const state = await this.eventCompletedHandler(streamName, requestId);
                 resolve({payload: state, requestId})
             } else if (state) {
+                console.log('------------- state')
                 resolve({payload: state, requestId});
             } else {
+                console.log('------------- else')
                 const template = this.template(method, data, {
                     $correlationId: requestId,
                     state: 'processing',
@@ -291,7 +294,7 @@ class EventsPlugin<DataModel> {
     }
 
     private GenerateEventInternalId(data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[], method: string) {
-        return md5(JSON.stringify({payload: data, method}));
+        return md5(JSON.stringify({payload: data, method, company : 'nowla'}));
     }
 }
 
