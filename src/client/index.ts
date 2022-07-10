@@ -60,7 +60,7 @@ export type ModelEventWrapper<DataModel> = {
 }
 
 
-export const addContributor = (contributor : IContributor = {
+export const addContributor = (contributor: IContributor = {
     lastname: 'system',
     firstname: 'system'
 }) => {
@@ -159,50 +159,53 @@ class EventsPlugin<DataModel> {
         }
     }
 
-    private async EventMiddlewareEmitter(data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
-                                         method: string,
-                                         _streamName?: string,
-                                         typeOrigin?: string,
-                                         contributor?: IContributor) {
-        const requestId = this.GenerateEventInternalId(data, method);
-        const streamName = _streamName ? _streamName : this.streamName
-        let state: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | "processing" | null = await this.processStateChecker(requestId);
-        console.log('my stream name', streamName)
-        if (state === "processing") {
-            return await this.eventCompletedHandler(streamName, requestId);
-        } else if (state) {
-            return {payload: state, requestId};
-        } else {
-            const template = this.template(method, data, {
-                $correlationId: requestId,
-                state: 'processing',
-                $causationId: this.streamName,
-                causationRoute: this.causationRoute,
-                typeOrigin: typeOrigin ? typeOrigin : method,
-                contributor: addContributor(contributor)
-            })
-            const event = await this.appendToStream(streamName, template);
-            if (event) {
-                state = await this.eventCompletedHandler(streamName, requestId);
+    private EventMiddlewareEmitter(data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
+                                   method: string,
+                                   _streamName?: string,
+                                   typeOrigin?: string,
+                                   contributor?: IContributor): Promise<{ payload: any, requestId: string, }> {
+
+        return new Promise(async (resolve) => {
+            const requestId = this.GenerateEventInternalId(data, method);
+            const streamName = _streamName ? _streamName : this.streamName
+            let state: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | "processing" | null = await this.processStateChecker(requestId);
+            console.log('my stream name', streamName, state)
+            if (state === "processing") {
+                const state = await this.eventCompletedHandler(streamName, requestId);
+                resolve({payload: state, requestId})
+            } else if (state) {
+                resolve({payload: state, requestId});
+            } else {
+                const template = this.template(method, data, {
+                    $correlationId: requestId,
+                    state: 'processing',
+                    $causationId: this.streamName,
+                    causationRoute: this.causationRoute,
+                    typeOrigin: typeOrigin ? typeOrigin : method,
+                    contributor: addContributor(contributor)
+                })
+                state = await this.eventCompletedHandler(streamName, requestId,
+                    () => (this.appendToStream(streamName, template)));
+                resolve({payload: state, requestId});
             }
-        }
-        return {payload: state, requestId};
+        })
     }
 
     private async appendToStream(streamName: string, template: EventData) {
-        return await this.client.appendToStream(streamName || this.streamName,
+        return this.client.appendToStream(streamName || this.streamName,
             [template])
             .catch((err) => {
                 console.log('Error EventsPlugin.add', err)
             })
     }
 
-    private async eventCompletedHandler(streamName: string, EventId: string) {
+    private async eventCompletedHandler(streamName: string, EventId: string, callback?: () => void) {
         let data = null;
         const stream = this.client.subscribeToStream(streamName, {
             fromRevision: END,
             resolveLinkTos: true,
         })
+        if (callback) await callback();
         // @ts-ignore
         for await (const resolvedEvent of stream) {
             const {event}: any = resolvedEvent;
@@ -213,8 +216,10 @@ class EventsPlugin<DataModel> {
                     ? BigInt(event.revision - 100n) : this.StartRevision;*/
                 break;
             }
+            console.log('----------> client.pluging >>>>>>> \n\n', event)
         }
         await stream.unsubscribe();
+        console.log('--------', data);
         return data;
     }
 
