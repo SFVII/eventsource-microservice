@@ -141,7 +141,17 @@ class EventsPlugin<DataModel> {
             typeOrigin: typeOrigin,
             contributor: addContributor(contributor)
         })
+        console.log('ICI -> ', {
+            $correlationId: requestId,
+            state: 'delivered',
+            $causationId: streamName,
+            causationRoute: causationRoute,
+            typeOrigin: typeOrigin,
+            contributor: addContributor(contributor)
+        }, eventEnd);
+
         const appendToStream = this.appendToStream.bind(this);
+        console.log('appendToStream', appendToStream)
         return () => {
             console.log('OK ????')
             appendToStream(streamName, eventEnd);
@@ -184,7 +194,6 @@ class EventsPlugin<DataModel> {
             [template])
             .catch((err) => {
                 console.log('Error EventsPlugin.add', err)
-                new Error('Error system : ' + err);
             })
     }
 
