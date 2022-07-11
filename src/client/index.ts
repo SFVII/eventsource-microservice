@@ -5,7 +5,7 @@
  **  @Date 09/02/2022
  **  @Description
  ***********************************************************/
-import { StreamingRead, ResolvedEvent, EventType } from "@eventstore/db-client";
+import {EventType, ResolvedEvent, StreamingRead} from "@eventstore/db-client";
 import {
     BACKWARDS,
     END,
@@ -169,15 +169,15 @@ class EventsPlugin<DataModel> {
         return new Promise(async (resolve) => {
             const requestId = this.GenerateEventInternalId(data, method);
             const streamName = _streamName ? _streamName : this.streamName
-            let state: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | "processing" | null | "create" | "delivered" = await this.processStateChecker(requestId);
+            let state: { data: any; state: any } | boolean = await this.processStateChecker(requestId);
             console.log('my stream name', streamName, state)
-            if (state === "processing") {
+            if (state && state.state === "processing") {
                 console.log('------------- processing')
                 const state = await this.eventCompletedHandler(streamName, requestId);
-                resolve({payload: state, requestId})
-            } else if (state) {
+                resolve({payload: state.data, requestId})
+            } else if (state && state?.data) {
                 console.log('------------- state')
-                resolve({payload: state, requestId});
+                resolve({payload: state.data, requestId});
             } else {
                 console.log('------------- else')
                 const template = this.template(method, data, {
@@ -256,19 +256,19 @@ class EventsPlugin<DataModel> {
             case 'delivered':
             case 'completed':
                 subscription.destroy();
-                return event.data
+                return {data: event.data, state: event.metadata?.state}
             // In case of processing we transparency send the user to the pending room
             case 'processing':
                 subscription.destroy();
-                return event.metadata?.state
+                return {data: null, state: event.metadata?.state}
             default:
                 subscription.destroy();
-                return true;
+                return false;
         }
     }
 
     private async processStateChecker(EventId: string) {
-        let data: any = null;
+        let data: any = {};
         try {
             const subscription = this.getMainStream();
             if (subscription) {
@@ -276,7 +276,7 @@ class EventsPlugin<DataModel> {
                     const event: any = resolvedEvent.event;
                     if (event && event.metadata?.$correlationId !== EventId && event.metadata?.state === "delivered") {
                         console.log('Last checkpoint', event)
-                        return true;
+                        return false;
                     } else if (event && event.metadata?.$correlationId === EventId)
                         return this.eventState(event, subscription)
                 }
@@ -286,7 +286,7 @@ class EventsPlugin<DataModel> {
             console.error('Error EventsPlugin.processStateChecker', err)
         }
 
-        return data;
+        return false;
     }
 
     private template(type: string, data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | any, metadata: ITemplateEvent) {

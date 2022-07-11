@@ -79,7 +79,7 @@ class EventHandler {
                 $correlationId: event.metadata.$correlationId,
                 $causationId: event.metadata.$causationId,
                 state: event.metadata.state,
-                causationRoute: null,
+                causationRoute: [],
                 typeOrigin: event.metadata.typeOrigin,
                 contributor: event.metadata?.contributor
             });
