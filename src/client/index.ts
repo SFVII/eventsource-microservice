@@ -168,13 +168,13 @@ class EventsPlugin<DataModel> {
         return new Promise(async (resolve) => {
             const requestId = this.GenerateEventInternalId(data, method);
             const streamName = _streamName ? _streamName : this.streamName
-            let state: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | "processing" | null = await this.processStateChecker(requestId);
+            let state: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | "processing" | null | "create" | "delivered" = await this.processStateChecker(requestId);
             console.log('my stream name', streamName, state)
             if (state === "processing") {
                 console.log('------------- processing')
                 const state = await this.eventCompletedHandler(streamName, requestId);
                 resolve({payload: state, requestId})
-            } else if (state) {
+            } else if (state)  {
                 console.log('------------- state')
                 resolve({payload: state, requestId});
             } else {
@@ -215,11 +215,11 @@ class EventsPlugin<DataModel> {
             if (event && event.metadata?.$correlationId === EventId
                 && (event.metadata?.state === 'completed' || event.metadata?.state === 'error')) {
                 data = event.data;
+                console.log("J'existe !!!!", data)
                 /*this.StartRevision = BigInt(event.revision) > BigInt(100n)
                     ? BigInt(event.revision - 100n) : this.StartRevision;*/
                 break;
             }
-            console.log('----------> client.pluging >>>>>>> \n\n', event)
         }
         await stream.unsubscribe();
         console.log('--------', data);
@@ -230,7 +230,7 @@ class EventsPlugin<DataModel> {
         return {
             direction: BACKWARDS,
             fromRevision: END,
-            maxCount: 1000,
+            maxCount: 100,
             credentials: credentials
         }
     }
@@ -259,10 +259,9 @@ class EventsPlugin<DataModel> {
                     if (event && event.metadata?.$correlationId === EventId) {
                         switch (event.metadata?.state) {
                             // In case of delivered we allow user to renew the entry
-                            case 'delivered':
-                                subscription.destroy();
-                                return null;
                             // In case of complete we send the last information to the user
+                            case 'error':
+                            case 'delivered':
                             case 'completed':
                                 subscription.destroy();
                                 return event.data
@@ -270,9 +269,9 @@ class EventsPlugin<DataModel> {
                             case 'processing':
                                 subscription.destroy();
                                 return event.metadata?.state
-                            case 'error':
+                            default:
                                 subscription.destroy();
-                                return event.data
+                                return true;
                         }
                     }
                 }
@@ -294,7 +293,7 @@ class EventsPlugin<DataModel> {
     }
 
     private GenerateEventInternalId(data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[], method: string) {
-        return md5(JSON.stringify({payload: data, method, company : 'nowla'}));
+        return md5(JSON.stringify({payload: data, method, company: 'nowla'}));
     }
 }
 
