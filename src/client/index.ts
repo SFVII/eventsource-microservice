@@ -5,6 +5,7 @@
  **  @Date 09/02/2022
  **  @Description
  ***********************************************************/
+import { StreamingRead, ResolvedEvent, EventType } from "@eventstore/db-client";
 import {
     BACKWARDS,
     END,
@@ -247,11 +248,28 @@ class EventsPlugin<DataModel> {
         return null;
     }
 
+    private eventState(event: any, subscription: StreamingRead<ResolvedEvent<EventType>>) {
+        switch (event.metadata?.state) {
+            // In case of delivered we allow user to renew the entry
+            // In case of complete we send the last information to the user
+            case 'error':
+            case 'delivered':
+            case 'completed':
+                subscription.destroy();
+                return event.data
+            // In case of processing we transparency send the user to the pending room
+            case 'processing':
+                subscription.destroy();
+                return event.metadata?.state
+            default:
+                subscription.destroy();
+                return true;
+        }
+    }
 
     private async processStateChecker(EventId: string) {
         let data: any = null;
         try {
-
             const subscription = this.getMainStream();
             if (subscription) {
                 for await (const resolvedEvent of subscription) {
@@ -259,24 +277,8 @@ class EventsPlugin<DataModel> {
                     if (event && event.metadata?.$correlationId !== EventId && event.metadata?.state === "delivered") {
                         console.log('Last checkpoint', event)
                         return true;
-                    } else if (event && event.metadata?.$correlationId === EventId) {
-                        switch (event.metadata?.state) {
-                            // In case of delivered we allow user to renew the entry
-                            // In case of complete we send the last information to the user
-                            case 'error':
-                            case 'delivered':
-                            case 'completed':
-                                subscription.destroy();
-                                return event.data
-                            // In case of processing we transparency send the user to the pending room
-                            case 'processing':
-                                subscription.destroy();
-                                return event.metadata?.state
-                            default:
-                                subscription.destroy();
-                                return true;
-                        }
-                    }
+                    } else if (event && event.metadata?.$correlationId === EventId)
+                        return this.eventState(event, subscription)
                 }
 
             }

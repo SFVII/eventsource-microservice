@@ -1,10 +1,3 @@
-/***********************************************************
- **  @project
- **  @file
- **  @author Brice Daupiard <brice.daupiard@nowbrains.com>
- **  @Date 09/02/2022
- **  @Description
- ***********************************************************/
 import { EventStoreDBClient, IEvenStoreConfig } from "../core/global";
 export interface IMethodFunctionResponse {
     data: any;
@@ -67,6 +60,7 @@ declare class EventsPlugin<DataModel> {
     private eventCompletedHandler;
     private readStreamConfig;
     private getMainStream;
+    private eventState;
     private processStateChecker;
     private template;
     private GenerateEventInternalId;
