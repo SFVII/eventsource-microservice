@@ -174,7 +174,7 @@ class EventsPlugin<DataModel> {
                 console.log('------------- processing')
                 const state = await this.eventCompletedHandler(streamName, requestId);
                 resolve({payload: state, requestId})
-            } else if (state)  {
+            } else if (state) {
                 console.log('------------- state')
                 resolve({payload: state, requestId});
             } else {
@@ -230,7 +230,7 @@ class EventsPlugin<DataModel> {
         return {
             direction: BACKWARDS,
             fromRevision: END,
-            maxCount: 100,
+            maxCount: 50,
             credentials: credentials
         }
     }
@@ -256,7 +256,10 @@ class EventsPlugin<DataModel> {
             if (subscription) {
                 for await (const resolvedEvent of subscription) {
                     const event: any = resolvedEvent.event;
-                    if (event && event.metadata?.$correlationId === EventId) {
+                    if (event && event.metadata?.$correlationId !== EventId && event.metadata?.state === "delivered") {
+                        console.log('Last checkpoint', event)
+                        return true;
+                    } else if (event && event.metadata?.$correlationId === EventId) {
                         switch (event.metadata?.state) {
                             // In case of delivered we allow user to renew the entry
                             // In case of complete we send the last information to the user
