@@ -196,7 +196,7 @@ class EventsPlugin<DataModel> extends DataTreated {
                     this.add({id: event.metadata['$correlationId'], event: 'pending', date: new Date});
                 }
             }
-            this.stream.ack(event);
+            this.stream.ack(resolvedEvent);
         }
     }
 
