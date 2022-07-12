@@ -248,44 +248,42 @@ class EventsPlugin<DataModel> {
         return null;
     }
 
-    private eventState(event: any, subscription: StreamingRead<ResolvedEvent<EventType>>) {
+    private eventState(event: any) {
         switch (event.metadata?.state) {
             // In case of delivered we allow user to renew the entry
             // In case of complete we send the last information to the user
             case 'error':
             case 'delivered':
             case 'completed':
-                subscription.destroy();
                 return {data: event.data, state: event.metadata?.state}
             // In case of processing we transparency send the user to the pending room
             case 'processing':
-                subscription.destroy();
                 return {data: null, state: event.metadata?.state}
             default:
-                subscription.destroy();
                 return false;
         }
     }
 
     private async processStateChecker(EventId: string) {
         let data: any = {};
-        try {
-            const subscription = this.getMainStream();
-            if (subscription) {
+        const subscription: null | StreamingRead<ResolvedEvent<EventType>> = this.getMainStream();
+        if (subscription) {
+            try {
                 for await (const resolvedEvent of subscription) {
                     const event: any = resolvedEvent.event;
-                    if (event && event.metadata?.$correlationId !== EventId && event.metadata?.state === "delivered") {
-                        console.log('Last checkpoint', event)
-                        return false;
-                    } else if (event && event.metadata?.$correlationId === EventId)
-                        return this.eventState(event, subscription)
+                    /*  if (event && event.metadata?.$correlationId !== EventId && event.metadata?.state === "delivered") {
+                          console.log('Last checkpoint', event)
+                          return false;
+                      } else */
+                    if (event && event.metadata?.$correlationId === EventId)
+                        return this.eventState(event)
                 }
 
+            } catch (err) {
+                console.error('Error EventsPlugin.processStateChecker', err)
             }
-        } catch (err) {
-            console.error('Error EventsPlugin.processStateChecker', err)
+            subscription.destroy();
         }
-
         return false;
     }
 
