@@ -148,38 +148,40 @@ class EventsPlugin<DataModel> extends DataTreated {
             EvenStoreConfig.credentials);
         this.credentials = EvenStoreConfig.credentials;
         this.causationRoute = causationRoute;
-        this.InitStreamWatcher().then(() => {
-            for (const method of this.methods) {
-                // @ts-ignore
-                this[method] = async (data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
-                                      contributor?: IContributor,
-                                      typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string
-                                      // this.create({...}, {id: xxxx}, event.typeOrigin)
-                ): Promise<{
-                    data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel[]>,
-                    ack: () => void
-                }> => {
-                    const _streamName = streamName
-                    const {
-                        payload,
-                        requestId
-                    } = await this.EventMiddlewareEmitter(data, method, _streamName, typeOrigin, contributor)
-                    return {
-                        data: payload,
-                        ack: this.delivered(
-                            requestId,
-                            method,
-                            payload,
-                            typeOrigin,
-                            _streamName,
-                            contributor,
-                            _streamName)
-                            .bind(this)
-                    };
-                }
-            }
-        })
+        this.InitStreamWatcher().catch((err: any) => {
 
+            console.log('ERROR InitStreamWatcher', err)
+            process.exit(0)
+        })
+        for (const method of this.methods) {
+            // @ts-ignore
+            this[method] = async (data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
+                                  contributor?: IContributor,
+                                  typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string
+                                  // this.create({...}, {id: xxxx}, event.typeOrigin)
+            ): Promise<{
+                data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel[]>,
+                ack: () => void
+            }> => {
+                const _streamName = streamName
+                const {
+                    payload,
+                    requestId
+                } = await this.EventMiddlewareEmitter(data, method, _streamName, typeOrigin, contributor)
+                return {
+                    data: payload,
+                    ack: this.delivered(
+                        requestId,
+                        method,
+                        payload,
+                        typeOrigin,
+                        _streamName,
+                        contributor,
+                        _streamName)
+                        .bind(this)
+                };
+            }
+        }
     }
 
 
@@ -299,29 +301,29 @@ class EventsPlugin<DataModel> extends DataTreated {
                     resolve({payload: event, requestId})
                 }
             }
-          /*  let state: { data: any; state: any } | boolean = await this.exist(requestId);
-            console.log('my stream name', streamName, state)
-            if (state && state.state === "processing") {
-                console.log('------------- processing')
-                const state = await this.eventCompletedHandler(streamName, requestId);
-                resolve({payload: state.data, requestId})
-            } else if (state && state?.data) {
-                console.log('------------- state')
-                resolve({payload: state.data, requestId});
-            } else {
-                console.log('------------- else')
-                const template = this.template(method, data, {
-                    $correlationId: requestId,
-                    state: 'processing',
-                    $causationId: this.streamName,
-                    causationRoute: this.causationRoute,
-                    typeOrigin: typeOrigin ? typeOrigin : method,
-                    contributor: addContributor(contributor)
-                })
-                let state: { data: any; state: any } | boolean = await this.eventCompletedHandler(streamName, requestId,
-                    () => (this.appendToStream(streamName, template)));
-                resolve({payload: state, requestId});
-            }*/
+            /*  let state: { data: any; state: any } | boolean = await this.exist(requestId);
+              console.log('my stream name', streamName, state)
+              if (state && state.state === "processing") {
+                  console.log('------------- processing')
+                  const state = await this.eventCompletedHandler(streamName, requestId);
+                  resolve({payload: state.data, requestId})
+              } else if (state && state?.data) {
+                  console.log('------------- state')
+                  resolve({payload: state.data, requestId});
+              } else {
+                  console.log('------------- else')
+                  const template = this.template(method, data, {
+                      $correlationId: requestId,
+                      state: 'processing',
+                      $causationId: this.streamName,
+                      causationRoute: this.causationRoute,
+                      typeOrigin: typeOrigin ? typeOrigin : method,
+                      contributor: addContributor(contributor)
+                  })
+                  let state: { data: any; state: any } | boolean = await this.eventCompletedHandler(streamName, requestId,
+                      () => (this.appendToStream(streamName, template)));
+                  resolve({payload: state, requestId});
+              }*/
         })
     }
 
