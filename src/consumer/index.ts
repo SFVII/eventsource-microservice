@@ -173,17 +173,26 @@ class EventConsumer {
     private QueueListener() {
         console.log('----------QueueListener-------------', this.Queue)
         setInterval(() => {
+            console.log('----- Alors ???,', this.Queue)
             Object.keys(this.Queue).forEach((type: MethodList) => {
+                console.log('----- MethodList ???,', this.Queue, type)
                 // @ts-ignore
                 if (!Array.isArray(this.Queue[type])) {
+                    console.log('----- MethodList ??? is not Array is Object', this.Queue, type)
                     // @ts-ignore
                     if (this.Queue[type] && Object.keys(this.Queue[type]).length) {
+                        console.log('----- MethodList ??? object contain key,', this.Queue, type)
                         // @ts-ignore
                         Object.keys(this.Queue[type]).forEach((subkey: string) => {
+                            console.log('----- MethodList ??? object  key', this.Queue, type, subkey)
                             // @ts-ignore
                             if (this.Queue && this.Queue[type] && this.Queue[type][subkey]
                                 // @ts-ignore
                                 && (this.Queue[type][subkey] as StreamSubscription[])?.length) {
+
+                                console.log('bfore ----- MethodList ??? object  key StreamSubscription')
+                                // @ts-ignore
+                                console.log('----- MethodList ??? object  key StreamSubscription', this.Queue, type, subkey, this.Queue[type][subkey], this.Queue[type][subkey][0])
                                 // @ts-ignore
                                 const stack = (this.Queue[type][subkey] as StreamSubscription[]).splice(
                                     0,
