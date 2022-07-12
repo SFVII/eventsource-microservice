@@ -99,6 +99,8 @@ class EventConsumer {
         } else {
             console.log('Error _EventConsumer.AddToQueue Queue does not exist')
         }
+
+
     }
 
 
@@ -169,6 +171,7 @@ class EventConsumer {
     }
 
     private QueueListener() {
+        console.log('----------QueueListener-------------', this.Queue)
         setInterval(() => {
             Object.keys(this.Queue).forEach((type: MethodList) => {
                 // @ts-ignore
@@ -187,6 +190,7 @@ class EventConsumer {
                                     // @ts-ignore
                                     ((this.Queue[type][subkey])?.length > 200 ? 200 : this.Queue[type][subkey]?.length)
                                 )
+                                console.log('----------eventEmitter-------------' + type + '.' + subkey, stack)
                                 this.eventEmitter.emit(type + '.' + subkey, stack);
                             }
                         })
@@ -199,6 +203,7 @@ class EventConsumer {
                             // @ts-ignore
                             ((this.Queue[type] as StreamSubscription[])?.length > 200 ? 200 : this.Queue[type]?.length)
                         )
+                        console.log('----------eventEmitter-------------' + type , stack)
                         this.eventEmitter.emit(type, stack);
                     }
                 }
