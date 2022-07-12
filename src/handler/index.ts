@@ -138,6 +138,17 @@ class EventHandler {
                     list.forEach((trigger) => trigger.trigger.forEach((stream: string) =>
                         this.client.appendToStream(stream, [template]).catch((err: any) =>
                             console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err))))
+                } else if (event.metadata.state === 'completed') {
+                    const template = this.template(event.type, event.data, {
+                        $correlationId: event.metadata.$correlationId,
+                        $causationId: event.streamId,
+                        state: "completed",
+                        causationRoute: null,
+                        typeOrigin: event.metadata.typeOrigin,
+                        contributor: event.metadata?.contributor
+                    });
+                    console.log('completed %s', event.$causationId);
+                    this.client.appendToStream(event.$causationId, [template]).catch((err: any) => {console.log('err completed', err) });
                 }
             } else {
                 console.log('[EVENT TRACK] [%s] last step event )', event.metadata.state.toUpperCase())
