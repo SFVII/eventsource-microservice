@@ -15,7 +15,9 @@ import {
     IReadStreamConfig,
     ITemplateEvent,
     jsonEvent,
-    md5
+    md5,
+    persistentSubscriptionSettingsFromDefaults,
+    START
 } from "../core/global";
 
 export interface IMethodFunctionResponse {
@@ -73,7 +75,51 @@ export const addContributor = (contributor: IContributor = {
     }
 }
 
-class EventsPlugin<DataModel> {
+type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date }
+type IDataTreatedListFoundResult = EventType | false | undefined
+
+class DataTreated {
+    protected list: IDataTreatedList[] = [];
+
+    constructor() {
+        this.clearOldFile();
+    }
+
+    public exist(IdEvent: string) {
+        return this.list.findIndex((doc: IDataTreatedList) => doc.id === IdEvent) > -1;
+    }
+
+    public add(entry: IDataTreatedList) {
+        const index = this.list.findIndex((doc: IDataTreatedList) => entry.id == doc.id)
+        if (index > -1) this.list[index] = entry;
+        else this.list.push(entry);
+    }
+
+
+    async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
+        if (retry <= 30) {
+            const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
+            if (lookup && lookup.event === 'pending') {
+                await this.sleep(100);
+                return this.find(IdEvent, retry++);
+            } else if (lookup) return lookup.event as EventType;
+        } else return false;
+    }
+
+    sleep(ms: number) {
+        return new Promise((resolve) => setTimeout(() => resolve(true), ms));
+    }
+
+    clearOldFile() {
+        setInterval(() => {
+            const limit = new Date();
+            limit.setMinutes(limit.getMinutes() - 1)
+            this.list = this.list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime());
+        }, 1000 * 60);
+    }
+}
+
+class EventsPlugin<DataModel> extends DataTreated {
 
     public create: IMethodFunction<DataModel, 'create'>;
     public update: IMethodFunction<DataModel, 'update'>;
@@ -85,44 +131,101 @@ class EventsPlugin<DataModel> {
     protected client: EventStoreDBClient;
     protected credentials: IEvenStoreConfig["credentials"];
     private readonly causationRoute: string[];
+    private stream: any;
+    private group: string = 'client-';
 
     constructor(EvenStoreConfig: IEvenStoreConfig,
                 streamName: string,
                 methods: string[],
                 causationRoute: string[]) {
+        super()
         this.methods = methods;
         this.streamName = streamName;
+        this.group += streamName
         this.client = new EventStoreDBClient(
             EvenStoreConfig.connexion,
             EvenStoreConfig.security,
             EvenStoreConfig.credentials);
         this.credentials = EvenStoreConfig.credentials;
         this.causationRoute = causationRoute;
-        for (const method of this.methods) {
-            // @ts-ignore
-            this[method] = async (data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
-                                  contributor?: IContributor,
-                                  typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string
-                                  // this.create({...}, {id: xxxx}, event.typeOrigin)
-            ): Promise<{ data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel[]>, ack: () => void }> => {
-                const _streamName = streamName
-                const {
-                    payload,
-                    requestId
-                } = await this.EventMiddlewareEmitter(data, method, _streamName, typeOrigin, contributor)
-                return {
-                    data: payload,
-                    ack: this.delivered(
-                        requestId,
-                        method,
+        this.InitStreamWatcher().then(() => {
+            for (const method of this.methods) {
+                // @ts-ignore
+                this[method] = async (data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
+                                      contributor?: IContributor,
+                                      typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string
+                                      // this.create({...}, {id: xxxx}, event.typeOrigin)
+                ): Promise<{
+                    data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel[]>,
+                    ack: () => void
+                }> => {
+                    const _streamName = streamName
+                    const {
                         payload,
-                        typeOrigin,
-                        _streamName,
-                        contributor,
-                        _streamName)
-                        .bind(this)
-                };
+                        requestId
+                    } = await this.EventMiddlewareEmitter(data, method, _streamName, typeOrigin, contributor)
+                    return {
+                        data: payload,
+                        ack: this.delivered(
+                            requestId,
+                            method,
+                            payload,
+                            typeOrigin,
+                            _streamName,
+                            contributor,
+                            _streamName)
+                            .bind(this)
+                    };
+                }
             }
+        })
+
+    }
+
+
+    private async InitStreamWatcher() {
+        await this.CreatePersistentSubscription(this.streamName);
+        this.stream = this.SubscribeToPersistent(this.streamName);
+        for await (const resolvedEvent of this.stream) {
+            const event: any = resolvedEvent.event;
+            if (event.metadata.state !== 'delivered') {
+                const state: false | null | true = this.eventState(event.metadata.state)
+                if (state === true) {
+                    this.add({id: event.metadata['$correlationId'], event, date: new Date});
+                } else if (state === null) {
+                    this.add({id: event.metadata['$correlationId'], event: 'pending', date: new Date});
+                }
+            }
+            this.stream.ack(event);
+        }
+    }
+
+    private SubscribeToPersistent(streamName: string) {
+        return this.client.subscribeToPersistentSubscription(
+            streamName,
+            this.group
+        )
+    }
+
+    private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
+        try {
+            await this.client.createPersistentSubscription(
+                streamName,
+                this.group,
+                persistentSubscriptionSettingsFromDefaults({
+                    startFrom: START,
+                    resolveLinkTos: true
+                }),
+                {credentials: this.credentials}
+            )
+            return true;
+        } catch (err) {
+            const error = (err ? err.toString() : "").toLowerCase();
+            if (error.includes('EXIST') || error.includes('exist')) {
+                console.log('Persistent subscription %s already exist', streamName)
+                return true;
+            } else console.error('Error EventHandler.CreatePersistentSubscription', err);
+            return false;
         }
     }
 
@@ -169,7 +272,33 @@ class EventsPlugin<DataModel> {
         return new Promise(async (resolve) => {
             const requestId = this.GenerateEventInternalId(data, method);
             const streamName = _streamName ? _streamName : this.streamName
-            let state: { data: any; state: any } | boolean = await this.processStateChecker(requestId);
+            if (this.exist(requestId)) {
+                console.log('Event exist try to call return it')
+                const event: IDataTreatedListFoundResult = await this.find(requestId);
+                console.log('Event found');
+                if (event) resolve({payload: event.data, requestId});
+                else {
+                    console.log('Error on pending items', {payload: event, requestId})
+                    resolve({payload: event, requestId})
+                }
+            } else {
+                const template = this.template(method, data, {
+                    $correlationId: requestId,
+                    state: 'processing',
+                    $causationId: this.streamName,
+                    causationRoute: this.causationRoute,
+                    typeOrigin: typeOrigin ? typeOrigin : method,
+                    contributor: addContributor(contributor)
+                })
+                await this.appendToStream(streamName, template)
+                const event: IDataTreatedListFoundResult = await this.find(requestId);
+                if (event) resolve({payload: event.data, requestId});
+                else {
+                    console.log('Error on pending items create', {payload: event, requestId})
+                    resolve({payload: event, requestId})
+                }
+            }
+          /*  let state: { data: any; state: any } | boolean = await this.exist(requestId);
             console.log('my stream name', streamName, state)
             if (state && state.state === "processing") {
                 console.log('------------- processing')
@@ -188,10 +317,10 @@ class EventsPlugin<DataModel> {
                     typeOrigin: typeOrigin ? typeOrigin : method,
                     contributor: addContributor(contributor)
                 })
-                state = await this.eventCompletedHandler(streamName, requestId,
+                let state: { data: any; state: any } | boolean = await this.eventCompletedHandler(streamName, requestId,
                     () => (this.appendToStream(streamName, template)));
                 resolve({payload: state, requestId});
-            }
+            }*/
         })
     }
 
@@ -201,6 +330,28 @@ class EventsPlugin<DataModel> {
             .catch((err) => {
                 console.log('Error EventsPlugin.add', err)
             })
+    }
+
+
+    private async _eventCompletedGlobalHandler(streamName: string) {
+        const stream = this.client.subscribeToStream(streamName, {
+            fromRevision: END,
+            resolveLinkTos: true,
+        })
+
+        return async (EventId: string, callback?: () => void) => {
+            if (callback) await callback();
+            for await (const resolvedEvent of stream) {
+                const {event}: any = resolvedEvent;
+                if (event && event.metadata?.$correlationId === EventId
+                    && (event.metadata?.state === 'completed' || event.metadata?.state === 'error')) {
+                    console.log("J'existe !!!!", event.data)
+                    return event.data;
+                }
+            }
+            return null;
+        }
+
     }
 
     private async eventCompletedHandler(streamName: string, EventId: string, callback?: () => void) {
@@ -252,13 +403,14 @@ class EventsPlugin<DataModel> {
         switch (event.metadata?.state) {
             // In case of delivered we allow user to renew the entry
             // In case of complete we send the last information to the user
-            case 'error':
+            //  case 'delivered':
             case 'delivered':
+            case 'error':
             case 'completed':
-                return {data: event.data, state: event.metadata?.state}
+                return true
             // In case of processing we transparency send the user to the pending room
             case 'processing':
-                return {data: null, state: event.metadata?.state}
+                return null
             default:
                 return false;
         }

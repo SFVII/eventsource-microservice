@@ -1,3 +1,11 @@
+/***********************************************************
+ **  @project
+ **  @file
+ **  @author Brice Daupiard <brice.daupiard@nowbrains.com>
+ **  @Date 09/02/2022
+ **  @Description
+ ***********************************************************/
+import { EventType } from "@eventstore/db-client";
 import { EventStoreDBClient, IEvenStoreConfig } from "../core/global";
 export interface IMethodFunctionResponse {
     data: any;
@@ -43,7 +51,22 @@ export declare const addContributor: (contributor?: IContributor) => {
     lastname?: string | undefined;
     firstname?: string | undefined;
 };
-declare class EventsPlugin<DataModel> {
+declare type IDataTreatedList = {
+    id: string;
+    event: EventType | 'pending';
+    date: Date;
+};
+declare type IDataTreatedListFoundResult = EventType | false | undefined;
+declare class DataTreated {
+    protected list: IDataTreatedList[];
+    constructor();
+    exist(IdEvent: string): boolean;
+    add(entry: IDataTreatedList): void;
+    find(IdEvent: string, retry?: number): Promise<IDataTreatedListFoundResult>;
+    sleep(ms: number): Promise<unknown>;
+    clearOldFile(): void;
+}
+declare class EventsPlugin<DataModel> extends DataTreated {
     create: IMethodFunction<DataModel, 'create'>;
     update: IMethodFunction<DataModel, 'update'>;
     delete: IMethodFunction<DataModel, 'delete'>;
@@ -53,10 +76,16 @@ declare class EventsPlugin<DataModel> {
     protected client: EventStoreDBClient;
     protected credentials: IEvenStoreConfig["credentials"];
     private readonly causationRoute;
+    private stream;
+    private group;
     constructor(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]);
+    private InitStreamWatcher;
+    private SubscribeToPersistent;
+    private CreatePersistentSubscription;
     private delivered;
     private EventMiddlewareEmitter;
     private appendToStream;
+    private _eventCompletedGlobalHandler;
     private eventCompletedHandler;
     private readStreamConfig;
     private getMainStream;

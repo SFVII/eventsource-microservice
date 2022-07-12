@@ -6,6 +6,7 @@
  **  @Description
  ***********************************************************/
 
+import EventEmitter from "events";
 
 import EventHandler from "./handler";
 import EventConsumer from "./consumer";
