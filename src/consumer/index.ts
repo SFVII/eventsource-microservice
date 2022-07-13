@@ -92,7 +92,7 @@ class EventConsumer<Contributor> {
     }
 
 
-    public async handler(event: any, data: any, status: "error" | null = null) {
+    public async handler(event: any, data: any) {
         console.log('Contributor', event.metadata);
         const eventParse = new EventParser(data, event.metadata);
         let publish : any = null;

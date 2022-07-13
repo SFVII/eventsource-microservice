@@ -19,7 +19,7 @@ export class EventParser<CustomSchema> {
     private readonly payload: any;
     private readonly _next_route: ICausationId | undefined;
     private readonly causationId: string;
-    private readonly updatedFields: keyof CustomSchema[];
+    public readonly updatedFields: keyof CustomSchema[];
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
         if (metadata.state === 'error') {

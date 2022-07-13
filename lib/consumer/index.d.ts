@@ -23,7 +23,7 @@ declare class EventConsumer<Contributor> {
     get subscription(): PersistentSubscription;
     on(key: 'ready' & MethodList & string, callback: (message: any) => any): void;
     AddToQueue(type: MethodList, ResolvedEvent: JSONEventType, name?: string): void;
-    handler(event: any, data: any, status?: "error" | null): Promise<void>;
+    handler(event: any, data: any): Promise<void>;
     ack(event: any): Promise<void>;
     nack(event: any, type?: PersistentAction, reason?: string): Promise<void>;
     retry(event: any, reason?: string): Promise<void>;
