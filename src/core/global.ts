@@ -22,7 +22,7 @@ import EventCollection, {IEventCollection} from "./mongo-plugin";
 import {PersistentSubscription} from "@eventstore/db-client/dist/types";
 import bigInt from "big-integer";
 import {EventEmitter} from 'events';
-import {IMetadata} from "../index";
+import * as querystring from "querystring";
 
 
 enum EMethodList {
@@ -57,7 +57,8 @@ type IQueueCustom = {
     [V in MethodList]?: { [key: string]: StreamSubscription[] }
 } & IQueue
 
-interface ITemplateEvent<Contributor> extends IMetadata<Contributor>{}
+interface ITemplateEvent<Contributor> extends IMetadata<Contributor> {
+}
 
 interface IEvenStoreConfig {
     connexion: {
@@ -81,7 +82,8 @@ interface IReadStreamConfig {
     credentials: IEvenStoreConfig["credentials"]
 }
 
-interface IAvailableEvent extends IEventCollection {}
+interface IAvailableEvent extends IEventCollection {
+}
 
 interface IStartRevision {
     [key: string]: IStartRevisionValues;
@@ -97,8 +99,39 @@ interface ITriggerList {
 }
 
 
+type IMd5DataHash = string; // simple Md5 hash (ex 8e614206a5b7f665b6948d4f5c7c9a29) from input data
+
+type ICausationId = string; // name of last mservice action consumer-x client-x etc...
+
+type ICausationRoute = ICausationId[] // route to take ex -> mapping -> consumer (['mapping', 'consumer']) will execute mapping and publish on consumer string
+
+type ITypeOrigin = 'create' | 'delete' | 'update' | 'recover' | string; // origin type of input action.
+
+type IContributorBinding<T> = keyof T
+
+type IContributor<T> = { // data model to track user of event action
+    [key in IContributorBinding<T>]: T[key];
+}
+
+type IMetadata<Contributor> = {
+    $correlationId: IMd5DataHash,
+    $causationId: ICausationId,
+    state: 'processing' | 'completed' | 'error' | 'delivered' | 'trigger' | 'system' | string,
+    causationRoute: ICausationRoute,
+    typeOrigin: ITypeOrigin,
+    contributor: IContributor<Contributor | any>
+}
+
+
 export {
+    IMd5DataHash,
+    ICausationId,
+    ICausationRoute,
+    ITypeOrigin,
     ITriggerList,
+    IContributorBinding,
+    IContributor,
+    IMetadata,
     EventEmitter,
     bigInt,
     PersistentSubscription,

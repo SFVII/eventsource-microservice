@@ -102,7 +102,7 @@ class EventHandler {
                             $correlationId: event.metadata.$correlationId,
                             $causationId: event.streamId,
                             state: "system",
-                            causationRoute: null,
+                            causationRoute: nextRoute,
                             typeOrigin: event.metadata.typeOrigin,
                             contributor: event.metadata?.contributor
                         });
@@ -130,7 +130,7 @@ class EventHandler {
                         $correlationId: event.metadata.$correlationId,
                         $causationId: event.streamId,
                         state: "trigger",
-                        causationRoute: null,
+                        causationRoute: [],
                         typeOrigin: event.metadata.typeOrigin,
                         contributor: event.metadata?.contributor
                     });
@@ -144,7 +144,7 @@ class EventHandler {
                         $correlationId: event.metadata.$correlationId,
                         $causationId: event.streamId,
                         state: "completed",
-                        causationRoute: null,
+                        causationRoute: [],
                         typeOrigin: event.metadata.typeOrigin,
                         contributor: event.metadata?.contributor
                     });
@@ -159,7 +159,7 @@ class EventHandler {
         }
     }
 
-    private template(type: string, data: any, metadata: ITemplateEvent) {
+    private template(type: string, data: any, metadata: ITemplateEvent<any>) {
         return jsonEvent({
             type,
             data,

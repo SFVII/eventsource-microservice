@@ -66,7 +66,7 @@ declare class DataTreated {
     sleep(ms: number): Promise<unknown>;
     clearOldFile(): void;
 }
-declare class EventsPlugin<DataModel> extends DataTreated {
+declare class EventsPlugin<DataModel, Contributor> extends DataTreated {
     create: IMethodFunction<DataModel, 'create'>;
     update: IMethodFunction<DataModel, 'update'>;
     delete: IMethodFunction<DataModel, 'delete'>;
@@ -77,7 +77,7 @@ declare class EventsPlugin<DataModel> extends DataTreated {
     protected credentials: IEvenStoreConfig["credentials"];
     private readonly causationRoute;
     private stream;
-    private group;
+    private readonly group;
     constructor(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]);
     private InitStreamWatcher;
     private SubscribeToPersistent;

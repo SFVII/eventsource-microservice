@@ -36,10 +36,7 @@ declare type IQueueCustom = {
         [key: string]: StreamSubscription[];
     };
 } & IQueue;
-interface ITemplateEvent {
-    $correlationId?: string;
-    state?: 'processing' | 'completed' | 'stalled' | 'delivered' | 'error' | 'system' | 'trigger';
-    [key: string]: any;
+interface ITemplateEvent<Contributor> extends IMetadata<Contributor> {
 }
 interface IEvenStoreConfig {
     connexion: {
@@ -73,4 +70,20 @@ interface ITriggerList {
     causationId: string;
     trigger: string[];
 }
-export { ITriggerList, EventEmitter, bigInt, PersistentSubscription, EventCollection, persistentSubscriptionSettingsFromDefaults, PersistentSubscriptionBase, jsonEvent, EventStoreDBClient, END, START, IDataLinkEvent, IEventHandlerGroup, IListStreamSubscription, IStartRevision, StreamSubscription, IAvailableEvent, IReadStreamConfig, IEvenStoreConfig, IQueue, IQueueCustom, IStream, ITemplateEvent, EventType, IStartRevisionValues, Method, MethodList, EMethodList, JSONType, BACKWARDS, EventData, md5 };
+declare type IMd5DataHash = string;
+declare type ICausationId = string;
+declare type ICausationRoute = ICausationId[];
+declare type ITypeOrigin = 'create' | 'delete' | 'update' | 'recover' | string;
+declare type IContributorBinding<T> = keyof T;
+declare type IContributor<T> = {
+    [key in IContributorBinding<T>]: T[key];
+};
+declare type IMetadata<Contributor> = {
+    $correlationId: IMd5DataHash;
+    $causationId: ICausationId;
+    state: 'processing' | 'completed' | 'error' | 'delivered' | 'trigger' | 'system' | string;
+    causationRoute: ICausationRoute;
+    typeOrigin: ITypeOrigin;
+    contributor: IContributor<Contributor | any>;
+};
+export { IMd5DataHash, ICausationId, ICausationRoute, ITypeOrigin, ITriggerList, IContributorBinding, IContributor, IMetadata, EventEmitter, bigInt, PersistentSubscription, EventCollection, persistentSubscriptionSettingsFromDefaults, PersistentSubscriptionBase, jsonEvent, EventStoreDBClient, END, START, IDataLinkEvent, IEventHandlerGroup, IListStreamSubscription, IStartRevision, StreamSubscription, IAvailableEvent, IReadStreamConfig, IEvenStoreConfig, IQueue, IQueueCustom, IStream, ITemplateEvent, EventType, IStartRevisionValues, Method, MethodList, EMethodList, JSONType, BACKWARDS, EventData, md5 };

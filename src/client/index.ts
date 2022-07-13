@@ -10,7 +10,7 @@ import {
     BACKWARDS,
     END,
     EventData,
-    EventStoreDBClient,
+    EventStoreDBClient, ICausationRoute,
     IEvenStoreConfig,
     IReadStreamConfig,
     ITemplateEvent,
@@ -119,7 +119,7 @@ class DataTreated {
     }
 }
 
-class EventsPlugin<DataModel> extends DataTreated {
+class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
     public create: IMethodFunction<DataModel, 'create'>;
     public update: IMethodFunction<DataModel, 'update'>;
@@ -132,7 +132,7 @@ class EventsPlugin<DataModel> extends DataTreated {
     protected credentials: IEvenStoreConfig["credentials"];
     private readonly causationRoute: string[];
     private stream: any;
-    private group: string = 'client-';
+    private readonly group: string = 'client-';
 
     constructor(EvenStoreConfig: IEvenStoreConfig,
                 streamName: string,
@@ -156,8 +156,8 @@ class EventsPlugin<DataModel> extends DataTreated {
         for (const method of this.methods) {
             // @ts-ignore
             this[method] = async (data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
-                                  contributor?: IContributor,
-                                  typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | string
+                                  contributor: IContributor,
+                                  typeOrigin: 'create' | 'update' | 'delete' | 'recover' | string
                                   // this.create({...}, {id: xxxx}, event.typeOrigin)
             ): Promise<{
                 data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel[]>,
@@ -177,7 +177,7 @@ class EventsPlugin<DataModel> extends DataTreated {
                         typeOrigin,
                         _streamName,
                         contributor,
-                        _streamName)
+                        [_streamName])
                         .bind(this)
                 };
             }
@@ -236,9 +236,9 @@ class EventsPlugin<DataModel> extends DataTreated {
                       method: string,
                       payload: any,
                       typeOrigin: any,
-                      streamName: string | undefined,
-                      contributor: IContributor | undefined,
-                      causationRoute: string | undefined) {
+                      streamName: string,
+                      contributor: IContributor,
+                      causationRoute: ICausationRoute) {
         console.log('Delivered', requestId, method, payload, typeOrigin, streamName, contributor, causationRoute)
         const eventEnd = this.template(method, payload, {
             $correlationId: requestId,
@@ -442,7 +442,7 @@ class EventsPlugin<DataModel> extends DataTreated {
         return false;
     }
 
-    private template(type: string, data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | any, metadata: ITemplateEvent) {
+    private template(type: string, data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | any, metadata: ITemplateEvent<Contributor>) {
         return jsonEvent({
             type,
             data,
