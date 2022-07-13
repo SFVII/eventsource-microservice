@@ -22,6 +22,7 @@ import EventCollection, {IEventCollection} from "./mongo-plugin";
 import {PersistentSubscription} from "@eventstore/db-client/dist/types";
 import bigInt from "big-integer";
 import {EventEmitter} from 'events';
+import {IMetadata} from "../index";
 
 
 enum EMethodList {
@@ -56,12 +57,7 @@ type IQueueCustom = {
     [V in MethodList]?: { [key: string]: StreamSubscription[] }
 } & IQueue
 
-interface ITemplateEvent {
-    $correlationId?: string;
-    state?: 'processing' | 'completed' | 'stalled' | 'delivered' | 'error' | 'system' | 'trigger'
-
-    [key: string]: any;
-}
+interface ITemplateEvent<Contributor> extends IMetadata<Contributor>{}
 
 interface IEvenStoreConfig {
     connexion: {
@@ -85,8 +81,7 @@ interface IReadStreamConfig {
     credentials: IEvenStoreConfig["credentials"]
 }
 
-interface IAvailableEvent extends IEventCollection {
-}
+interface IAvailableEvent extends IEventCollection {}
 
 interface IStartRevision {
     [key: string]: IStartRevisionValues;

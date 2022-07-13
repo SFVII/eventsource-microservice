@@ -27,7 +27,7 @@ import {
 
 import {JSONEventType, PARK, PersistentAction, RETRY} from "@eventstore/db-client";
 
-class EventConsumer {
+class EventConsumer<Contributor> {
     public QueueTTL = 200;
     protected methods: Method;
     protected streamName: string;
@@ -218,7 +218,7 @@ class EventConsumer {
         )
     }
 
-    private template(type: EventType, data: any, metadata: ITemplateEvent) {
+    private template(type: EventType, data: any, metadata: ITemplateEvent<Contributor>) {
         return jsonEvent({
             type,
             data,
