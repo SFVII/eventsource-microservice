@@ -18,6 +18,22 @@ export declare type IConsumer = {
 export declare type IHandler = {
     new (EvenStoreConfig: IEvenStoreConfig, streamList?: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup): EventHandler;
 };
+declare type IMd5DataHash = string;
+declare type ICausationId = string;
+declare type ICausationRoute = ICausationId[];
+declare type ITypeOrigin = 'create' | 'delete' | 'update' | 'recover' | string;
+declare type IContributorBinding<T> = keyof T;
+declare type IContributor<T> = {
+    [key in IContributorBinding<T>]: T[key];
+};
+export declare type IMetadata<Contributor> = {
+    $correlationId: IMd5DataHash;
+    $causationId: ICausationId;
+    state: 'processing' | 'completed' | 'error' | 'delivered';
+    causationRoute: ICausationRoute;
+    typeOrigin: ITypeOrigin;
+    contributor: IContributor<Contributor>;
+};
 declare const Instance: <T>(type: 'handler' | 'consumer' | 'client') => IClient | IConsumer | IHandler;
 export { EventHandler, EventConsumer, EventsPlugin };
 export { EventsPlugin as Client, EventHandler as Handler, EventConsumer as Consumer };

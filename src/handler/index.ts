@@ -71,6 +71,7 @@ class EventHandler {
     }
 
     private async handler(event: any) {
+        console.log('[EVENT TRACK] [%s] Incoming event error details: ', event.data)
         if (event.metadata && event.metadata.state === 'delivered') {
             //
         } else if (event.metadata && event.metadata.state === "error") {
