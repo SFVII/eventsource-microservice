@@ -75,7 +75,7 @@ class EventHandler {
         if (event.metadata && event.metadata.state === 'delivered') {
             //
         } else if (event.metadata && event.metadata.state === "error") {
-            console.log('[EVENT TRACK] [%s] Incoming event error details: ', event.data)
+            console.log('[EVENT TRACK ERROR] Incoming event (%s) error details:', event.metadata.$correlationId, event.data)
             const template = this.template(event.type, event.data, {
                 $correlationId: event.metadata.$correlationId,
                 $causationId: event.metadata.$causationId,
@@ -91,18 +91,14 @@ class EventHandler {
             const Routes = event.metadata.causationRoute;
             const nextRoute: string | string[] | undefined = Routes.shift();
             if (nextRoute) {
-                console.log('[EVENT TRACK] [%s] Incoming event (route > %s) \t\tnext event (%s)',
-                    event.metadata.state.toUpperCase(),
-                    nextRoute,
-                    (Routes && Routes.length ? Routes[0] : 'COMPLETED'))
+               // console.log('[EVENT TRACK] [%s] Incoming event (route > %s) \t\tnext event (%s)', event.metadata.state.toUpperCase(), nextRoute, (Routes && Routes.length ? Routes[0] : 'COMPLETED'))
                 if (event.metadata && (event.metadata.state === 'processing')) {
-
                     if (nextRoute && Array.isArray(nextRoute)) {
                         const template = this.template(event.type, event.data, {
                             $correlationId: event.metadata.$correlationId,
                             $causationId: event.streamId,
                             state: "system",
-                            causationRoute: nextRoute,
+                            causationRoute: [],
                             typeOrigin: event.metadata.typeOrigin,
                             contributor: event.metadata?.contributor
                         });
@@ -113,6 +109,7 @@ class EventHandler {
                         event.metadata.causationRoute = Routes;
                         await this.handler(event);
                     } else {
+                        console.log('[EVENT TRACK] [%s] Incoming event (route > %s) \t\tnext event (%s)', event.metadata.state.toUpperCase(), nextRoute, (Routes && Routes.length ? Routes[0] : 'COMPLETED'))
                         const template = this.template(event.type, event.data, {
                             $correlationId: event.metadata.$correlationId,
                             $causationId: event.streamId,
@@ -121,6 +118,7 @@ class EventHandler {
                             typeOrigin: event.metadata.typeOrigin,
                             contributor: event.metadata?.contributor
                         });
+                        console.log('Send data to %s', nextRoute)
                         await this.client.appendToStream(nextRoute, [template]).catch((err: any) => {
                             console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err);
                         })
@@ -140,6 +138,7 @@ class EventHandler {
                         this.client.appendToStream(stream, [template]).catch((err: any) =>
                             console.error(`Error EventHandler.handler.appendToStream.${nextRoute}`, err))))
                 } else if (event.metadata.state === 'completed') {
+                    console.log('Entry in this', event.metadata.$correlationId);
                     const template = this.template(event.type, event.data, {
                         $correlationId: event.metadata.$correlationId,
                         $causationId: event.streamId,
