@@ -86,4 +86,22 @@ declare type IMetadata<Contributor> = {
     typeOrigin: ITypeOrigin;
     contributor: IContributor<Contributor | any>;
 };
-export { IMd5DataHash, ICausationId, ICausationRoute, ITypeOrigin, ITriggerList, IContributorBinding, IContributor, IMetadata, EventEmitter, bigInt, PersistentSubscription, EventCollection, persistentSubscriptionSettingsFromDefaults, PersistentSubscriptionBase, jsonEvent, EventStoreDBClient, END, START, IDataLinkEvent, IEventHandlerGroup, IListStreamSubscription, IStartRevision, StreamSubscription, IAvailableEvent, IReadStreamConfig, IEvenStoreConfig, IQueue, IQueueCustom, IStream, ITemplateEvent, EventType, IStartRevisionValues, Method, MethodList, EMethodList, JSONType, BACKWARDS, EventData, md5 };
+declare type IEventErrorResult = {
+    origin: string;
+    details: any;
+};
+declare type IEventResponseError = {
+    data: any | undefined;
+    origin: string;
+    status: IMetadata<any>['state'];
+    type: ITypeOrigin;
+    message: string;
+};
+declare type IEventResponseSuccess<CustomSchema> = {
+    origin: string;
+    data: string;
+    status: IMetadata<any>['state'];
+    type: ITypeOrigin;
+    updatedFields?: keyof CustomSchema[];
+};
+export { IEventErrorResult, IEventResponseError, IEventResponseSuccess, IMd5DataHash, ICausationId, ICausationRoute, ITypeOrigin, ITriggerList, IContributorBinding, IContributor, IMetadata, EventEmitter, bigInt, PersistentSubscription, EventCollection, persistentSubscriptionSettingsFromDefaults, PersistentSubscriptionBase, jsonEvent, EventStoreDBClient, END, START, IDataLinkEvent, IEventHandlerGroup, IListStreamSubscription, IStartRevision, StreamSubscription, IAvailableEvent, IReadStreamConfig, IEvenStoreConfig, IQueue, IQueueCustom, IStream, ITemplateEvent, EventType, IStartRevisionValues, Method, MethodList, EMethodList, JSONType, BACKWARDS, EventData, md5 };

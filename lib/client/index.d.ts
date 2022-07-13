@@ -6,50 +6,18 @@
  **  @Description
  ***********************************************************/
 import { EventType } from "@eventstore/db-client";
-import { EventStoreDBClient, IEvenStoreConfig } from "../core/global";
+import { EventStoreDBClient, IContributor, IEvenStoreConfig } from "../core/global";
+import { IEventCreate } from "../core/CommonResponse";
 export interface IMethodFunctionResponse {
     data: any;
     ack: () => (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void;
 }
-export declare type IMethodFunction<DataModel, Type> = (data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[], contributor?: IContributor, typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type, streamName?: string, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
-export declare type IContributor = {
-    id_contact?: string;
-    id_nowteam?: string;
-    id_external?: string;
-    lastname?: string;
-    firstname?: string;
-    account?: string | Partial<any> & {
-        _id: string;
-    };
-    group?: string | Partial<any> & {
-        _id: string;
-    };
-};
-export declare type ModelEventWrapper<DataModel> = {
-    model?: {
-        fs?: string | undefined;
-        db?: string | undefined;
-        sf?: string | undefined;
-        [key: string]: string | undefined;
-    };
-    i18n?: {
-        model?: string;
-        language: string;
-        fields: string[];
-        shouldRenderJson?: boolean;
-    };
-    origins?: [string, string][];
-    value: DataModel | DataModel[];
-    fields?: (keyof DataModel)[];
-};
-export declare const addContributor: (contributor?: IContributor) => {
-    account: string | undefined;
-    group: string | undefined;
-    id_contact?: string | undefined;
-    id_nowteam?: string | undefined;
-    id_external?: string | undefined;
-    lastname?: string | undefined;
-    firstname?: string | undefined;
+export declare type IMethodFunction<Contributor, Type> = (data: ModelEventWrapper, contributor?: IContributor<Contributor>, typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type, streamName?: string, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
+export interface ModelEventWrapper extends IEventCreate {
+}
+export declare const addContributor: (contributor?: IContributor<any>) => {
+    account: any;
+    group: any;
 };
 declare type IDataTreatedList = {
     id: string;
@@ -82,15 +50,9 @@ declare class EventsPlugin<DataModel, Contributor> extends DataTreated {
     private InitStreamWatcher;
     private SubscribeToPersistent;
     private CreatePersistentSubscription;
-    private delivered;
     private EventMiddlewareEmitter;
     private appendToStream;
-    private _eventCompletedGlobalHandler;
-    private eventCompletedHandler;
-    private readStreamConfig;
-    private getMainStream;
     private eventState;
-    private processStateChecker;
     private template;
     private GenerateEventInternalId;
 }

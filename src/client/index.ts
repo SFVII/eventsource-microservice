@@ -5,20 +5,21 @@
  **  @Date 09/02/2022
  **  @Description
  ***********************************************************/
-import {EventType, ResolvedEvent, StreamingRead} from "@eventstore/db-client";
+import {EventType} from "@eventstore/db-client";
 import {
-    BACKWARDS,
-    END,
     EventData,
-    EventStoreDBClient, ICausationRoute,
+    EventStoreDBClient,
+    IContributor,
     IEvenStoreConfig,
-    IReadStreamConfig,
+    IEventResponseError,
+    IEventResponseSuccess,
     ITemplateEvent,
     jsonEvent,
     md5,
     persistentSubscriptionSettingsFromDefaults,
     START
 } from "../core/global";
+import {EventParser, IEventCreate} from "../core/CommonResponse";
 
 export interface IMethodFunctionResponse {
     data: any,
@@ -29,27 +30,17 @@ export interface IMethodFunctionResponse {
                 causationRoute: string[]) => void
 }
 
-export type IMethodFunction<DataModel, Type> = (
-    data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
-    contributor?: IContributor,
+export type IMethodFunction<Contributor, Type> = (
+    data: ModelEventWrapper,
+    contributor?: IContributor<Contributor>,
     typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type,
     streamName?: string,
     causationRoute?: string[])
     => Promise<IMethodFunctionResponse>
 
 
-export type IContributor = {
-    id_contact?: string,
-    id_nowteam?: string,
-    id_external?: string,
-    lastname?: string,
-    firstname?: string,
-    account?: string | Partial<any> & { _id: string },
-    group?: string | Partial<any> & { _id: string }
-}
-
-
-export type ModelEventWrapper<DataModel> = {
+export interface ModelEventWrapper extends IEventCreate {
+} /*<DataModel> = {
     model?: {
         fs?: string | undefined,
         db?: string | undefined,
@@ -60,10 +51,10 @@ export type ModelEventWrapper<DataModel> = {
     origins?: [string, string][]
     value: DataModel | DataModel[]
     fields?: (keyof DataModel)[]
-}
+}*/
 
 
-export const addContributor = (contributor: IContributor = {
+export const addContributor = (contributor: IContributor<any> = {
     lastname: 'system',
     firstname: 'system'
 }) => {
@@ -149,37 +140,29 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
         this.credentials = EvenStoreConfig.credentials;
         this.causationRoute = causationRoute;
         this.InitStreamWatcher().catch((err: any) => {
-
             console.log('ERROR InitStreamWatcher', err)
             process.exit(0)
         })
         for (const method of this.methods) {
             // @ts-ignore
-            this[method] = async (data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
-                                  contributor: IContributor,
+            this[method] = async (data: ModelEventWrapper, contributor: IContributor,
                                   typeOrigin: 'create' | 'update' | 'delete' | 'recover' | string
-                                  // this.create({...}, {id: xxxx}, event.typeOrigin)
             ): Promise<{
-                data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel[]>,
+                data: ModelEventWrapper,
+                request_id: string,
                 ack: () => void
             }> => {
                 const _streamName = streamName
                 const {
                     payload,
                     requestId
-                } = await this.EventMiddlewareEmitter(data, method, _streamName, typeOrigin, contributor)
+                } = await this.EventMiddlewareEmitter(data, method, typeOrigin, contributor)
                 return {
-                    data: payload,
-                    ack: this.delivered(
-                        requestId,
-                        method,
-                        payload,
-                        typeOrigin,
-                        _streamName,
-                        contributor,
-                        [_streamName])
-                        .bind(this)
-                };
+                    data: payload as IEventResponseSuccess<any> | IEventResponseError,
+                    request_id: requestId,
+                    ack: () => {
+                    }
+                }
             }
         }
     }
@@ -190,7 +173,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
         this.stream = this.SubscribeToPersistent(this.streamName);
         for await (const resolvedEvent of this.stream) {
             const event: any = resolvedEvent.event;
-            if (event.metadata.state !== 'delivered') {
+            if (event.metadata.state !== 'completed') {
                 const state: false | null | true = this.eventState(event.metadata.state)
                 if (state === true) {
                     this.add({id: event.metadata['$correlationId'], event, date: new Date});
@@ -225,82 +208,49 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
         } catch (err) {
             const error = (err ? err.toString() : "").toLowerCase();
             if (error.includes('EXIST') || error.includes('exist')) {
-                console.log('Persistent subscription %s already exist', streamName)
                 return true;
             } else console.error('Error EventHandler.CreatePersistentSubscription', err);
             return false;
         }
     }
 
-    private delivered(requestId: string,
-                      method: string,
-                      payload: any,
-                      typeOrigin: any,
-                      streamName: string,
-                      contributor: IContributor,
-                      causationRoute: ICausationRoute) {
-        console.log('Delivered', requestId, method, payload, typeOrigin, streamName, contributor, causationRoute)
-        const eventEnd = this.template(method, payload, {
-            $correlationId: requestId,
-            state: 'delivered',
-            $causationId: streamName,
-            causationRoute: causationRoute,
-            typeOrigin: typeOrigin,
-            contributor: addContributor(contributor)
-        })
-        console.log('ICI -> ', {
-            $correlationId: requestId,
-            state: 'delivered',
-            $causationId: streamName,
-            causationRoute: causationRoute,
-            typeOrigin: typeOrigin,
-            contributor: addContributor(contributor)
-        }, eventEnd);
 
-        const appendToStream = this.appendToStream.bind(this);
-        console.log('appendToStream', appendToStream)
-        return () => {
-            console.log('OK ????')
-            appendToStream(streamName, eventEnd);
-            return true;
-        }
-    }
-
-    private EventMiddlewareEmitter(data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[],
+    private EventMiddlewareEmitter(data: ModelEventWrapper,
                                    method: string,
-                                   _streamName?: string,
                                    typeOrigin?: string,
-                                   contributor?: IContributor): Promise<{ payload: any, requestId: string, }> {
+                                   contributor?: IContributor<Contributor>): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, requestId: string }> {
 
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             const requestId = this.GenerateEventInternalId(data, method);
-            const streamName = _streamName ? _streamName : this.streamName
+            const streamName = this.streamName
             if (this.exist(requestId)) {
                 console.log('Event exist try to call return it')
                 const event: IDataTreatedListFoundResult = await this.find(requestId);
                 console.log('Event found');
-                if (event) resolve({payload: event.data, requestId});
-                else {
-                    console.log('Error on pending items', {payload: event, requestId})
-                    resolve({payload: event, requestId})
-                }
-            } else {
-                const template = this.template(method, data, {
-                    $correlationId: requestId,
-                    state: 'processing',
-                    $causationId: this.streamName,
-                    causationRoute: this.causationRoute,
-                    typeOrigin: typeOrigin ? typeOrigin : method,
-                    contributor: addContributor(contributor)
-                })
-                await this.appendToStream(streamName, template)
-                const event: IDataTreatedListFoundResult = await this.find(requestId);
-                if (event) resolve({payload: event.data, requestId});
-                else {
-                    console.log('Error on pending items create', {payload: event, requestId})
-                    resolve({payload: event, requestId})
-                }
+                if (event && event.data)
+                    return resolve({
+                        payload: event?.data as IEventResponseError | IEventResponseSuccess<any>,
+                        requestId
+                    });
+                console.log('Continue, not found', requestId)
             }
+            const eventParser = new EventParser(data, {
+                $correlationId: requestId,
+                state: 'processing',
+                $causationId: this.streamName,
+                causationRoute: this.causationRoute,
+                typeOrigin: typeOrigin ? typeOrigin : method,
+                contributor: addContributor(contributor)
+            })
+            const template = this.template(method, eventParser.data, eventParser.metadata);
+            await this.appendToStream(streamName, template)
+            const event: IDataTreatedListFoundResult = await this.find(requestId);
+            if (event) resolve({payload: event.data as IEventResponseError | IEventResponseSuccess<any>, requestId});
+            else {
+                console.log('Error on pending items create', {payload: event, requestId})
+                reject("Error on pending items create " + requestId)
+            }
+
             /*  let state: { data: any; state: any } | boolean = await this.exist(requestId);
               console.log('my stream name', streamName, state)
               if (state && state.state === "processing") {
@@ -336,72 +286,6 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
     }
 
 
-    private async _eventCompletedGlobalHandler(streamName: string) {
-        const stream = this.client.subscribeToStream(streamName, {
-            fromRevision: END,
-            resolveLinkTos: true,
-        })
-
-        return async (EventId: string, callback?: () => void) => {
-            if (callback) await callback();
-            for await (const resolvedEvent of stream) {
-                const {event}: any = resolvedEvent;
-                if (event && event.metadata?.$correlationId === EventId
-                    && (event.metadata?.state === 'completed' || event.metadata?.state === 'error')) {
-                    console.log("J'existe !!!!", event.data)
-                    return event.data;
-                }
-            }
-            return null;
-        }
-
-    }
-
-    private async eventCompletedHandler(streamName: string, EventId: string, callback?: () => void) {
-        let data = null;
-        const stream = this.client.subscribeToStream(streamName, {
-            fromRevision: END,
-            resolveLinkTos: true,
-        })
-        if (callback) await callback();
-        // @ts-ignore
-        for await (const resolvedEvent of stream) {
-            const {event}: any = resolvedEvent;
-            if (event && event.metadata?.$correlationId === EventId
-                && (event.metadata?.state === 'completed' || event.metadata?.state === 'error')) {
-                data = event.data;
-                console.log("J'existe !!!!", data)
-                /*this.StartRevision = BigInt(event.revision) > BigInt(100n)
-                    ? BigInt(event.revision - 100n) : this.StartRevision;*/
-                break;
-            }
-        }
-        await stream.unsubscribe();
-        console.log('--------', data);
-        return data;
-    }
-
-    private readStreamConfig = (credentials: IEvenStoreConfig["credentials"]): IReadStreamConfig => {
-        return {
-            direction: BACKWARDS,
-            fromRevision: END,
-            maxCount: 50,
-            credentials: credentials
-        }
-    }
-
-    private getMainStream() {
-        try {
-            const subscription = this.client.readStream(
-                this.streamName,
-                this.readStreamConfig(this.credentials));
-            return subscription;
-        } catch (error) {
-            console.error(error)
-        }
-        return null;
-    }
-
     private eventState(event: any) {
         switch (event.metadata?.state) {
             // In case of delivered we allow user to renew the entry
@@ -419,30 +303,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
         }
     }
 
-    private async processStateChecker(EventId: string) {
-        let data: any = {};
-        const subscription: null | StreamingRead<ResolvedEvent<EventType>> = this.getMainStream();
-        if (subscription) {
-            try {
-                for await (const resolvedEvent of subscription) {
-                    const event: any = resolvedEvent.event;
-                    /*  if (event && event.metadata?.$correlationId !== EventId && event.metadata?.state === "delivered") {
-                          console.log('Last checkpoint', event)
-                          return false;
-                      } else */
-                    if (event && event.metadata?.$correlationId === EventId)
-                        return this.eventState(event)
-                }
-
-            } catch (err) {
-                console.error('Error EventsPlugin.processStateChecker', err)
-            }
-            subscription.destroy();
-        }
-        return false;
-    }
-
-    private template(type: string, data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[] | any, metadata: ITemplateEvent<Contributor>) {
+    private template(type: string, data: ModelEventWrapper | ModelEventWrapper[] | any, metadata: ITemplateEvent<Contributor>) {
         return jsonEvent({
             type,
             data,
@@ -450,7 +311,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
         })
     }
 
-    private GenerateEventInternalId(data: ModelEventWrapper<DataModel> | ModelEventWrapper<DataModel>[], method: string) {
+    private GenerateEventInternalId(data: ModelEventWrapper | ModelEventWrapper[], method: string) {
         return md5(JSON.stringify({payload: data, method, company: 'nowla'}));
     }
 }

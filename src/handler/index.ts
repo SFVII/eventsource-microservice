@@ -10,15 +10,15 @@ import {
     EventStoreDBClient,
     IEvenStoreConfig,
     IEventHandlerGroup,
+    IEventResponseError,
+    IEventResponseSuccess,
     IListStreamSubscription,
-    IStartRevision,
-    ITemplateEvent,
-    ITriggerList,
-    jsonEvent,
+    IStartRevision, ITemplateEvent,
+    ITriggerList, jsonEvent,
     Method,
-    PersistentSubscription,
-    persistentSubscriptionSettingsFromDefaults
+    PersistentSubscription, persistentSubscriptionSettingsFromDefaults
 } from "../core/global";
+import {EventParser} from "../core/CommonResponse";
 
 class EventHandler {
     protected methods: Method;
@@ -71,6 +71,22 @@ class EventHandler {
     }
 
     private async handler(event: any) {
+
+        const eventParser = new EventParser<any>(event.data, event.metadata);
+        const prefetchData: IEventResponseError | IEventResponseSuccess<any> = eventParser.data;
+        const template = this.template(event.type, prefetchData, eventParser.metadata);
+        if (eventParser.isError) {
+            console.log('Received event with an error', prefetchData)
+            await this.client.appendToStream(eventParser.causation, [template]).catch((err: any) => {
+                console.error(`Error EventHandler.handler.appendToStream.${eventParser.causation}`, err);
+            });
+        } else if (eventParser.originalState !== "completed")
+            await this.client.appendToStream(eventParser.nextRoute || eventParser.causation, [template])
+                .catch((err: any) => {
+                    console.error(`Error EventHandler.handler.appendToStream.${eventParser.causation}`, err);
+                })
+
+/*
         console.log('[EVENT TRACK] [%s] Incoming event error details: ', event.data)
         if (event.metadata && event.metadata.state === 'delivered') {
             //
@@ -91,7 +107,7 @@ class EventHandler {
             const Routes = event.metadata.causationRoute;
             const nextRoute: string | string[] | undefined = Routes.shift();
             if (nextRoute) {
-               // console.log('[EVENT TRACK] [%s] Incoming event (route > %s) \t\tnext event (%s)', event.metadata.state.toUpperCase(), nextRoute, (Routes && Routes.length ? Routes[0] : 'COMPLETED'))
+                // console.log('[EVENT TRACK] [%s] Incoming event (route > %s) \t\tnext event (%s)', event.metadata.state.toUpperCase(), nextRoute, (Routes && Routes.length ? Routes[0] : 'COMPLETED'))
                 if (event.metadata && (event.metadata.state === 'processing')) {
                     if (nextRoute && Array.isArray(nextRoute)) {
                         const template = this.template(event.type, event.data, {
@@ -148,7 +164,9 @@ class EventHandler {
                         contributor: event.metadata?.contributor
                     });
                     console.log('completed %s', event.$causationId);
-                    this.client.appendToStream(event.$causationId, [template]).catch((err: any) => {console.log('err completed', err) });
+                    this.client.appendToStream(event.$causationId, [template]).catch((err: any) => {
+                        console.log('err completed', err)
+                    });
                 }
             } else {
                 console.log('[EVENT TRACK] [%s] last step event )', event.metadata.state.toUpperCase())
@@ -156,6 +174,7 @@ class EventHandler {
         } else {
             console.warn('BAD EVENT FORMAT', event)
         }
+        */
     }
 
     private template(type: string, data: any, metadata: ITemplateEvent<any>) {

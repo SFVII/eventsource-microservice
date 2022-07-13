@@ -123,7 +123,34 @@ type IMetadata<Contributor> = {
 }
 
 
+type IEventErrorResult = {
+    origin: string,
+    details: any
+}
+
+type IEventResponseError = {
+    data: any | undefined,
+    origin: string,
+    status: IMetadata<any>['state'],
+    type: ITypeOrigin
+    message: string;
+}
+
+
+type IEventResponseSuccess<CustomSchema> = {
+    origin: string,
+    data: string
+    status: IMetadata<any>['state'],
+    type: ITypeOrigin,
+    updatedFields?: keyof CustomSchema[]
+}
+
+
+
 export {
+    IEventErrorResult,
+    IEventResponseError,
+    IEventResponseSuccess,
     IMd5DataHash,
     ICausationId,
     ICausationRoute,

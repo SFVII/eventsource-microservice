@@ -26,6 +26,7 @@ import {
 } from "../core/global";
 
 import {JSONEventType, PARK, PersistentAction, RETRY} from "@eventstore/db-client";
+import {EventParser} from "../core/CommonResponse";
 
 class EventConsumer<Contributor> {
     public QueueTTL = 200;
@@ -62,25 +63,11 @@ class EventConsumer<Contributor> {
         this.init().catch((err) => {
             console.log('Error Constructor._EventHandler', err);
         })
-
     }
 
     get subscription(): PersistentSubscription {
         return <PersistentSubscriptionBase<any>>this.stream;
     }
-
-   /* exchange(stream: string, type: MethodList, data: any) {
-        const template = this.template(type, data, {
-          //  $correlationId: 'ddd',
-            $causationId: this.streamName,
-            state: 'trigger',
-            causationRoute: []
-        });
-        this.client.appendToStream(stream, [template]).catch((err: any) => {
-            console.error(`Error EventHandler.handler.appendToStream`, err);
-        }).catch()
-    }*/
-
 
     on(key: 'ready' & MethodList & string, callback: (message: any) => any) {
         this.eventEmitter.on(key, (msg: any) => {
@@ -106,49 +93,20 @@ class EventConsumer<Contributor> {
 
 
     public async handler(event: any, data: any, status: "error" | null = null) {
-        console.log('Contributor', event.metadata.contributor);
-        let template;
-        if (status === "error") {
-            template = this.template(event.type, data, {
-                $correlationId: event.metadata.$correlationId,
-                $causationId: event.streamId,
-                state: status,
-                causationRoute: [],
-                typeOrigin: event.metadata.typeOrigin,
-                contributor: event.metadata.contributor
-            });
-        } else {
-
-            template = this.template(event.type, data, {
-                $correlationId: event.metadata.$correlationId,
-                $causationId: event.streamId,
-                state: event.metadata.state,
-                causationRoute: event.metadata.causationRoute,
-                typeOrigin: event.metadata.typeOrigin,
-                contributor: event.metadata.contributor
-            });
-
-            // Publish final result
-            if (this.publish) {
-
-                const publish = this.template(event.type, data, {
-                    $correlationId: event.metadata.$correlationId,
-                    $causationId: event.streamId,
-                    state: 'delivered',
-                    causationRoute: event.metadata.causationRoute,
-                    typeOrigin: event.metadata.typeOrigin,
-                    contributor: event.metadata.contributor
-                });
-                this.client.appendToStream(this.streamName + '-publish', [publish])
-                    .catch((err: any) =>
-                        console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err))
-            }
+        console.log('Contributor', event.metadata);
+        const eventParse = new EventParser(data, event.metadata);
+        let publish : any = null;
+        const template = this.template(event.type, eventParse.data, eventParse.metadata);
+        if (!eventParse.isError && this.publish) {
+            const pMetadata = {...eventParse.metadata, state : 'delivered'}
+            publish = this.template(event.type, eventParse.data, pMetadata);
+            this.client.appendToStream(this.streamName + '-publish', [publish])
+                .catch((err: any) =>
+                    console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err))
         }
-        console.log('send event to > %s', event.metadata.$causationId);
-        await this.client.appendToStream(event.metadata.$causationId, [template]).catch((err: any) => {
+        await this.client.appendToStream(eventParse.causation, [template]).catch((err: any) => {
             console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
         })
-
     }
 
     public async ack(event: any) {
