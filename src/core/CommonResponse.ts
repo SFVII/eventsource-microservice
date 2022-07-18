@@ -56,13 +56,13 @@ export class EventParser<CustomSchema> {
     }
 
     get buildMetadata() : IMetadata<CustomSchema> {
-        if (this.isError) return {...this.Metadata, causationRoute: this.causationRoute}
-        else return this.Metadata
+        if (this.isError) return {...this.Metadata, causationRoute: []}
+        else return {...this.Metadata, causationRoute: this.causationRoute}
     }
 
 
     get metadata(): IMetadata<CustomSchema> {
-        if (this.isError) return {...this.Metadata, causationRoute: this._routes}
+        if (this.isError) return {...this.Metadata, causationRoute: []}
         else return this.Metadata
     }
 
