@@ -19,7 +19,7 @@ export class EventParser<CustomSchema> {
     private readonly payload: any;
     private readonly _next_route: ICausationId | undefined;
     private readonly causationId: string;
-    public readonly causationRoute: ICausationRoute;
+    public readonly causationRoute: ICausationRoute = [];
 
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
