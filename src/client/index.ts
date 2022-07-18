@@ -152,7 +152,6 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 request_id: string,
                 ack: () => void
             }> => {
-                const _streamName = streamName
                 const {
                     payload,
                     requestId
@@ -242,9 +241,16 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 typeOrigin: typeOrigin ? typeOrigin : method,
                 contributor: addContributor(contributor)
             })
+
+            console.log('eventParser', eventParser.data, eventParser.buildMetadata)
+
             const template = this.template(method, eventParser.data, eventParser.buildMetadata);
             await this.appendToStream(streamName, template)
+
+            console.log('stream', template);
             const event: IDataTreatedListFoundResult = await this.find(requestId);
+            console.log('event', event);
+
             if (event) resolve({payload: event.data as IEventResponseError | IEventResponseSuccess<any>, requestId});
             else {
                 console.log('Error on pending items create', {payload: event, requestId})

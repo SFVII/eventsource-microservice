@@ -31,7 +31,7 @@ export class EventParser<CustomSchema> {
                 this.causationRoute = metadata.causationRoute;
                 this._next_route = metadata.causationRoute.shift();
                 this._routes = metadata.causationRoute;
-                if (!(this._routes && this._routes.length)) metadata.state = 'completed';
+                if (!this._next_route) metadata.state = 'completed';
             }
         }
         this.payload = eventData.data;

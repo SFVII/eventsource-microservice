@@ -74,27 +74,25 @@ class EventHandler {
     }
 
     private async handler(event: any) {
-
+        console.log('handler')
         const eventParser = new EventParser<any>(event.data, event.metadata);
+        console.log('eventParser done', eventParser.data)
         const prefetchData: IEventResponseError | IEventResponseSuccess<any> = eventParser.data;
         const template = this.template(event.type, prefetchData, eventParser.metadata);
 
         console.log('isError', eventParser.isError, 'nextRoute', eventParser.nextRoute, 'state', eventParser.state)
 
-        if (eventParser.isError) {
-            console.log('Received event with an error', prefetchData)
-            await this.client.appendToStream(eventParser.causation, [template]).catch((err: any) => {
-                console.error(`Error EventHandler.handler.appendToStream.${eventParser.causation}`, err);
-            });
-        } else if (eventParser.nextRoute)
-            await this.client.appendToStream(eventParser.nextRoute, [template])
-                .catch((err: any) => {
-                    console.error(`Error EventHandler.handler.appendToStream.${eventParser.causation}`, err);
-                })
-        else if (eventParser.state === "completed") await this.client.appendToStream(eventParser.causation, [template])
+        if (eventParser.isError) await this.client.appendToStream(eventParser.causation, [template]).catch((err: any) => {
+            console.error(`Error EventHandler.handler.appendToStream.${eventParser.causation}`, err);
+        });
+        else if (eventParser.nextRoute) await this.client.appendToStream(eventParser.nextRoute, [template])
             .catch((err: any) => {
                 console.error(`Error EventHandler.handler.appendToStream.${eventParser.causation}`, err);
             })
+        else await this.client.appendToStream(eventParser.causation, [template])
+                .catch((err: any) => {
+                    console.error(`Error EventHandler.handler.appendToStream.${eventParser.causation}`, err);
+                })
     }
 
     private template(type: string, data: any, metadata: ITemplateEvent<any>) {
