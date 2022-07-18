@@ -93,14 +93,14 @@ declare type IEventErrorResult = {
 declare type IEventResponseError = {
     data: any | undefined;
     origin: string;
-    status: IMetadata<any>['state'];
+    status?: IMetadata<any>['state'];
     type: ITypeOrigin;
     message: string;
 };
 declare type IEventResponseSuccess<CustomSchema> = {
     origin: string;
     data: string;
-    status: IMetadata<any>['state'];
+    status?: IMetadata<any>['state'];
     type: ITypeOrigin;
     updatedFields?: keyof CustomSchema[];
 };

@@ -14,7 +14,6 @@ export interface IEventCreate extends IEventResponseSuccess<any> {
 export class EventParser<CustomSchema> {
 
     public readonly isError: boolean = false;
-    public readonly originalState: IMetadata<CustomSchema>['state'];
     public readonly updatedFields: keyof CustomSchema[];
     private readonly Metadata: IMetadata<any>;
     private readonly payload: any;
@@ -24,9 +23,10 @@ export class EventParser<CustomSchema> {
 
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
-        if (metadata.state === 'error') {
+        this.Metadata = metadata;
+        if (this.state === 'error') {
             this.isError = true;
-        } else if (metadata.state === 'processing') {
+        } else if (this.state === 'processing') {
             if (metadata.causationRoute && Array.isArray(metadata.causationRoute)) {
                 this.causationRoute = metadata.causationRoute;
                 this._next_route = metadata.causationRoute.shift();
@@ -37,7 +37,6 @@ export class EventParser<CustomSchema> {
         this.payload = eventData.data;
         // @ts-ignore
         this.updatedFields = eventData.updatedFields;
-        this.Metadata = metadata;
         this.causationId = metadata.$causationId;
     }
 
