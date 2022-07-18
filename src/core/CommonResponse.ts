@@ -24,6 +24,7 @@ export class EventParser<CustomSchema> {
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
         this.Metadata = metadata;
+        console.log('state', this.state, 'route', this.causationRoute, metadata);
         if (this.state === 'error') {
             this.isError = true;
         } else if (this.state === 'processing') {
