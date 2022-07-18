@@ -83,12 +83,12 @@ class DataTreated {
     public add(entry: IDataTreatedList) {
         const index = this.list.findIndex((doc: IDataTreatedList) => entry.id == doc.id)
         if (index > -1) this.list[index] = entry;
-        else this.list.push(entry);
+        else this.list.unshift(entry);
     }
 
 
     async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
-        if (retry <= 30) {
+        if (retry <= 30 && this.list.length) {
             const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
             if (lookup && lookup.event === 'pending') {
                 await this.sleep(100);
