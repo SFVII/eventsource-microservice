@@ -99,7 +99,7 @@ declare type IEventResponseError = {
 };
 declare type IEventResponseSuccess<CustomSchema> = {
     origin: string;
-    data: string;
+    data: any;
     status?: IMetadata<any>['state'];
     type: ITypeOrigin;
     updatedFields?: keyof CustomSchema[];

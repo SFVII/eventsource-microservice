@@ -67,7 +67,8 @@ class EventHandler {
         for await (const resolvedEvent of subscription) {
             const {event} = resolvedEvent;
             if (event) {
-                await this.handler(event);
+                // @ts-ignore
+                if (event.metadata.state !== "completed") await this.handler(event);
                 await subscription.ack(resolvedEvent);
             }
         }
