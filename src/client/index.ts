@@ -242,7 +242,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 typeOrigin: typeOrigin ? typeOrigin : method,
                 contributor: addContributor(contributor)
             })
-            const template = this.template(method, eventParser.data, eventParser.metadata);
+            const template = this.template(method, eventParser.data, eventParser.buildMetadata);
             await this.appendToStream(streamName, template)
             const event: IDataTreatedListFoundResult = await this.find(requestId);
             if (event) resolve({payload: event.data as IEventResponseError | IEventResponseSuccess<any>, requestId});
@@ -250,30 +250,6 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 console.log('Error on pending items create', {payload: event, requestId})
                 reject("Error on pending items create " + requestId)
             }
-
-            /*  let state: { data: any; state: any } | boolean = await this.exist(requestId);
-              console.log('my stream name', streamName, state)
-              if (state && state.state === "processing") {
-                  console.log('------------- processing')
-                  const state = await this.eventCompletedHandler(streamName, requestId);
-                  resolve({payload: state.data, requestId})
-              } else if (state && state?.data) {
-                  console.log('------------- state')
-                  resolve({payload: state.data, requestId});
-              } else {
-                  console.log('------------- else')
-                  const template = this.template(method, data, {
-                      $correlationId: requestId,
-                      state: 'processing',
-                      $causationId: this.streamName,
-                      causationRoute: this.causationRoute,
-                      typeOrigin: typeOrigin ? typeOrigin : method,
-                      contributor: addContributor(contributor)
-                  })
-                  let state: { data: any; state: any } | boolean = await this.eventCompletedHandler(streamName, requestId,
-                      () => (this.appendToStream(streamName, template)));
-                  resolve({payload: state, requestId});
-              }*/
         })
     }
 

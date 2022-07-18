@@ -5,7 +5,7 @@
  **  @Date 13/07/2022
  **  @Description
  ***********************************************************/
-import {ICausationId, IEventResponseError, IEventResponseSuccess, IMetadata} from "./global";
+import {ICausationId, ICausationRoute, IEventResponseError, IEventResponseSuccess, IMetadata} from "./global";
 
 export interface IEventCreate extends IEventResponseSuccess<any> {
     [key: string]: any;
@@ -15,17 +15,20 @@ export class EventParser<CustomSchema> {
 
     public readonly isError: boolean = false;
     public readonly originalState: IMetadata<CustomSchema>['state'];
+    public readonly updatedFields: keyof CustomSchema[];
     private readonly Metadata: IMetadata<any>;
     private readonly payload: any;
     private readonly _next_route: ICausationId | undefined;
     private readonly causationId: string;
-    public readonly updatedFields: keyof CustomSchema[];
+    public readonly causationRoute: ICausationRoute;
+
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
         if (metadata.state === 'error') {
             this.isError = true;
         } else if (metadata.state === 'processing') {
             if (metadata.causationRoute && Array.isArray(metadata.causationRoute)) {
+                this.causationRoute = metadata.causationRoute;
                 this._next_route = metadata.causationRoute.shift();
                 this._routes = metadata.causationRoute;
                 if (!(this._routes && this._routes.length)) metadata.state = 'completed';
@@ -52,8 +55,14 @@ export class EventParser<CustomSchema> {
         this._routes = routes
     }
 
+    get buildMetadata() : IMetadata<CustomSchema> {
+        if (this.isError) return {...this.Metadata, causationRoute: this.causationRoute}
+        else return this.Metadata
+    }
+
+
     get metadata(): IMetadata<CustomSchema> {
-        if (this.isError) return {...this.Metadata, causationRoute: []}
+        if (this.isError) return {...this.Metadata, causationRoute: this._routes}
         else return this.Metadata
     }
 
