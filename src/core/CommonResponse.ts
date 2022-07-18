@@ -32,8 +32,8 @@ export class EventParser<CustomSchema> {
             console.log('State processing')
             if (this.causationRoute && Array.isArray(this.causationRoute)) {
                 console.log('Causation route processing', this.causationRoute)
-                this._next_route = this.Metadata.causationRoute.shift();
-                this._routes = this.Metadata.causationRoute;
+                this._next_route = this.Metadata.causationRoute[0];
+                this._routes = this.Metadata.causationRoute.splice(0, 1);
                 if (!this._next_route) this.Metadata.state = 'completed';
             }
         }
@@ -65,7 +65,7 @@ export class EventParser<CustomSchema> {
 
     get metadata(): IMetadata<CustomSchema> {
         if (this.isError) return {...this.Metadata, causationRoute: []}
-        else return this.Metadata
+        else return {...this.Metadata, causationRoute : this._routes}
     }
 
     get data(): IEventResponseError | IEventResponseSuccess<CustomSchema> {
