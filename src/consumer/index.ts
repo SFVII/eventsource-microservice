@@ -93,7 +93,7 @@ class EventConsumer<Contributor> {
 
 
     public async handler(event: any, data: any) {
-        console.log('Contributor', event.metadata);
+        console.log('Contributor', event.metadata, data);
         const eventParse = new EventParser(data, event.metadata);
         let publish : any = null;
         const template = this.template(event.type, eventParse.data, eventParse.metadata);

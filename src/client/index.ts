@@ -167,11 +167,11 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                     error,
                 } = await this.EventMiddlewareEmitter(data, method, typeOrigin, contributor)
                     // @ts-ignore
-                    .catch((err: {payload: any, request_id: requestId}) => {
+                    .catch((err: { payload: any, request_id: requestId }) => {
                         return {
-                            payload : null,
-                            error : err.payload,
-                            requestId : err.request_id
+                            payload: null,
+                            error: err.payload,
+                            requestId: err.request_id
                         }
                     })
                 return {
@@ -193,7 +193,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             const event: any = resolvedEvent.event;
             if (event.metadata.state !== 'completed') {
                 const state: false | null | true = this.eventState(event.metadata.state)
-                console.log('My fucking state', state);
+                console.log('My fucking state')
                 if (state === true) this.add({id: event.metadata['$correlationId'], event, date: new Date});
                 else if (state === null) this.add({
                     id: event.metadata['$correlationId'],
@@ -246,12 +246,15 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             if (this.exist(requestId)) {
                 console.log('Event exist try to call return it')
                 const event: IDataTreatedListFoundResult = await this.find(requestId);
-                console.log('Event found');
-                if (event && event.data)
-                    return resolve({
-                        payload: event?.data as IEventResponseError | IEventResponseSuccess<any>,
-                        requestId
-                    });
+                console.log('Event found')
+                this.add({id: requestId, event: 'pending', date: new Date()});
+                if (event && event.data) {
+                  return resolve({
+                      payload: event?.data as IEventResponseError | IEventResponseSuccess<any>,
+                      requestId
+                  });
+                }
+
                 console.log('Continue, not found', requestId)
             }
             const eventParser = new EventParser(data, {
