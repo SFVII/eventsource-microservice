@@ -12,12 +12,14 @@ export interface IEventCreate extends IEventResponseSuccess<any> {
 export declare class EventParser<CustomSchema> {
     readonly isError: boolean;
     readonly updatedFields: keyof CustomSchema[];
+    readonly causationRoute: ICausationRoute;
     private readonly Metadata;
     private readonly payload;
     private readonly _next_route;
     private readonly causationId;
     private readonly _model;
-    readonly causationRoute: ICausationRoute;
+    private readonly _type;
+    private readonly _status;
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>);
     get model(): any;
     get causation(): string;

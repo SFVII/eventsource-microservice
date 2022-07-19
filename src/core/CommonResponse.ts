@@ -5,7 +5,14 @@
  **  @Date 13/07/2022
  **  @Description
  ***********************************************************/
-import {ICausationId, ICausationRoute, IEventResponseError, IEventResponseSuccess, IMetadata} from "./global";
+import {
+    ICausationId,
+    ICausationRoute,
+    IEventResponseError,
+    IEventResponseSuccess,
+    IMetadata,
+    ITypeOrigin
+} from "./global";
 
 export interface IEventCreate extends IEventResponseSuccess<any> {
     [key: string]: any;
@@ -15,19 +22,31 @@ export class EventParser<CustomSchema> {
 
     public readonly isError: boolean = false;
     public readonly updatedFields: keyof CustomSchema[];
+    public readonly causationRoute: ICausationRoute = [];
     private readonly Metadata: IMetadata<any>;
     private readonly payload: any;
     private readonly _next_route: ICausationId | undefined;
     private readonly causationId: string;
-    private readonly _model : any;
-    public readonly causationRoute: ICausationRoute = [];
-
+    private readonly _model: any;
+    private readonly _type : ITypeOrigin
+    private readonly _status : IMetadata<any>['state'];
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
         this.Metadata = metadata;
-        this._model = eventData.model ?  eventData.model : null;
+
+        this._model = (eventData.model ? eventData.model : (eventData.data.model ? eventData.data.model : null));
+        this._type = (eventData.type ? eventData.type : (eventData.model.type ? eventData.model.type : null))
+        this._status = (eventData.status ? eventData.status : (eventData.model.status ? eventData.model.status : null))
+
+        delete eventData.data.model;
+        delete eventData.data.type;
+        delete eventData.data.status;
+
         Object.assign(this.causationRoute, metadata.causationRoute);
+
         console.log('state', this.state, 'route', this.causationRoute, metadata);
+
+
         if (this.state === 'error') {
             this.isError = true;
         } else if (this.state === 'processing') {
@@ -49,6 +68,7 @@ export class EventParser<CustomSchema> {
     get model() {
         return this._model;
     }
+
     get causation() {
         return this.causationId;
     }
@@ -63,15 +83,15 @@ export class EventParser<CustomSchema> {
         this._routes = routes
     }
 
-    get buildMetadata() : IMetadata<CustomSchema> {
+    get buildMetadata(): IMetadata<CustomSchema> {
         if (this.isError) return {...this.Metadata, causationRoute: []}
-        else return {...this.Metadata, causationRoute : this.causationRoute}
+        else return {...this.Metadata, causationRoute: this.causationRoute}
     }
 
 
     get metadata(): IMetadata<CustomSchema> {
         if (this.isError) return {...this.Metadata, causationRoute: []}
-        else return {...this.Metadata, causationRoute : this._routes}
+        else return {...this.Metadata, causationRoute: this._routes}
     }
 
     get data(): IEventResponseError | IEventResponseSuccess<CustomSchema> {
@@ -80,13 +100,13 @@ export class EventParser<CustomSchema> {
             origin: this.metadata.$causationId,
             status: "error",
             type: this.metadata.typeOrigin,
-            model : this.model,
+            model: this.model,
             message: this.payload
         } : {
             origin: this.metadata.$causationId,
             data: this.payload,
             status: "success",
-            model : this.model,
+            model: this.model,
             type: this.metadata.typeOrigin,
             updatedFields: this.updatedFields
         }
