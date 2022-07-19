@@ -131,6 +131,7 @@ type IEventErrorResult = {
 type IEventResponseError = {
     data: any | undefined,
     origin: string,
+    model?: any,
     status?: IMetadata<any>['state'],
     type: ITypeOrigin
     message: string;
@@ -140,6 +141,7 @@ type IEventResponseError = {
 type IEventResponseSuccess<CustomSchema> = {
     origin: string,
     data: any
+    model?: any,
     status?: IMetadata<any>['state'],
     type: ITypeOrigin,
     updatedFields?: keyof CustomSchema[]

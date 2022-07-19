@@ -16,6 +16,7 @@ export declare class EventParser<CustomSchema> {
     private readonly payload;
     private readonly _next_route;
     private readonly causationId;
+    private readonly model;
     readonly causationRoute: ICausationRoute;
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>);
     get causation(): string;

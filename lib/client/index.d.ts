@@ -10,6 +10,7 @@ import { EventStoreDBClient, IContributor, IEvenStoreConfig } from "../core/glob
 import { IEventCreate } from "../core/CommonResponse";
 export interface IMethodFunctionResponse {
     data: any;
+    request_id: string;
     ack: () => (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void;
 }
 export declare type IMethodFunction<Contributor, Type> = (data: ModelEventWrapper, contributor?: IContributor<Contributor>, typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type, streamName?: string, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
