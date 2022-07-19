@@ -23,8 +23,8 @@ import {EventParser, IEventCreate} from "../core/CommonResponse";
 
 export interface IMethodFunctionResponse {
     data: IEventResponseSuccess<any> | IEventResponseError,
-    request_id : string,
-    error ?:any,
+    request_id: string,
+    error?: any,
     ack: () => (requestId: string,
                 method: string,
                 payload: any,
@@ -37,7 +37,7 @@ export type IMethodFunction<Contributor, Type> = (
     contributor?: IContributor<Contributor>,
     typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type,
     streamName?: string,
-    customs?:any,
+    customs?: any,
     causationRoute?: string[])
     => Promise<IMethodFunctionResponse>
 
@@ -91,7 +91,7 @@ class DataTreated {
 
 
     async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
-        if (retry <= 30 && this.list.length) {
+        if (retry <= 30) {
             console.log(this.list, IdEvent, retry);
             const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
             if (lookup && lookup.event === 'pending') {
@@ -154,14 +154,23 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             ): Promise<{
                 data: ModelEventWrapper,
                 request_id: string,
-                error?:any,
+                error?: any,
                 ack: () => void
             }> => {
+
                 const {
                     payload,
                     requestId,
                     error,
                 } = await this.EventMiddlewareEmitter(data, method, typeOrigin, contributor)
+                    // @ts-ignore
+                    .catch((err: {payload: any, request_id: requestId}) => {
+                        return {
+                            payload : null,
+                            error : err.payload,
+                            requestId : err.request_id
+                        }
+                    })
                 return {
                     data: payload as IEventResponseSuccess<any> | IEventResponseError,
                     request_id: requestId,
@@ -182,9 +191,13 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             if (event.metadata.state !== 'completed') {
                 const state: false | null | true = this.eventState(event.metadata.state)
                 if (state === true) this.add({id: event.metadata['$correlationId'], event, date: new Date});
-                else if (state === null) this.add({id: event.metadata['$correlationId'], event: 'pending', date: new Date});
+                else if (state === null) this.add({
+                    id: event.metadata['$correlationId'],
+                    event: 'pending',
+                    date: new Date
+                });
             } else this.add({id: event.metadata['$correlationId'], event, date: new Date});
-           // console.log('-----resolved event', resolvedEvent);
+            // console.log('-----resolved event', resolvedEvent);
             this.stream.ack(resolvedEvent);
         }
     }
@@ -221,7 +234,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
     private EventMiddlewareEmitter(data: ModelEventWrapper,
                                    method: string,
                                    typeOrigin?: string,
-                                   contributor?: IContributor<Contributor>): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?:any, requestId: string }> {
+                                   contributor?: IContributor<Contributor>): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?: any, requestId: string }> {
 
         return new Promise(async (resolve, reject) => {
             const requestId = this.GenerateEventInternalId(data, method);
@@ -257,7 +270,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
             if (event) resolve({payload: event.data as IEventResponseError | IEventResponseSuccess<any>, requestId});
             else {
-                reject({payload : {error : 'Error on pending items create'}, request_id : requestId})
+                reject({payload: {error: 'Error on pending items create'}, request_id: requestId})
             }
         })
     }
