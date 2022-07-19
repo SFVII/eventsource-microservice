@@ -22,7 +22,7 @@ import {
 import {EventParser, IEventCreate} from "../core/CommonResponse";
 
 export interface IMethodFunctionResponse {
-    data: any,
+    data: IEventResponseSuccess<any> | IEventResponseError,
     request_id : string,
     ack: () => (requestId: string,
                 method: string,

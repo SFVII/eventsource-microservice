@@ -6,10 +6,10 @@
  **  @Description
  ***********************************************************/
 import { EventType } from "@eventstore/db-client";
-import { EventStoreDBClient, IContributor, IEvenStoreConfig } from "../core/global";
+import { EventStoreDBClient, IContributor, IEvenStoreConfig, IEventResponseError, IEventResponseSuccess } from "../core/global";
 import { IEventCreate } from "../core/CommonResponse";
 export interface IMethodFunctionResponse {
-    data: any;
+    data: IEventResponseSuccess<any> | IEventResponseError;
     request_id: string;
     ack: () => (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void;
 }
