@@ -10,6 +10,7 @@ import EventHandler from "./handler";
 import EventConsumer from "./consumer";
 import EventsPlugin from "./client";
 import {IEvenStoreConfig, IEventHandlerGroup, IQueue, IQueueCustom, ITriggerList} from "./core/global";
+import {HandleResponse} from "./core/CommonHandler";
 
 export type IClient = { new<DataModel, Contributor>(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]): EventsPlugin<DataModel,Contributor> }
 
@@ -30,6 +31,6 @@ const Instance = <T>(type: 'handler' | 'consumer' | 'client'): IClient | IConsum
 }
 export {EventHandler, EventConsumer, EventsPlugin}
 
-export {EventsPlugin as Client, EventHandler as Handler, EventConsumer as Consumer}
+export {EventsPlugin as Client, EventHandler as Handler, EventConsumer as Consumer, HandleResponse}
 
 export default Instance;

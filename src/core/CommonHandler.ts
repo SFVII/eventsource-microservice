@@ -7,12 +7,14 @@
  ***********************************************************/
 import {ModelEventWrapper} from "../client";
 import {EventParser} from "./CommonResponse";
+import {IEventResponseSuccess, IMetadata} from "./global";
 
 export class HandleResponse<CustomSchema> {
     private _isError = false;
     private readonly _payload : CustomSchema | CustomSchema;
-    private _request_id : string;
-    private readonly _eventDataRaw : EventParser<CustomSchema>
+    private readonly _request_id : string;
+    private readonly _state : IMetadata<any>['state']
+    private readonly _eventDataRaw : IEventResponseSuccess<CustomSchema>['data']
     constructor(eventResult : {
         data: ModelEventWrapper,
         request_id: string,
@@ -23,12 +25,13 @@ export class HandleResponse<CustomSchema> {
             this._isError = true;
             this._payload = eventResult.error;
         } else {
-            this._eventDataRaw = new EventParser(eventResult.data, null)
+            this._eventDataRaw = eventResult.data;
             if (this._eventDataRaw.state === "error") {
                 this._isError = true;
             }
             this._payload =  this._eventDataRaw.data.data;
         }
+        if (this._isError) this._state = 'error';
     }
 
     get request_id() {

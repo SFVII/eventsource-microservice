@@ -33,7 +33,7 @@ export class EventParser<CustomSchema> {
     private readonly _customs : any;
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
-        this.Metadata = metadata;
+        this.Metadata = metadata || {};
 
         this._model = (eventData.model ? eventData.model : (eventData.data.model ? eventData.data.model : null));
         this._type = (eventData.type ? eventData.type : (eventData.data.type ? eventData.data.type : null))
@@ -59,15 +59,15 @@ export class EventParser<CustomSchema> {
             console.log('State processing')
             if (this.causationRoute && Array.isArray(this.causationRoute)) {
                 console.log('Causation route processing', this.causationRoute)
-                this._next_route = metadata.causationRoute.shift();
-                this._routes = metadata.causationRoute;
+                this._next_route = metadata?.causationRoute.shift();
+                this._routes = metadata?.causationRoute;
                 if (!this._next_route) this.Metadata.state = 'completed';
             }
         }
         this.payload = {...(eventData.data && eventData.data.data ? eventData.data.data : eventData.data)};
         // @ts-ignore
         this.updatedFields = eventData.updatedFields;
-        this.causationId = metadata.$causationId;
+        this.causationId = metadata?.$causationId;
     }
 
 
