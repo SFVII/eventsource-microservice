@@ -24,6 +24,7 @@ import {EventParser, IEventCreate} from "../core/CommonResponse";
 export interface IMethodFunctionResponse {
     data: IEventResponseSuccess<any> | IEventResponseError,
     request_id : string,
+    error ?:any,
     ack: () => (requestId: string,
                 method: string,
                 payload: any,

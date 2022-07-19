@@ -5,7 +5,7 @@
  **  @Date 19/07/2022
  **  @Description
  ***********************************************************/
-import {ModelEventWrapper} from "../client";
+import {IMethodFunctionResponse, ModelEventWrapper} from "../client";
 import {EventParser} from "./CommonResponse";
 import {IEventResponseSuccess, IMetadata} from "./global";
 
@@ -15,11 +15,7 @@ export class HandleResponse<CustomSchema> {
     private readonly _request_id : string;
     private readonly _state : IMetadata<any>['state']
     private readonly _eventDataRaw : IEventResponseSuccess<CustomSchema>['data']
-    constructor(eventResult : {
-        data: ModelEventWrapper,
-        request_id: string,
-        error?:any,
-    }) {
+    constructor(eventResult :IMethodFunctionResponse) {
         this._request_id = eventResult.request_id;
         if (eventResult.error) {
             this._isError = true;

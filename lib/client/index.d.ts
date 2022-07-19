@@ -11,6 +11,7 @@ import { IEventCreate } from "../core/CommonResponse";
 export interface IMethodFunctionResponse {
     data: IEventResponseSuccess<any> | IEventResponseError;
     request_id: string;
+    error?: any;
     ack: () => (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void;
 }
 export declare type IMethodFunction<Contributor, Type> = (data: ModelEventWrapper, contributor?: IContributor<Contributor>, typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type, streamName?: string, customs?: any, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
