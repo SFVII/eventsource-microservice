@@ -13,7 +13,7 @@ export interface IMethodFunctionResponse {
     request_id: string;
     ack: () => (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void;
 }
-export declare type IMethodFunction<Contributor, Type> = (data: ModelEventWrapper, contributor?: IContributor<Contributor>, typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type, streamName?: string, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
+export declare type IMethodFunction<Contributor, Type> = (data: ModelEventWrapper, contributor?: IContributor<Contributor>, typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type, streamName?: string, customs?: any, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
 export interface ModelEventWrapper extends IEventCreate {
 }
 export declare const addContributor: (contributor?: IContributor<any>) => {

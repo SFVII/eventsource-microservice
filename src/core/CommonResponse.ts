@@ -38,7 +38,7 @@ export class EventParser<CustomSchema> {
         this._model = (eventData.model ? eventData.model : (eventData.data.model ? eventData.data.model : null));
         this._type = (eventData.type ? eventData.type : (eventData.data.type ? eventData.data.type : null))
         this._status = (eventData.status ? eventData.status : (eventData.data.status ? eventData.data.status : null))
-        this._customs = (eventData._customs ? eventData._customs : (eventData.data._customs ? eventData.data._customs : null))
+        this._customs = (eventData.customs ? eventData.customs : (eventData.data.customs ? eventData.data.customs : null))
 
 
         delete eventData.data.model;
@@ -64,7 +64,7 @@ export class EventParser<CustomSchema> {
                 if (!this._next_route) this.Metadata.state = 'completed';
             }
         }
-        this.payload = {data: eventData.data && eventData.data.data ? eventData.data.data : eventData.data};
+        this.payload = {...(eventData.data && eventData.data.data ? eventData.data.data : eventData.data)};
         // @ts-ignore
         this.updatedFields = eventData.updatedFields;
         this.causationId = metadata.$causationId;

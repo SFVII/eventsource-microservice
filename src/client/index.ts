@@ -36,6 +36,7 @@ export type IMethodFunction<Contributor, Type> = (
     contributor?: IContributor<Contributor>,
     typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type,
     streamName?: string,
+    customs?:any,
     causationRoute?: string[])
     => Promise<IMethodFunctionResponse>
 
