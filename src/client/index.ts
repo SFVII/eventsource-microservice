@@ -91,9 +91,10 @@ class DataTreated {
 
     async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
         if (retry <= 30 && this.list.length) {
+            console.log(this.list, IdEvent, retry);
             const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
             if (lookup && lookup.event === 'pending') {
-                await this.sleep(100);
+                await this.sleep(200);
                 return this.find(IdEvent, retry++);
             } else if (lookup) return lookup.event as EventType;
         } else return false;
@@ -152,15 +153,18 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             ): Promise<{
                 data: ModelEventWrapper,
                 request_id: string,
+                error?:any,
                 ack: () => void
             }> => {
                 const {
                     payload,
-                    requestId
+                    requestId,
+                    error,
                 } = await this.EventMiddlewareEmitter(data, method, typeOrigin, contributor)
                 return {
                     data: payload as IEventResponseSuccess<any> | IEventResponseError,
                     request_id: requestId,
+                    error,
                     ack: () => {
                     }
                 }
@@ -216,7 +220,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
     private EventMiddlewareEmitter(data: ModelEventWrapper,
                                    method: string,
                                    typeOrigin?: string,
-                                   contributor?: IContributor<Contributor>): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, requestId: string }> {
+                                   contributor?: IContributor<Contributor>): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?:any, requestId: string }> {
 
         return new Promise(async (resolve, reject) => {
             const requestId = this.GenerateEventInternalId(data, method);
@@ -252,8 +256,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
             if (event) resolve({payload: event.data as IEventResponseError | IEventResponseSuccess<any>, requestId});
             else {
-                console.log('Error on pending items create', {payload: event, requestId})
-                reject("Error on pending items create " + requestId)
+                reject({payload : {error : 'Error on pending items create'}, request_id : requestId})
             }
         })
     }
