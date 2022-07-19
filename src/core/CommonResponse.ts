@@ -35,8 +35,8 @@ export class EventParser<CustomSchema> {
         this.Metadata = metadata;
 
         this._model = (eventData.model ? eventData.model : (eventData.data.model ? eventData.data.model : null));
-        this._type = (eventData.type ? eventData.type : (eventData.model.type ? eventData.model.type : null))
-        this._status = (eventData.status ? eventData.status : (eventData.model.status ? eventData.model.status : null))
+        this._type = (eventData.type ? eventData.type : (eventData.data.type ? eventData.data.type : null))
+        this._status = (eventData.status ? eventData.status : (eventData.data.status ? eventData.data.status : null))
 
         delete eventData.data.model;
         delete eventData.data.type;
