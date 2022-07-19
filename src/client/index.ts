@@ -91,7 +91,10 @@ class DataTreated {
 
 
     async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
-        if (retry <= 30) {
+        if (this.list.length == 0) {
+            await this.sleep(200);
+            return this.find(IdEvent, retry++);
+        } else if (retry <= 30) {
             console.log(this.list, IdEvent, retry);
             const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
             if (lookup && lookup.event === 'pending') {
@@ -190,6 +193,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             const event: any = resolvedEvent.event;
             if (event.metadata.state !== 'completed') {
                 const state: false | null | true = this.eventState(event.metadata.state)
+                console.log('My fucking state', state);
                 if (state === true) this.add({id: event.metadata['$correlationId'], event, date: new Date});
                 else if (state === null) this.add({
                     id: event.metadata['$correlationId'],
