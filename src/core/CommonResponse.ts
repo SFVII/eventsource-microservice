@@ -30,6 +30,7 @@ export class EventParser<CustomSchema> {
     private readonly _model: any;
     private readonly _type: ITypeOrigin
     private readonly _status: IMetadata<any>['state'];
+    private readonly _customs : any;
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
         this.Metadata = metadata;
@@ -37,11 +38,15 @@ export class EventParser<CustomSchema> {
         this._model = (eventData.model ? eventData.model : (eventData.data.model ? eventData.data.model : null));
         this._type = (eventData.type ? eventData.type : (eventData.data.type ? eventData.data.type : null))
         this._status = (eventData.status ? eventData.status : (eventData.data.status ? eventData.data.status : null))
+        this._customs = (eventData._customs ? eventData._customs : (eventData.data._customs ? eventData.data._customs : null))
+
 
         delete eventData.data.model;
         delete eventData.data.type;
         delete eventData.data.status;
         delete eventData.data.origin;
+        delete eventData.data.customs;
+
 
         Object.assign(this.causationRoute, metadata.causationRoute);
 
@@ -74,6 +79,10 @@ export class EventParser<CustomSchema> {
         return this.causationId;
     }
 
+    get customs() {
+        return this._customs;
+    }
+
     private _routes: string[];
 
     get routes() {
@@ -102,12 +111,14 @@ export class EventParser<CustomSchema> {
             status: "error",
             type: this.metadata.typeOrigin,
             model: this.model,
+            customs : this.customs,
             message: this.payload
         } : {
             origin: this.metadata.$causationId,
             data: this.payload,
             status: "success",
             model: this.model,
+            customs : this.customs,
             type: this.metadata.typeOrigin,
             updatedFields: this.updatedFields
         }
