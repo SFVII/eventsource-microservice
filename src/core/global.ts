@@ -147,9 +147,11 @@ type IEventResponseSuccess<CustomSchema> = {
     updatedFields?: keyof CustomSchema[]
 }
 
+type IEventResponse<CustomSchema> = IEventResponseSuccess<CustomSchema> | IEventResponseError
 
 
 export {
+    IEventResponse,
     IEventErrorResult,
     IEventResponseError,
     IEventResponseSuccess,

@@ -28,8 +28,8 @@ export class EventParser<CustomSchema> {
     private readonly _next_route: ICausationId | undefined;
     private readonly causationId: string;
     private readonly _model: any;
-    private readonly _type : ITypeOrigin
-    private readonly _status : IMetadata<any>['state'];
+    private readonly _type: ITypeOrigin
+    private readonly _status: IMetadata<any>['state'];
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
         this.Metadata = metadata;
@@ -41,6 +41,7 @@ export class EventParser<CustomSchema> {
         delete eventData.data.model;
         delete eventData.data.type;
         delete eventData.data.status;
+        delete eventData.data.origin;
 
         Object.assign(this.causationRoute, metadata.causationRoute);
 
@@ -58,7 +59,7 @@ export class EventParser<CustomSchema> {
                 if (!this._next_route) this.Metadata.state = 'completed';
             }
         }
-        this.payload = eventData.data;
+        this.payload = {data: eventData.data && eventData.data.data ? eventData.data.data : eventData.data};
         // @ts-ignore
         this.updatedFields = eventData.updatedFields;
         this.causationId = metadata.$causationId;
