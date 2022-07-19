@@ -19,13 +19,13 @@ export class EventParser<CustomSchema> {
     private readonly payload: any;
     private readonly _next_route: ICausationId | undefined;
     private readonly causationId: string;
-    private readonly model : any;
+    private readonly _model : any;
     public readonly causationRoute: ICausationRoute = [];
 
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
         this.Metadata = metadata;
-        this.model = eventData.model ?  eventData.model : null;
+        this._model = eventData.model ?  eventData.model : null;
         Object.assign(this.causationRoute, metadata.causationRoute);
         console.log('state', this.state, 'route', this.causationRoute, metadata);
         if (this.state === 'error') {
@@ -45,6 +45,10 @@ export class EventParser<CustomSchema> {
         this.causationId = metadata.$causationId;
     }
 
+
+    get model() {
+        return this._model;
+    }
     get causation() {
         return this.causationId;
     }
