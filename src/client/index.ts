@@ -271,7 +271,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 $correlationId: requestId,
                 state: 'processing',
                 $causationId: this.streamName,
-                causationRoute: this.causationRoute,
+                causationRoute: [...this.causationRoute],
                 typeOrigin: typeOrigin ? typeOrigin : method,
                 contributor: addContributor(contributor)
             })
@@ -280,7 +280,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 $correlationId: requestId,
                 state: 'processing',
                 $causationId: this.streamName,
-                causationRoute: this.causationRoute,
+                causationRoute: [...this.causationRoute],
                 typeOrigin: typeOrigin ? typeOrigin : method,
                 contributor: addContributor(contributor)
             })
@@ -289,7 +289,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
             const template = this.template(method, eventParser.data, eventParser.buildMetadata);
 
-           // this.add({id: requestId, event: 'pending', date: new Date()});
+            // this.add({id: requestId, event: 'pending', date: new Date()});
 
             await this.appendToStream(streamName, template)
 
@@ -323,8 +323,8 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             case 'completed':
                 return true
             // In case of processing we transparency send the user to the pending room
-            case 'processing':
-                return null
+            // case 'processing':
+            //    return null
             default:
                 return false;
         }
