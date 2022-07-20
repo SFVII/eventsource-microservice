@@ -30,7 +30,7 @@ export class EventParser<CustomSchema> {
     private readonly _model: any;
     private readonly _type: ITypeOrigin
     private readonly _status: IMetadata<any>['state'];
-    private readonly _customs : any;
+    private readonly _customs: any;
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
         this.Metadata = metadata || {};
@@ -48,7 +48,7 @@ export class EventParser<CustomSchema> {
         delete eventData.data.customs;
 
 
-        Object.assign(this.causationRoute, metadata.causationRoute);
+        this.causationRoute = metadata.causationRoute;
 
         console.log('state', this.state, 'route', this.causationRoute, metadata);
 
@@ -99,7 +99,6 @@ export class EventParser<CustomSchema> {
     }
 
 
-
     get metadata(): IMetadata<CustomSchema> {
         if (this.isError) return {...this.Metadata, causationRoute: []}
         else return {...this.Metadata, causationRoute: this._routes}
@@ -112,14 +111,14 @@ export class EventParser<CustomSchema> {
             status: "error",
             type: this.metadata.typeOrigin,
             model: this.model,
-            customs : this.customs,
+            customs: this.customs,
             message: this.payload
         } : {
             origin: this.metadata.$causationId,
             data: this.payload,
             status: "success",
             model: this.model,
-            customs : this.customs,
+            customs: this.customs,
             type: this.metadata.typeOrigin,
             updatedFields: this.updatedFields
         }
