@@ -61,8 +61,8 @@ export class EventParser<CustomSchema> {
         delete eventData.data.customs;
 
 
-        this.causationRoute = [...metadata.causationRoute];
-        this._causationRoute = [...metadata.causationRoute];
+        this.causationRoute = metadata.causationRoute && metadata.causationRoute.length ? [...metadata.causationRoute] : [];
+        this._causationRoute = metadata.causationRoute && metadata.causationRoute.length ? [...metadata.causationRoute] : [];
         console.log('state', this.state, 'route', this.causationRoute, metadata);
 
 
