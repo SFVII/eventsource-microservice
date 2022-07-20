@@ -110,6 +110,7 @@ class DataTreated {
         } else {
             console.log('------------Lookup--------', IdEvent, retry);
             const lookup = list.find((doc: IDataTreatedList) => doc.id === IdEvent);
+            console.log('THE LOOKUP', lookup);
             if (lookup && lookup.event === 'pending' || !lookup) {
                 console.log('Lookup event %s', lookup);
                 await this.sleep(200);
