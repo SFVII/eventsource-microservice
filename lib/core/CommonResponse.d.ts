@@ -22,7 +22,14 @@ export declare class EventParser<CustomSchema> {
     private readonly _status;
     private readonly _customs;
     private _causationRoute;
-    constructor(ResolvedEvent: any);
+    constructor(ResolvedEvent: {
+        event: {
+            data: any;
+            metadata: IMetadata<any>;
+            [key: string]: any;
+        };
+        [key: string]: any;
+    });
     get type(): string;
     get model(): any;
     get causation(): string;

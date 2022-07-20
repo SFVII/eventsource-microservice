@@ -33,12 +33,12 @@ export class EventParser<CustomSchema> {
     private readonly _customs: any;
     private _causationRoute: ICausationRoute = [];
 
-    constructor(ResolvedEvent: any) {
+    constructor(ResolvedEvent: { event: { data: any, metadata: IMetadata<any>, [key: string]: any }, [key: string]: any }) {
 
 
         console.log('type', ResolvedEvent.event.type);
 
-        this._type  = ResolvedEvent.event.type;
+        this._type = ResolvedEvent.event.type;
 
         console.log('type 2', this._type);
 

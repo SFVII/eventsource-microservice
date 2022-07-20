@@ -92,11 +92,7 @@ class EventConsumer<Contributor> {
     }
 
 
-    public async handler(ResolvedEvent: any, data: any) {
-        const {event} = ResolvedEvent;
-        console.log('Contributor', event.metadata, data);
-        if (data) event.data = {...event.data, ...data};
-        const eventParse = new EventParser(event);
+    public async handler(eventParse: EventParser<any>) {
         console.log('handler eventparse', eventParse.data, eventParse.type);
         let publish : any = null;
         // @ts-ignore
@@ -107,10 +103,10 @@ class EventConsumer<Contributor> {
             publish = this.template(eventParse.type, eventParse.data, pMetadata);
             this.client.appendToStream(this.streamName + '-publish', [publish])
                 .catch((err: any) =>
-                    console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err))
+                    console.error(`Error EventHandler.handler.appendToStream`, err))
         }
         await this.client.appendToStream(eventParse.causation, [template]).catch((err: any) => {
-            console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err);
+            console.error(`Error EventHandler.handler.appendToStream`, err);
         })
     }
 
