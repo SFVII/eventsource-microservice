@@ -267,14 +267,19 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 console.log('Continue, not found', requestId)
             }
 
-            const eventParser = new EventParser(data, {
-                $correlationId: requestId,
-                state: 'processing',
-                $causationId: this.streamName,
-                causationRoute: [...this.causationRoute],
-                typeOrigin: typeOrigin ? typeOrigin : method,
-                contributor: addContributor(contributor)
-            })
+            const eventParser = new EventParser({
+                type: typeOrigin ? typeOrigin : method,
+                event: {
+                    data,
+                    metadata: {
+                        $correlationId: requestId,
+                        state: 'processing',
+                        $causationId: this.streamName,
+                        causationRoute: [...this.causationRoute],
+                        typeOrigin: typeOrigin ? typeOrigin : method,
+                        contributor: addContributor(contributor)
+                    }
+                }})
             const template = this.template(method, eventParser.data, eventParser.buildMetadata);
 
             // this.add({id: requestId, event: 'pending', date: new Date()});

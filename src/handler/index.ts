@@ -76,7 +76,7 @@ class EventHandler {
 
     private async handler(event: any) {
         console.log('handler')
-        const eventParser = new EventParser<any>(event.data, event.metadata);
+        const eventParser = new EventParser<any>(event);
         console.log('eventParser done', eventParser.data)
         const prefetchData: IEventResponseError | IEventResponseSuccess<any> = eventParser.data;
         const template = this.template(event.type, prefetchData, eventParser.metadata);
