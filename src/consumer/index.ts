@@ -92,7 +92,8 @@ class EventConsumer<Contributor> {
     }
 
 
-    public async handler(event: any, data: any) {
+    public async handler(ResolvedEvent: any, data: any) {
+        const {event} = ResolvedEvent;
         console.log('Contributor', event.metadata, data);
         if (data) event.data = {...event.data, ...data};
         const eventParse = new EventParser(event);
