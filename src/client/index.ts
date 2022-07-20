@@ -191,18 +191,9 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
         this.stream = this.SubscribeToPersistent(this.streamName);
         for await (const resolvedEvent of this.stream) {
             const event: any = resolvedEvent.event;
-            if (event.metadata.state !== 'completed') {
-                const state: false | null | true = this.eventState(event.metadata.state)
-                console.log('My fucking state')
-                if (state === true) this.add({id: event.metadata['$correlationId'], event, date: new Date});
-                else if (state === null) this.add({
-                    id: event.metadata['$correlationId'],
-                    event: 'pending',
-                    date: new Date
-                });
-            } else this.add({id: event.metadata['$correlationId'], event, date: new Date});
-            // console.log('-----resolved event', resolvedEvent);
-            this.stream.ack(resolvedEvent);
+            const state: false | null | true = this.eventState(event.metadata.state)
+            if (state === true) this.add({id: event.metadata['$correlationId'], event, date: new Date});
+            else this.add({id: event.metadata['$correlationId'], event: 'pending', date: new Date});
         }
     }
 
@@ -249,10 +240,10 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 console.log('Event found')
                 this.add({id: requestId, event: 'pending', date: new Date()});
                 if (event && event.data) {
-                  return resolve({
-                      payload: event?.data as IEventResponseError | IEventResponseSuccess<any>,
-                      requestId
-                  });
+                    return resolve({
+                        payload: event?.data as IEventResponseError | IEventResponseSuccess<any>,
+                        requestId
+                    });
                 }
 
                 console.log('Continue, not found', requestId)
