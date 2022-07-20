@@ -72,40 +72,48 @@ export const addContributor = (contributor: IContributor<any> = {
 type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date }
 type IDataTreatedListFoundResult = EventType | false | undefined
 
+
+let list: IDataTreatedList[] = [];
+
 class DataTreated {
-    protected list: IDataTreatedList[] = [];
+
+    private clear_process: boolean = false;
 
     constructor() {
         this.clearOldFile();
     }
 
     public exist(IdEvent: string) {
-        return this.list.findIndex((doc: IDataTreatedList) => doc.id === IdEvent) > -1;
+        return list.findIndex((doc: IDataTreatedList) => doc.id === IdEvent) > -1;
     }
 
     public add(entry: IDataTreatedList) {
-        const index = this.list.findIndex((doc: IDataTreatedList) => entry.id == doc.id)
-        console.log('Add to result queue index is %d', index)
-        if (index > -1) this.list[index] = entry;
-        else this.list.unshift(entry);
+        if (this.clear_process) {
+            this.add(entry);
+        } else {
+            const index = list.findIndex((doc: IDataTreatedList) => entry.id == doc.id)
+            console.log('Add to result queue index is %d', index, entry)
+            if (index > -1) list[index] = entry;
+            else list.unshift(entry);
+        }
+
     }
 
 
     async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
-        if (retry <= 30) {
-            console.log(this.list, IdEvent, retry);
-            if (!this.list.length) {
+        if (retry && retry > 30) return false;
+        console.log(list, IdEvent, retry);
+        if (!list.length) {
+            await this.sleep(200);
+            return this.find(IdEvent, ++retry);
+        } else {
+            const lookup = list.find((doc: IDataTreatedList) => doc.id === IdEvent);
+            if (lookup && lookup.event === 'pending' || !lookup) {
                 await this.sleep(200);
                 return this.find(IdEvent, ++retry);
-            } else {
-                const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
-                if (lookup && lookup.event === 'pending') {
-                    await this.sleep(200);
-                    return this.find(IdEvent, ++retry);
-                } else if (lookup) return lookup.event as EventType;
-                else return false;
-            }
-        } else return false;
+            } else return lookup.event as EventType;
+        }
+
     }
 
     sleep(ms: number) {
@@ -114,11 +122,13 @@ class DataTreated {
 
     clearOldFile() {
         setInterval(() => {
+            this.clear_process = true;
             const limit = new Date();
             limit.setMinutes(limit.getMinutes() - 1)
             console.log('Clear message response queue');
-            this.list = this.list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime()) || [];
-            console.log('new list', this.list);
+            list = list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime()) || [];
+            console.log('new list', list);
+            this.clear_process = false;
         }, 1000 * 60);
     }
 }
