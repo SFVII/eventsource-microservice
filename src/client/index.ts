@@ -213,7 +213,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             const event: any = resolvedEvent.event;
             const state: false | null | true = this.eventState(event.metadata.state)
             console.log('state', state, event.metadata.state);
-            if (state === true) this.add({id: event.metadata['$correlationId'], event, date: new Date});
+            if (state === true) this.add({id: event.metadata['$correlationId'], event, date: new Date()});
         }
     }
 
@@ -280,7 +280,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
             const template = this.template(method, eventParser.data, eventParser.buildMetadata);
 
-            this.add({id: requestId, event: 'pending', date: new Date()});
+           // this.add({id: requestId, event: 'pending', date: new Date()});
 
             await this.appendToStream(streamName, template)
 
