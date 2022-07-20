@@ -7,7 +7,7 @@
  ***********************************************************/
 import { IMethodFunctionResponse } from "../client";
 export declare class HandleResponse<CustomSchema> {
-    private _isError;
+    private readonly _isError;
     private readonly _payload;
     private readonly _request_id;
     private readonly _state;
