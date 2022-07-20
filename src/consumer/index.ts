@@ -97,12 +97,14 @@ class EventConsumer<Contributor> {
         console.log('Contributor', event.metadata, data);
         if (data) event.data = {...event.data, ...data};
         const eventParse = new EventParser(event);
-        console.log('handler eventparse', eventParse.data);
+        console.log('handler eventparse', eventParse.data, eventParse.type);
         let publish : any = null;
-        const template = this.template(event.type, eventParse.data, eventParse.metadata);
+        // @ts-ignore
+        const template = this.template(eventParse.type, eventParse.data, eventParse.metadata);
         if (!eventParse.isError && this.publish) {
             const pMetadata = {...eventParse.metadata, state : 'delivered'}
-            publish = this.template(event.type, eventParse.data, pMetadata);
+            // @ts-ignore
+            publish = this.template(eventParse.type, eventParse.data, pMetadata);
             this.client.appendToStream(this.streamName + '-publish', [publish])
                 .catch((err: any) =>
                     console.error(`Error EventHandler.handler.appendToStream.${event.streamId}`, err))
