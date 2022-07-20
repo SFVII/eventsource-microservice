@@ -92,16 +92,19 @@ class DataTreated {
 
 
     async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
-        if (this.list.length == 0 && retry <= 30) {
-            await this.sleep(400);
-            return this.find(IdEvent, ++retry);
-        } else if (retry <= 30) {
+        if (retry <= 30) {
             console.log(this.list, IdEvent, retry);
-            const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
-            if (lookup && lookup.event === 'pending') {
+            if (!this.list.length) {
                 await this.sleep(200);
                 return this.find(IdEvent, ++retry);
-            } else if (lookup) return lookup.event as EventType;
+            } else {
+                const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
+                if (lookup && lookup.event === 'pending') {
+                    await this.sleep(200);
+                    return this.find(IdEvent, ++retry);
+                } else if (lookup) return lookup.event as EventType;
+                else return false;
+            }
         } else return false;
     }
 
@@ -113,7 +116,9 @@ class DataTreated {
         setInterval(() => {
             const limit = new Date();
             limit.setMinutes(limit.getMinutes() - 1)
-            this.list = this.list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime());
+            console.log('Clear message response queue');
+            this.list = this.list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime()) || [];
+            console.log('new list', this.list);
         }, 1000 * 60);
     }
 }
