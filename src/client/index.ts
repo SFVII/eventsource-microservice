@@ -275,27 +275,13 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 typeOrigin: typeOrigin ? typeOrigin : method,
                 contributor: addContributor(contributor)
             })
-
-            console.log('real metadata', {
-                $correlationId: requestId,
-                state: 'processing',
-                $causationId: this.streamName,
-                causationRoute: [...this.causationRoute],
-                typeOrigin: typeOrigin ? typeOrigin : method,
-                contributor: addContributor(contributor)
-            })
-
-            console.log('eventParser', eventParser.data, eventParser.buildMetadata)
-
             const template = this.template(method, eventParser.data, eventParser.buildMetadata);
 
             // this.add({id: requestId, event: 'pending', date: new Date()});
 
             await this.appendToStream(streamName, template)
 
-            console.log('stream', template);
             const event: IDataTreatedListFoundResult = await this.find(requestId, 0);
-            console.log('event', event);
 
             if (event) resolve({payload: event.data as IEventResponseError | IEventResponseSuccess<any>, requestId});
             else {

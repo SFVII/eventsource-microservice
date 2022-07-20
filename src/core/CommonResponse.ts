@@ -70,6 +70,10 @@ export class EventParser<CustomSchema> {
         this.causationId = metadata?.$causationId;
     }
 
+    get type() {
+        return this._type;
+    }
+
 
     get model() {
         return this._model;
