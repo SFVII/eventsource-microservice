@@ -35,10 +35,16 @@ export class EventParser<CustomSchema> {
 
     constructor(ResolvedEvent: any) {
 
+
+        console.log('type', ResolvedEvent.event.type);
+
+        this._type  = ResolvedEvent.event.type;
         const eventData = {...ResolvedEvent.event};
+
+        console.log('Event Data', eventData)
         const {metadata} = eventData;
         this.Metadata = metadata || {};
-        this._type = eventData.type;
+
         this._model = (eventData.model ? eventData.model : (eventData.data.model ? eventData.data.model : null));
         //this._type = (eventData.type ? eventData.type : (eventData.data.type ? eventData.data.type : null))
         this._status = (eventData.status ? eventData.status : (eventData.data.status ? eventData.data.status : null))
