@@ -25,7 +25,7 @@ export class HandleResponse<CustomSchema> {
             if (this._eventDataRaw.state === "error") {
                 this._isError = true;
             }
-            this._payload =  this._eventDataRaw.data.data;
+            this._payload =  this._eventDataRaw.data;
         }
         if (this._isError) this._state = 'error';
     }

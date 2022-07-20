@@ -91,8 +91,8 @@ class DataTreated {
 
 
     async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
-        if (this.list.length == 0) {
-            await this.sleep(200);
+        if (this.list.length == 0 && retry <= 30) {
+            await this.sleep(400);
             return this.find(IdEvent, retry++);
         } else if (retry <= 30) {
             console.log(this.list, IdEvent, retry);
