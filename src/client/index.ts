@@ -85,6 +85,7 @@ class DataTreated {
 
     public add(entry: IDataTreatedList) {
         const index = this.list.findIndex((doc: IDataTreatedList) => entry.id == doc.id)
+        console.log('Add to result queue index is %d', index)
         if (index > -1) this.list[index] = entry;
         else this.list.unshift(entry);
     }
@@ -192,6 +193,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
         for await (const resolvedEvent of this.stream) {
             const event: any = resolvedEvent.event;
             const state: false | null | true = this.eventState(event.metadata.state)
+            console.log('state', state, event.metadata.state);
             if (state === true) this.add({id: event.metadata['$correlationId'], event, date: new Date});
             else this.add({id: event.metadata['$correlationId'], event: 'pending', date: new Date});
         }
