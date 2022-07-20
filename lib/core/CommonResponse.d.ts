@@ -21,11 +21,11 @@ export declare class EventParser<CustomSchema> {
     private readonly _type;
     private readonly _status;
     private readonly _customs;
+    private _causationRoute;
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>);
     get model(): any;
     get causation(): string;
     get customs(): any;
-    private _routes;
     get routes(): string[];
     set routes(routes: string[]);
     get buildMetadata(): IMetadata<CustomSchema>;

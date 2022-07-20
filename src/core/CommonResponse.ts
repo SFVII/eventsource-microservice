@@ -31,6 +31,7 @@ export class EventParser<CustomSchema> {
     private readonly _type: ITypeOrigin
     private readonly _status: IMetadata<any>['state'];
     private readonly _customs: any;
+    private _causationRoute: ICausationRoute = [];
 
     constructor(eventData: IEventCreate, metadata: IMetadata<CustomSchema>) {
         this.Metadata = metadata || {};
@@ -48,9 +49,8 @@ export class EventParser<CustomSchema> {
         delete eventData.data.customs;
 
 
-
         this.causationRoute = metadata.causationRoute;
-
+        this._causationRoute = metadata.causationRoute;
         console.log('state', this.state, 'route', this.causationRoute, metadata);
 
 
@@ -60,8 +60,7 @@ export class EventParser<CustomSchema> {
             console.log('State processing')
             if (this.causationRoute && Array.isArray(this.causationRoute)) {
                 console.log('Causation route processing', this.causationRoute)
-                this._next_route = metadata?.causationRoute.shift();
-                this._routes = metadata?.causationRoute;
+                this._next_route = this._causationRoute.shift();
                 if (!this._next_route) this.Metadata.state = 'completed';
             }
         }
@@ -84,14 +83,13 @@ export class EventParser<CustomSchema> {
         return this._customs;
     }
 
-    private _routes: string[];
 
     get routes() {
-        return this._routes;
+        return this._causationRoute;
     }
 
     set routes(routes: string[]) {
-        this._routes = routes
+        this._causationRoute = routes
     }
 
     get buildMetadata(): IMetadata<CustomSchema> {
@@ -102,7 +100,7 @@ export class EventParser<CustomSchema> {
 
     get metadata(): IMetadata<CustomSchema> {
         if (this.isError) return {...this.Metadata, causationRoute: []}
-        else return {...this.Metadata, causationRoute: this._routes}
+        else return {...this.Metadata, causationRoute: this._causationRoute}
     }
 
     get data(): IEventResponseError | IEventResponseSuccess<CustomSchema> {
