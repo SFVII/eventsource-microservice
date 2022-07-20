@@ -276,6 +276,15 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 contributor: addContributor(contributor)
             })
 
+            console.log('real metadata', {
+                $correlationId: requestId,
+                state: 'processing',
+                $causationId: this.streamName,
+                causationRoute: this.causationRoute,
+                typeOrigin: typeOrigin ? typeOrigin : method,
+                contributor: addContributor(contributor)
+            })
+
             console.log('eventParser', eventParser.data, eventParser.buildMetadata)
 
             const template = this.template(method, eventParser.data, eventParser.buildMetadata);
