@@ -94,7 +94,9 @@ class EventConsumer<Contributor> {
 
     public async handler(event: any, data: any) {
         console.log('Contributor', event.metadata, data);
-        const eventParse = new EventParser(data, event.metadata);
+        if (data) event.data = {...event.data, data : data};
+        const eventParse = new EventParser(event, event.metadata);
+        console.log('handler eventparse', eventParse.data);
         let publish : any = null;
         const template = this.template(event.type, eventParse.data, eventParse.metadata);
         if (!eventParse.isError && this.publish) {
