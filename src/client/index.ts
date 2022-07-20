@@ -94,13 +94,13 @@ class DataTreated {
     async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
         if (this.list.length == 0 && retry <= 30) {
             await this.sleep(400);
-            return this.find(IdEvent, retry++);
+            return this.find(IdEvent, ++retry);
         } else if (retry <= 30) {
             console.log(this.list, IdEvent, retry);
             const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
             if (lookup && lookup.event === 'pending') {
                 await this.sleep(200);
-                return this.find(IdEvent, retry++);
+                return this.find(IdEvent, ++retry);
             } else if (lookup) return lookup.event as EventType;
         } else return false;
     }
@@ -284,8 +284,8 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
     }
 
 
-    private eventState(event: any) {
-        switch (event.metadata?.state) {
+    private eventState(state: 'delivered' | 'error' | 'completed' | 'processing' | string) {
+        switch (state) {
             // In case of delivered we allow user to renew the entry
             // In case of complete we send the last information to the user
             //  case 'delivered':
