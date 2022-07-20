@@ -245,16 +245,15 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 console.log('Event exist try to call return it')
                 const event: IDataTreatedListFoundResult = await this.find(requestId);
                 console.log('Event found')
-                this.add({id: requestId, event: 'pending', date: new Date()});
                 if (event && event.data) {
                     return resolve({
                         payload: event?.data as IEventResponseError | IEventResponseSuccess<any>,
                         requestId
                     });
                 }
-
                 console.log('Continue, not found', requestId)
             }
+
             const eventParser = new EventParser(data, {
                 $correlationId: requestId,
                 state: 'processing',
@@ -267,10 +266,13 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             console.log('eventParser', eventParser.data, eventParser.buildMetadata)
 
             const template = this.template(method, eventParser.data, eventParser.buildMetadata);
+
+            this.add({id: requestId, event: 'pending', date: new Date()});
+
             await this.appendToStream(streamName, template)
 
             console.log('stream', template);
-            const event: IDataTreatedListFoundResult = await this.find(requestId);
+            const event: IDataTreatedListFoundResult = await this.find(requestId, 0);
             console.log('event', event);
 
             if (event) resolve({payload: event.data as IEventResponseError | IEventResponseSuccess<any>, requestId});
