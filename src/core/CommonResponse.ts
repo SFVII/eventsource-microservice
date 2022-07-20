@@ -39,6 +39,9 @@ export class EventParser<CustomSchema> {
         console.log('type', ResolvedEvent.event.type);
 
         this._type  = ResolvedEvent.event.type;
+
+        console.log('type 2', this._type);
+
         const eventData = {...ResolvedEvent.event};
 
         console.log('Event Data', eventData)
