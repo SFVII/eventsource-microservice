@@ -207,22 +207,28 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 
     private async InitStreamWatcher() {
-        await this.CreatePersistentSubscription(this.streamName);
-        this.stream = this.SubscribeToPersistent(this.streamName);
-        for await (const resolvedEvent of this.stream) {
-            const event: any = resolvedEvent.event;
-            const eventParse = new EventParser(resolvedEvent);
-            console.log('state', eventParse.state, eventParse.data);
-            const state: false | null | true = this.eventState(eventParse.state)
-            console.log('state', state, eventParse.state);
-            if (state === true) await this.add({
-                id: eventParse.correlationId,
-                event : {...event, data: eventParse.data},
-                date: new Date()
-            });
-            this.stream.ack(resolvedEvent);
-            console.log('this list', this.list)
+        try {
+            await this.CreatePersistentSubscription(this.streamName);
+            this.stream = this.SubscribeToPersistent(this.streamName);
+            for await (const resolvedEvent of this.stream) {
+                const event: any = resolvedEvent.event;
+                const eventParse = new EventParser(resolvedEvent);
+                console.log('state', eventParse.state, eventParse.data);
+                const state: false | null | true = this.eventState(eventParse.state)
+                console.log('state', state, eventParse.state);
+                if (state === true) await this.add({
+                    id: eventParse.correlationId,
+                    event : {...event, data: eventParse.data},
+                    date: new Date()
+                });
+                this.stream.ack(resolvedEvent);
+                console.log('this list', this.list)
+            }
+        } catch (err) {
+            console.log('Stream crashed restart pod', err)
+            process.exit(0)
         }
+
     }
 
     private SubscribeToPersistent(streamName: string) {
