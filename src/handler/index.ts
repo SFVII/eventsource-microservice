@@ -81,7 +81,15 @@ class EventHandler {
         const prefetchData: IEventResponseError | IEventResponseSuccess<any> = eventParser.data;
         const template = this.template(event.type, prefetchData, eventParser.metadata);
 
-        console.log('isError', eventParser.isError, 'nextRoute', eventParser.nextRoute, 'state', eventParser.state)
+        console.log(
+            'isError',
+            eventParser.isError,
+            'nextRoute',
+            eventParser.nextRoute,
+            'state',
+            eventParser.state,
+            template
+        )
 
         if (eventParser.isError) await this.client.appendToStream(eventParser.causation, [template]).catch((err: any) => {
             console.error(`Error EventHandler.handler.appendToStream.${eventParser.causation}`, err);

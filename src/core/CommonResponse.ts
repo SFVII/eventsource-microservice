@@ -78,7 +78,7 @@ export class EventParser<CustomSchema> {
         }
         this.payload = {...(eventData.data && eventData.data.data ? eventData.data.data : eventData.data)};
         // @ts-ignore
-        this.updatedFields = eventData.updatedFields;
+        this.updatedFields = eventData.updatedFields || [];
         this.causationId = metadata?.$causationId;
     }
 
