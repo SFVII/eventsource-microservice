@@ -318,7 +318,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             // In case of delivered we allow user to renew the entry
             // In case of complete we send the last information to the user
             //  case 'delivered':
-            case 'delivered':
+           // case 'delivered':
             case 'error':
             case 'completed':
                 return true

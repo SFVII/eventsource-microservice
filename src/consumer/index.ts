@@ -96,7 +96,6 @@ class EventConsumer<Contributor> {
         console.log('handler eventparse', eventParse.data, eventParse.type);
         let publish : any = null;
         // @ts-ignore
-        const template = this.template(eventParse.type, eventParse.data, eventParse.metadata);
         if (!eventParse.isError && this.publish) {
             const pMetadata = {...eventParse.metadata, state : 'delivered'}
             // @ts-ignore
@@ -105,6 +104,7 @@ class EventConsumer<Contributor> {
                 .catch((err: any) =>
                     console.error(`Error EventHandler.handler.appendToStream`, err))
         }
+        const template = this.template(eventParse.type as EventType, eventParse.data, eventParse.metadata);
         await this.client.appendToStream(eventParse.causation, [template]).catch((err: any) => {
             console.error(`Error EventHandler.handler.appendToStream`, err);
         })
