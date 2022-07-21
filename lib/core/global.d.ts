@@ -106,7 +106,7 @@ declare type IEventResponseSuccess<CustomSchema> = {
     customs?: any;
     status?: IMetadata<any>['state'];
     type: ITypeOrigin;
-    updatedFields?: keyof CustomSchema[];
+    updatedFields?: keyof CustomSchema[] | [];
 };
 declare type IEventResponse<CustomSchema> = IEventResponseSuccess<CustomSchema> | IEventResponseError;
 export { IEventResponse, IEventErrorResult, IEventResponseError, IEventResponseSuccess, IMd5DataHash, ICausationId, ICausationRoute, ITypeOrigin, ITriggerList, IContributorBinding, IContributor, IMetadata, EventEmitter, bigInt, PersistentSubscription, EventCollection, persistentSubscriptionSettingsFromDefaults, PersistentSubscriptionBase, jsonEvent, EventStoreDBClient, END, START, IDataLinkEvent, IEventHandlerGroup, IListStreamSubscription, IStartRevision, StreamSubscription, IAvailableEvent, IReadStreamConfig, IEvenStoreConfig, IQueue, IQueueCustom, IStream, ITemplateEvent, EventType, IStartRevisionValues, Method, MethodList, EMethodList, JSONType, BACKWARDS, EventData, md5 };

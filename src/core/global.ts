@@ -146,7 +146,7 @@ type IEventResponseSuccess<CustomSchema> = {
     customs?:any,
     status?: IMetadata<any>['state'],
     type: ITypeOrigin,
-    updatedFields?: keyof CustomSchema[]
+    updatedFields?: keyof CustomSchema[] | []
 }
 
 type IEventResponse<CustomSchema> = IEventResponseSuccess<CustomSchema> | IEventResponseError

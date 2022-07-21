@@ -11,7 +11,7 @@ export interface IEventCreate extends IEventResponseSuccess<any> {
 }
 export declare class EventParser<CustomSchema> {
     readonly isError: boolean;
-    readonly updatedFields: keyof CustomSchema[];
+    readonly updatedFields: keyof CustomSchema[] | [];
     readonly causationRoute: ICausationRoute;
     private readonly Metadata;
     private readonly payload;
