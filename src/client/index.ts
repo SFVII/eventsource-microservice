@@ -220,7 +220,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 event : {...event, data: eventParse.data},
                 date: new Date()
             });
-
+            this.stream.ack(resolvedEvent);
             console.log('this list', this.list)
         }
     }
