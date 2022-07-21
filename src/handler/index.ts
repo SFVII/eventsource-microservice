@@ -10,8 +10,6 @@ import {
     EventStoreDBClient,
     IEvenStoreConfig,
     IEventHandlerGroup,
-    IEventResponseError,
-    IEventResponseSuccess,
     IListStreamSubscription,
     IStartRevision,
     ITemplateEvent,
@@ -78,8 +76,7 @@ class EventHandler {
         console.log('handler')
         const eventParser = new EventParser<any>(event);
         console.log('eventParser done', eventParser.data)
-        const prefetchData: IEventResponseError | IEventResponseSuccess<any> = eventParser.data;
-        const template = this.template(event.type, prefetchData, eventParser.metadata);
+        const template = this.template(eventParser.type, eventParser.data, eventParser.metadata);
 
         console.log(
             'isError',
@@ -88,12 +85,14 @@ class EventHandler {
             eventParser.nextRoute,
             'state',
             eventParser.state,
+            'template',
             template
         )
 
-        if (eventParser.isError) await this.client.appendToStream(eventParser.causation, [template]).catch((err: any) => {
-            console.error(`Error EventHandler.handler.appendToStream.${eventParser.causation}`, err);
-        });
+        if (eventParser.isError) await this.client.appendToStream(eventParser.causation, [template])
+            .catch((err: any) => {
+                console.error(`Error EventHandler.handler.appendToStream.${eventParser.causation}`, err);
+            });
         else if (eventParser.nextRoute) await this.client.appendToStream(eventParser.nextRoute, [template])
             .catch((err: any) => {
                 console.error(`Error EventHandler.handler.appendToStream.${eventParser.causation}`, err);
