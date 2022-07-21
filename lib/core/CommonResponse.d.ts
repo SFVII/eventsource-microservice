@@ -22,6 +22,7 @@ export declare class EventParser<CustomSchema> {
     private readonly _status;
     private readonly _customs;
     private _causationRoute;
+    private readonly _correlation_id;
     constructor(ResolvedEvent: {
         event: {
             data: any;
@@ -30,6 +31,7 @@ export declare class EventParser<CustomSchema> {
         };
         [key: string]: any;
     });
+    get correlationId(): string;
     get type(): string;
     get model(): any;
     get causation(): string;

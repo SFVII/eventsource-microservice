@@ -28,10 +28,11 @@ declare type IDataTreatedList = {
 };
 declare type IDataTreatedListFoundResult = EventType | false | undefined;
 declare class DataTreated {
+    protected list: IDataTreatedList[];
     private clear_process;
     constructor();
     exist(IdEvent: string): boolean;
-    add(entry: IDataTreatedList): void;
+    add(entry: IDataTreatedList): Promise<void>;
     find(IdEvent: string, retry?: number): Promise<IDataTreatedListFoundResult>;
     sleep(ms: number): Promise<unknown>;
     clearOldFile(): void;

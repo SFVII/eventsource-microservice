@@ -73,10 +73,11 @@ type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date }
 type IDataTreatedListFoundResult = EventType | false | undefined
 
 
-let list: IDataTreatedList[] = [];
+
 
 class DataTreated {
 
+    protected list :IDataTreatedList[] = [];
     private clear_process: boolean = false;
 
     constructor() {
@@ -84,17 +85,18 @@ class DataTreated {
     }
 
     public exist(IdEvent: string) {
-        return list.findIndex((doc: IDataTreatedList) => doc.id === IdEvent) > -1;
+        return this.list.findIndex((doc: IDataTreatedList) => doc.id === IdEvent) > -1;
     }
 
-    public add(entry: IDataTreatedList) {
+    public async add(entry: IDataTreatedList) {
         if (this.clear_process) {
-            this.add(entry);
+            await this.sleep(200);
+            await this.add(entry);
         } else {
-            const index = list.findIndex((doc: IDataTreatedList) => entry.id == doc.id)
+            const index = this.list.findIndex((doc: IDataTreatedList) => entry.id == doc.id)
             console.log('Add to result queue index is %d', index, entry)
-            if (index > -1) list[index] = entry;
-            else list.unshift(entry);
+            if (index > -1) this.list[index] = entry;
+            else this.list.unshift(entry);
         }
 
     }
@@ -103,16 +105,14 @@ class DataTreated {
     async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
         if (retry && retry > 200) return false;
         console.log('------------TIIIIIIIIIIEEEE--------', IdEvent, retry);
-        if (!list.length) {
-            console.log('------------List empty--------', IdEvent, retry);
+        if (!this.list.length) {
             await this.sleep(200);
             return this.find(IdEvent, ++retry);
         } else {
-            console.log('------------Lookup--------', IdEvent, retry);
-            const lookup = list.find((doc: IDataTreatedList) => doc.id === IdEvent);
+            const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
             console.log('THE LOOKUP', lookup);
             if (lookup && lookup.event === 'pending' || !lookup) {
-                console.log('Lookup event %s', lookup);
+                console.log('Lookup event %s', lookup, retry);
                 await this.sleep(200);
                 return this.find(IdEvent, ++retry);
             } else return lookup.event as EventType;
@@ -130,8 +130,8 @@ class DataTreated {
             const limit = new Date();
             limit.setMinutes(limit.getMinutes() - 1)
             console.log('Clear message response queue');
-            list = list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime()) || [];
-            console.log('new list', list);
+            this.list = this.list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime()) || [];
+            console.log('new this.list', this.list);
             this.clear_process = false;
         }, 1000 * 60);
     }
@@ -211,9 +211,17 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
         this.stream = this.SubscribeToPersistent(this.streamName);
         for await (const resolvedEvent of this.stream) {
             const event: any = resolvedEvent.event;
-            const state: false | null | true = this.eventState(event.metadata.state)
-            console.log('state', state, event.metadata.state);
-            if (state === true) this.add({id: event.metadata['$correlationId'], event, date: new Date()});
+            const eventParse = new EventParser(resolvedEvent);
+            console.log('state', eventParse.state, eventParse.data);
+            const state: false | null | true = this.eventState(eventParse.state)
+            console.log('state', state, eventParse.state);
+            if (state === true) await this.add({
+                id: eventParse.correlationId,
+                event : {...event, data: eventParse.data},
+                date: new Date()
+            });
+
+            console.log('this list', this.list)
         }
     }
 
@@ -279,7 +287,8 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                         typeOrigin: typeOrigin ? typeOrigin : method,
                         contributor: addContributor(contributor)
                     }
-                }})
+                }
+            })
             const template = this.template(method, eventParser.data, eventParser.buildMetadata);
 
             // this.add({id: requestId, event: 'pending', date: new Date()});

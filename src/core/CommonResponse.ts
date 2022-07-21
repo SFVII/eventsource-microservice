@@ -32,6 +32,7 @@ export class EventParser<CustomSchema> {
     private readonly _status: IMetadata<any>['state'];
     private readonly _customs: any;
     private _causationRoute: ICausationRoute = [];
+    private readonly _correlation_id: string;
 
     constructor(ResolvedEvent: { event: { data: any, metadata: IMetadata<any>, [key: string]: any }, [key: string]: any }) {
 
@@ -46,6 +47,7 @@ export class EventParser<CustomSchema> {
 
         console.log('Event Data', eventData)
         const {metadata} = eventData;
+        this._correlation_id = metadata.$correlationId;
         this.Metadata = metadata || {};
 
         this._model = (eventData.model ? eventData.model : (eventData.data.model ? eventData.data.model : null));
@@ -80,6 +82,10 @@ export class EventParser<CustomSchema> {
         // @ts-ignore
         this.updatedFields = eventData.updatedFields || [];
         this.causationId = metadata?.$causationId;
+    }
+
+    get correlationId() {
+        return this._correlation_id;
     }
 
     get type() {
