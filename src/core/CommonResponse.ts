@@ -36,22 +36,15 @@ export class EventParser<CustomSchema> {
 
     constructor(ResolvedEvent: { event: { data: any, metadata: IMetadata<any>, [key: string]: any }, [key: string]: any }) {
 
-
-        console.log('type', ResolvedEvent.event.type);
-
         this._type = ResolvedEvent.event.type;
-
-        console.log('type 2', this._type);
 
         const eventData = {...ResolvedEvent.event};
 
-        console.log('Event Data', eventData)
         const {metadata} = eventData;
         this._correlation_id = metadata.$correlationId;
         this.Metadata = metadata || {};
 
         this._model = (eventData.model ? eventData.model : (eventData.data.model ? eventData.data.model : null));
-        //this._type = (eventData.type ? eventData.type : (eventData.data.type ? eventData.data.type : null))
         this._status = (eventData.status ? eventData.status : (eventData.data.status ? eventData.data.status : null))
         this._customs = (eventData.customs ? eventData.customs : (eventData.data.customs ? eventData.data.customs : null))
 
@@ -71,9 +64,7 @@ export class EventParser<CustomSchema> {
         if (this.state === 'error') {
             this.isError = true;
         } else if (this.state === 'processing') {
-            console.log('State processing')
             if (this.causationRoute && Array.isArray(this.causationRoute)) {
-                console.log('Causation route processing', this.causationRoute)
                 this._next_route = this._causationRoute.shift();
                 if (!this._next_route) this.Metadata.state = 'completed';
             }

@@ -43,18 +43,7 @@ export type IMethodFunction<Contributor, Type> = (
 
 
 export interface ModelEventWrapper extends IEventCreate {
-} /*<DataModel> = {
-    model?: {
-        fs?: string | undefined,
-        db?: string | undefined,
-        sf?: string | undefined,
-        [key: string]: string | undefined
-    },
-    i18n?: { model?: string, language: string, fields: string[], shouldRenderJson?: boolean }
-    origins?: [string, string][]
-    value: DataModel | DataModel[]
-    fields?: (keyof DataModel)[]
-}*/
+}
 
 
 export const addContributor = (contributor: IContributor<any> = {
@@ -94,7 +83,6 @@ class DataTreated {
             await this.add(entry);
         } else {
             const index = this.list.findIndex((doc: IDataTreatedList) => entry.id == doc.id)
-            console.log('Add to result queue index is %d', index, entry)
             if (index > -1) this.list[index] = entry;
             else this.list.unshift(entry);
         }
@@ -104,15 +92,12 @@ class DataTreated {
 
     async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
         if (retry && retry > 200) return false;
-     //   console.log('------------TIIIIIIIIIIEEEE--------', IdEvent, retry);
         if (!this.list.length) {
             await this.sleep(200);
             return this.find(IdEvent, ++retry);
         } else {
             const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
-            console.log('THE LOOKUP', lookup);
             if (lookup && lookup.event === 'pending' || !lookup) {
-                console.log('Lookup event %s', lookup, retry);
                 await this.sleep(200);
                 return this.find(IdEvent, ++retry);
             } else return lookup.event as EventType;
@@ -129,9 +114,7 @@ class DataTreated {
             this.clear_process = true;
             const limit = new Date();
             limit.setMinutes(limit.getMinutes() - 1)
-            console.log('Clear message response queue');
             this.list = this.list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime()) || [];
-            console.log('new this.list', this.list);
             this.clear_process = false;
         }, 1000 * 60);
     }
@@ -213,16 +196,13 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             for await (const resolvedEvent of this.stream) {
                 const event: any = resolvedEvent.event;
                 const eventParse = new EventParser(resolvedEvent);
-                console.log('state', eventParse.state, eventParse.data);
                 const state: false | null | true = this.eventState(eventParse.state)
-                console.log('state', state, eventParse.state);
                 if (state === true) await this.add({
                     id: eventParse.correlationId,
                     event : {...event, data: eventParse.data},
                     date: new Date()
                 });
                 this.stream.ack(resolvedEvent);
-                console.log('this list', this.list)
             }
         } catch (err) {
             console.log('Stream crashed restart pod', err)
@@ -269,16 +249,13 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             const requestId = this.GenerateEventInternalId(data, method);
             const streamName = this.streamName
             if (this.exist(requestId)) {
-                console.log('Event exist try to call return it')
                 const event: IDataTreatedListFoundResult = await this.find(requestId);
-                console.log('Event found')
                 if (event && event.data) {
                     return resolve({
                         payload: event?.data as IEventResponseError | IEventResponseSuccess<any>,
                         requestId
                     });
                 }
-                console.log('Continue, not found', requestId)
             }
 
             const eventParser = new EventParser({

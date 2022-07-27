@@ -93,7 +93,6 @@ class EventConsumer<Contributor> {
 
 
     public async handler(eventParse: EventParser<any>) {
-        console.log('handler eventparse', eventParse.data, eventParse.type);
         let publish : any = null;
         // @ts-ignore
         if (!eventParse.isError && this.publish) {
@@ -149,7 +148,6 @@ class EventConsumer<Contributor> {
                                     // @ts-ignore
                                     ((this.Queue[type][subkey])?.length > 200 ? 200 : this.Queue[type][subkey]?.length)
                                 )
-                                console.log('----------eventEmitter-------------' + type + '.' + subkey, stack)
                                 this.eventEmitter.emit(type + '.' + subkey, stack);
                             }
                         })
@@ -162,7 +160,6 @@ class EventConsumer<Contributor> {
                             // @ts-ignore
                             ((this.Queue[type] as StreamSubscription[])?.length > 200 ? 200 : this.Queue[type]?.length)
                         )
-                        console.log('----------eventEmitter-------------' + type , stack)
                         this.eventEmitter.emit(type, stack);
                     }
                 }
