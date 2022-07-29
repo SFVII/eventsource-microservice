@@ -28,6 +28,7 @@ declare class EventConsumer<Contributor> {
     ack(event: any): Promise<void>;
     nack(event: any, type?: PersistentAction, reason?: string): Promise<void>;
     retry(event: any, reason?: string): Promise<void>;
+    private Merge;
     private init;
     private QueueListener;
     private SubscribeToPersistent;
