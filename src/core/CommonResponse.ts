@@ -58,7 +58,7 @@ export class EventParser<CustomSchema> {
 
         this.causationRoute = metadata.causationRoute && metadata.causationRoute.length ? [...metadata.causationRoute] : [];
         this._causationRoute = metadata.causationRoute && metadata.causationRoute.length ? [...metadata.causationRoute] : [];
-        console.log('state', this.state, 'route', this.causationRoute, metadata);
+      //  console.log('state', this.state, 'route', this.causationRoute, metadata);
 
 
         if (this.state === 'error') {

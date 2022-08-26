@@ -138,7 +138,7 @@ class EventConsumer<Contributor> {
                 // @ts-ignore
                 e.event?.metadata?.$correlationId === event.event?.metadata?.$correlationId
         );
-        console.log('Duplicate detection ? %s', index > -1)
+      //  console.log('Duplicate detection ? %s', index > -1)
         return index > -1 ? index : false;
     }
 
