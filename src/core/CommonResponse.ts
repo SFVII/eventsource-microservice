@@ -23,6 +23,8 @@ export class EventParser<CustomSchema> {
     public readonly isError: boolean = false;
     public readonly updatedFields: keyof CustomSchema[] | [] = [];
     public readonly causationRoute: ICausationRoute = [];
+
+    private readonly _origin: string;
     private readonly Metadata: IMetadata<any>;
     private readonly payload: any;
     private readonly _next_route: ICausationId | undefined;
@@ -49,6 +51,8 @@ export class EventParser<CustomSchema> {
         this._customs = (eventData.customs ? eventData.customs : (eventData.data.customs ? eventData.data.customs : null))
 
 
+        this._origin = eventData.data.origin;
+
         delete eventData.data.model;
         delete eventData.data.type;
         delete eventData.data.status;
@@ -58,7 +62,7 @@ export class EventParser<CustomSchema> {
 
         this.causationRoute = metadata.causationRoute && metadata.causationRoute.length ? [...metadata.causationRoute] : [];
         this._causationRoute = metadata.causationRoute && metadata.causationRoute.length ? [...metadata.causationRoute] : [];
-      //  console.log('state', this.state, 'route', this.causationRoute, metadata);
+        //  console.log('state', this.state, 'route', this.causationRoute, metadata);
 
 
         if (this.state === 'error') {
@@ -77,6 +81,10 @@ export class EventParser<CustomSchema> {
 
     get correlationId() {
         return this._correlation_id;
+    }
+
+    get origin() {
+        return this._origin;
     }
 
     get type() {

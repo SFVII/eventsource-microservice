@@ -13,6 +13,7 @@ export declare class EventParser<CustomSchema> {
     readonly isError: boolean;
     readonly updatedFields: keyof CustomSchema[] | [];
     readonly causationRoute: ICausationRoute;
+    private readonly _origin;
     private readonly Metadata;
     private readonly payload;
     private readonly _next_route;
@@ -32,6 +33,7 @@ export declare class EventParser<CustomSchema> {
         [key: string]: any;
     });
     get correlationId(): string;
+    get origin(): string;
     get type(): string;
     get model(): any;
     get causation(): string;
