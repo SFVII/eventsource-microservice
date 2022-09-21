@@ -66,7 +66,7 @@ const QueueLimitRetry = 10;
 
 class DataTreated {
 
-    protected list :IDataTreatedList[] = [];
+    protected list: IDataTreatedList[] = [];
     private clear_process: boolean = false;
 
     constructor() {
@@ -131,6 +131,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
     protected streamName: string;
     protected client: EventStoreDBClient;
     protected credentials: IEvenStoreConfig["credentials"];
+    private _pendingTemplates: { [key: string]: EventData[] } = {};
     private readonly causationRoute: string[];
     private stream: any;
     private readonly group: string = 'client-';
@@ -142,6 +143,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
         super()
         this.methods = methods;
         this.streamName = streamName;
+        this._pendingTemplates[streamName] = [];
         this.group += streamName
         this.client = new EventStoreDBClient(
             EvenStoreConfig.connexion,
@@ -153,6 +155,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             console.log('ERROR InitStreamWatcher', err)
             process.exit(0)
         })
+        this.initAppendToStream();
         for (const method of this.methods) {
             // @ts-ignore
             this[method] = async (data: ModelEventWrapper, contributor: IContributor,
@@ -199,7 +202,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                 const state: false | null | true = this.eventState(eventParse.state)
                 if (state === true) await this.add({
                     id: eventParse.correlationId,
-                    event : {...event, data: eventParse.data},
+                    event: {...event, data: eventParse.data},
                     date: new Date()
                 });
                 this.stream.ack(resolvedEvent);
@@ -276,7 +279,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
             // this.add({id: requestId, event: 'pending', date: new Date()});
 
-            await this.appendToStream(streamName, template)
+            this.appendToStream(streamName, template)
 
             const event: IDataTreatedListFoundResult = await this.find(requestId, 0);
 
@@ -287,12 +290,36 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
         })
     }
 
-    private async appendToStream(streamName: string, template: EventData) {
-        return this.client.appendToStream(streamName || this.streamName,
-            [template])
-            .catch((err) => {
-                console.log('Error EventsPlugin.add', err)
+    private initAppendToStream() {
+        setInterval(() => {
+            Object.keys(this._pendingTemplates).forEach((streamName: string) => {
+                if (this._pendingTemplates[streamName].length) {
+                    const current_queue = this._pendingTemplates[streamName].length
+                    const current_selection = this._pendingTemplates[streamName]
+                        .splice(0, this._pendingTemplates[streamName].length >= 50 ? 50 : this._pendingTemplates[streamName].length)
+
+                    console.log('%s - sending %d of current list of %d and left %d', streamName, current_selection.length, current_queue, this._pendingTemplates[streamName].length)
+                    this.client.appendToStream(streamName || this.streamName, current_selection)
+                        .catch((err) => {
+                            console.log('Error EventsPlugin.add', err)
+                        })
+                } else {
+                    console.log('%s - empty', streamName)
+                }
+
             })
+        }, 100)
+    }
+
+    private appendToStream(streamName: string, template: EventData) {
+        if (!this._pendingTemplates[streamName]) this._pendingTemplates[streamName] = [template];
+        else this._pendingTemplates[streamName].push(template);
+
+        /* this.client.appendToStream(streamName || this.streamName,
+             [template])
+             .catch((err) => {
+                 console.log('Error EventsPlugin.add', err)
+             })*/
     }
 
 
@@ -301,7 +328,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
             // In case of delivered we allow user to renew the entry
             // In case of complete we send the last information to the user
             //  case 'delivered':
-           // case 'delivered':
+            // case 'delivered':
             case 'error':
             case 'completed':
                 return true

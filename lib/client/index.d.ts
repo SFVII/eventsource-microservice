@@ -46,6 +46,7 @@ declare class EventsPlugin<DataModel, Contributor> extends DataTreated {
     protected streamName: string;
     protected client: EventStoreDBClient;
     protected credentials: IEvenStoreConfig["credentials"];
+    private _pendingTemplates;
     private readonly causationRoute;
     private stream;
     private readonly group;
@@ -54,6 +55,7 @@ declare class EventsPlugin<DataModel, Contributor> extends DataTreated {
     private SubscribeToPersistent;
     private CreatePersistentSubscription;
     private EventMiddlewareEmitter;
+    private initAppendToStream;
     private appendToStream;
     private eventState;
     private template;

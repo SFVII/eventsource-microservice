@@ -100,7 +100,9 @@ class EventConsumer<Contributor> {
         } else {
             console.log('Error _EventConsumer.AddToQueue Queue does not exist')
         }
+/*
 
+ */
 
     }
 
