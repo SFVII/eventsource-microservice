@@ -167,7 +167,7 @@ class EventConsumer<Contributor> {
                                 const stack = (this.Queue[type][subkey] as StreamSubscription[]).splice(
                                     0,
                                     // @ts-ignore
-                                    ((this.Queue[type][subkey])?.length > 100 ? 100 : this.Queue[type][subkey]?.length)
+                                    ((this.Queue[type][subkey])?.length >= 100 ? 100 : this.Queue[type][subkey]?.length)
                                 )
                                 this.eventEmitter.emit(type + '.' + subkey, stack);
                             }
@@ -179,7 +179,7 @@ class EventConsumer<Contributor> {
                         const stack = (this.Queue[type] as StreamSubscription[]).splice(
                             0,
                             // @ts-ignore
-                            ((this.Queue[type] as StreamSubscription[])?.length > 100 ? 100 : this.Queue[type]?.length)
+                            ((this.Queue[type] as StreamSubscription[])?.length >= 100 ? 100 : this.Queue[type]?.length)
                         )
                         this.eventEmitter.emit(type, stack);
                     }
