@@ -29,7 +29,7 @@ import {JSONEventType, PARK, PersistentAction, ResolvedEvent, RETRY} from "@even
 import {EventParser} from "../core/CommonResponse";
 
 class EventConsumer<Contributor> {
-    public QueueTTL = 200;
+    public QueueTTL = 100;
     protected methods: Method;
     protected streamName: string;
     protected group: string;
@@ -71,7 +71,7 @@ class EventConsumer<Contributor> {
 
     on(key: 'ready' & MethodList & string, callback: (message: any) => any) {
         this.eventEmitter.on(key, (msg: any) => {
-            callback(msg)
+            setTimeout(() => {callback(msg), 200});
         })
     }
 
@@ -167,7 +167,7 @@ class EventConsumer<Contributor> {
                                 const stack = (this.Queue[type][subkey] as StreamSubscription[]).splice(
                                     0,
                                     // @ts-ignore
-                                    ((this.Queue[type][subkey])?.length > 200 ? 200 : this.Queue[type][subkey]?.length)
+                                    ((this.Queue[type][subkey])?.length > 100 ? 100 : this.Queue[type][subkey]?.length)
                                 )
                                 this.eventEmitter.emit(type + '.' + subkey, stack);
                             }
@@ -179,7 +179,7 @@ class EventConsumer<Contributor> {
                         const stack = (this.Queue[type] as StreamSubscription[]).splice(
                             0,
                             // @ts-ignore
-                            ((this.Queue[type] as StreamSubscription[])?.length > 200 ? 200 : this.Queue[type]?.length)
+                            ((this.Queue[type] as StreamSubscription[])?.length > 100 ? 100 : this.Queue[type]?.length)
                         )
                         this.eventEmitter.emit(type, stack);
                     }
