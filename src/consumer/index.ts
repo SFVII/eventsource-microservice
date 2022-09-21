@@ -72,9 +72,9 @@ class EventConsumer<Contributor> {
     on(key: 'ready' & MethodList & string, callback: (message: JSONEventType[]) => any) {
         this.eventEmitter.on(key, (msg: JSONEventType[]) => {
             console.log('key_consume : %s', key)
-            const [type, sub_key] = (key as string).split('.');
+            const [type, main, sub_key] = (key as string).split('.');
             // @ts-ignore
-            const queue_length = sub_key ? this.Queue[type][sub_key]?.length : this.Queue[key]?.length;
+            const queue_length = sub_key ? this.Queue[main][sub_key]?.length : this.Queue[main]?.length;
             console.log('/ \t\tPACKET\t\t  >\n\n Job Length %d  Queue Length %d \n\n< \t\tPACKET\t\t  / \n', msg.length, queue_length)
             setTimeout(() => {callback(msg), 200});
         })
