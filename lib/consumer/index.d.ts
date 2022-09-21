@@ -22,7 +22,7 @@ declare class EventConsumer<Contributor> {
     private readonly publish;
     constructor(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue?: IQueue | IQueueCustom, publish?: boolean, group?: IEventHandlerGroup);
     get subscription(): PersistentSubscription;
-    on(key: 'ready' & MethodList & string, callback: (message: any) => any): void;
+    on(key: 'ready' & MethodList & string, callback: (message: JSONEventType[]) => any): void;
     AddToQueue(type: MethodList, ResolvedEvent: JSONEventType, name?: string): void;
     handler(eventParse: EventParser<any>): Promise<void>;
     ack(event: any): Promise<void>;
