@@ -71,6 +71,8 @@ class EventConsumer<Contributor> {
 
     on(key: 'ready' & MethodList & string, callback: (message: any) => any) {
         this.eventEmitter.on(key, (msg: any) => {
+
+            console.log('/ \t\tPACKET\t\t  >\n\n' + JSON.stringify(msg) + '\n\n< \t\tPACKET\t\t  / \n')
             setTimeout(() => {callback(msg), 200});
         })
     }
