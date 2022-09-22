@@ -297,14 +297,11 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
                     const current_queue = this._pendingTemplates[streamName].length
                     const current_selection = this._pendingTemplates[streamName]
                         .splice(0, this._pendingTemplates[streamName].length >= 50 ? 50 : this._pendingTemplates[streamName].length)
-
                     console.log('%s - sending %d of current list of %d and left %d', streamName, current_selection.length, current_queue, this._pendingTemplates[streamName].length)
                     this.client.appendToStream(streamName || this.streamName, current_selection)
                         .catch((err) => {
                             console.log('Error EventsPlugin.add', err)
                         })
-                } else {
-                    console.log('%s - empty', streamName)
                 }
 
             })
