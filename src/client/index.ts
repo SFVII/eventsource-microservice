@@ -25,11 +25,7 @@ export interface IMethodFunctionResponse {
 	data: IEventResponseSuccess<any> | IEventResponseError,
 	request_id: string,
 	error?: any,
-	ack: () => (requestId: string,
-	            method: string,
-	            payload: any,
-	            streamName: string,
-	            causationRoute: string[]) => void
+	ack: () => (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void
 }
 
 export type IMethodFunction<Contributor, Type> = (
@@ -62,15 +58,22 @@ type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date }
 type IDataTreatedListFoundResult = EventType | false | undefined
 
 
-const QueueLimitRetry = 10;
-
+/**
+ *
+ */
 class DataTreated {
-
+	public QueueLimitRetry: number = 100;
+	public IntervalClear: number = 1;
 	protected list: IDataTreatedList[] = [];
+	private _minutes = 1000 * 60;
 	private clear_process: boolean = false;
 
 	constructor() {
 		this.clearOldFile();
+	}
+
+	get clearTime(): number {
+		return this.IntervalClear * this._minutes;
 	}
 
 	public exist(IdEvent: string) {
@@ -89,11 +92,10 @@ class DataTreated {
 
 	}
 
-
 	async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
-		if (retry && retry > QueueLimitRetry) return false;
+		if (retry && retry > this.QueueLimitRetry) return false;
 		if (!this.list.length) {
-			await this.sleep((1000 * 60) / QueueLimitRetry);
+			await this.sleep(this.clearTime / this.QueueLimitRetry);
 			return this.find(IdEvent, ++retry);
 		} else {
 			const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
@@ -113,10 +115,10 @@ class DataTreated {
 		setInterval(() => {
 			this.clear_process = true;
 			const limit = new Date();
-			limit.setMinutes(limit.getMinutes() - 1)
+			limit.setMinutes(limit.getMinutes() - this.clearTime)
 			this.list = this.list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime()) || [];
 			this.clear_process = false;
-		}, 1000 * 60);
+		}, this.clearTime);
 	}
 }
 
@@ -136,10 +138,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	private stream: any;
 	private readonly group: string = 'client-';
 
-	constructor(EvenStoreConfig: IEvenStoreConfig,
-	            streamName: string,
-	            methods: string[],
-	            causationRoute: string[]) {
+	constructor(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]) {
 		super()
 		this.methods = methods;
 		this.streamName = streamName;
@@ -158,8 +157,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		this.initAppendToStream();
 		for (const method of this.methods) {
 			// @ts-ignore
-			this[method] = async (data: ModelEventWrapper, contributor: IContributor,
-			                      typeOrigin: 'create' | 'update' | 'delete' | 'recover' | string
+			this[method] = async (data: ModelEventWrapper, contributor: IContributor, typeOrigin: 'create' | 'update' | 'delete' | 'recover' | string
 			): Promise<{
 				data: ModelEventWrapper,
 				request_id: string,
@@ -243,10 +241,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	}
 
 
-	private EventMiddlewareEmitter(data: ModelEventWrapper,
-	                               method: string,
-	                               typeOrigin?: string,
-	                               contributor?: IContributor<Contributor>): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?: any, requestId: string }> {
+	private EventMiddlewareEmitter(data: ModelEventWrapper, method: string, typeOrigin?: string, contributor?: IContributor<Contributor>): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?: any, requestId: string }> {
 
 		return new Promise(async (resolve, reject) => {
 			const requestId = this.GenerateEventInternalId(data, method);

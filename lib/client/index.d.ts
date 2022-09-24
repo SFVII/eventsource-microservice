@@ -27,10 +27,17 @@ declare type IDataTreatedList = {
     date: Date;
 };
 declare type IDataTreatedListFoundResult = EventType | false | undefined;
+/**
+ *
+ */
 declare class DataTreated {
+    QueueLimitRetry: number;
+    IntervalClear: number;
     protected list: IDataTreatedList[];
+    private _minutes;
     private clear_process;
     constructor();
+    get clearTime(): number;
     exist(IdEvent: string): boolean;
     add(entry: IDataTreatedList): Promise<void>;
     find(IdEvent: string, retry?: number): Promise<IDataTreatedListFoundResult>;
