@@ -85,18 +85,10 @@ class EventConsumer<Contributor> {
             // @ts-ignore
             if (!this.Queue[type][name]) this.Queue[type][name] = [];
             // @ts-ignore
-            const shouldMerge = this.Merge(this.Queue[type][name], ResolvedEvent);
-            // @ts-ignore
-            if (shouldMerge !== false) this.Queue[type][name][shouldMerge] = ResolvedEvent;
-            // @ts-ignore
-            else this.Queue[type][name].push(ResolvedEvent)
+            this.Queue[type][name].push(ResolvedEvent)
         } else if (!name && this.Queue && this.Queue[type]) {
             // @ts-ignore
-            const shouldMerge = this.Merge(this.Queue[type], ResolvedEvent);
-            // @ts-ignore
-            if (shouldMerge !== false) this.Queue[type][shouldMerge] = ResolvedEvent;
-            // @ts-ignore
-            else this.Queue[type].push(ResolvedEvent);
+            this.Queue[type].push(ResolvedEvent);
         } else {
             console.log('Error _EventConsumer.AddToQueue Queue does not exist')
         }
