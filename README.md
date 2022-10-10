@@ -10,7 +10,7 @@
 ...
 import mongoose from "mongoose";
 import Instance from "eventsource-microservice";
-
+xxx
 const Service = Instance('client', mongoose);
 
 
