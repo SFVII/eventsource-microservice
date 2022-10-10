@@ -196,10 +196,10 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 
 	private async InitStreamWatcher() {
-	/*	const state = await this.CreatePersistentSubscription(this.streamName);
+		const state = await this.CreatePersistentSubscription(this.streamName);
 		console.log('STREAM READY ? %s', state);
-*/
-		this.stream = this.SubscribeToPersistent(this.streamName);
+
+		this.stream = await this.SubscribeToPersistent(this.streamName);
 		if (this.stream) {
 			for await (const resolvedEvent of this.stream) {
 				try {
@@ -228,11 +228,19 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		}
 	}
 
-	private SubscribeToPersistent(streamName: string): PersistentSubscriptionToStream<any> {
-		return this.client.subscribeToPersistentSubscriptionToStream(
-			streamName,
-			this.group
-		)
+	private SubscribeToPersistent(streamName: string): PersistentSubscriptionToStream<any> | null {
+		try {
+			const x = this.client.subscribeToPersistentSubscriptionToStream<any>(
+				streamName,
+				this.group
+			);
+			return x;
+		} catch(err) {
+			console.log('--------SubscribeToPersistent----------->', err)
+			return null;
+		}
+
+
 	}
 
 	private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
