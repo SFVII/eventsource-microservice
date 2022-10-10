@@ -250,7 +250,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		console.log('Create Persistent Configuration', streamName, this.group, this.credentials)
 		const status = await this.client.createPersistentSubscriptionToStream(
 			streamName,
-			streamName,
+			this.group,
 			// @ts-ignore
 			persistentSubscriptionToStreamSettingsFromDefaults({
 				startFrom: END,
@@ -263,7 +263,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 			if (error.includes('EXIST') || error.includes('exist')) {
 				const x = await this.client.updatePersistentSubscriptionToStream(
 					streamName,
-					streamName,
+					this.group,
 					persistentSubscriptionToStreamSettingsFromDefaults({
 						startFrom: END,
 						resolveLinkTos: true,
