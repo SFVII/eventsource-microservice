@@ -155,11 +155,6 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 			EvenStoreConfig.credentials);
 		this.credentials = EvenStoreConfig.credentials;
 		this.causationRoute = causationRoute;
-		this.InitStreamWatcher().catch((err: any) => {
-			console.log('ERROR InitStreamWatcher', err)
-			process.exit(0)
-		})
-		this.initAppendToStream();
 		for (const method of this.methods) {
 			// @ts-ignore
 			this[method] = async (data: ModelEventWrapper, contributor: IContributor, typeOrigin: 'create' | 'update' | 'delete' | 'recover' | string
@@ -192,14 +187,22 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 				}
 			}
 		}
+		console.log('INIT STREAM')
+		this.InitStreamWatcher().catch((err: any) => {
+			console.log('ERROR InitStreamWatcher', err)
+			process.exit(0)
+		})
+		this.initAppendToStream();
 	}
 
 
 	private async InitStreamWatcher() {
+		console.log('STREAM NOT READY ? %s');
 		const state = await this.CreatePersistentSubscription(this.streamName);
 		console.log('STREAM READY ? %s', state);
-
 		this.stream = await this.SubscribeToPersistent(this.streamName);
+
+
 		if (this.stream) {
 			for await (const resolvedEvent of this.stream) {
 				try {
@@ -249,10 +252,10 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 			streamName,
 			streamName,
 			// @ts-ignore
-			{
+			persistentSubscriptionToStreamSettingsFromDefaults({
 				startFrom: END,
 				resolveLinkTos: true
-			},
+			}),
 			{credentials: this.credentials}
 		).catch(async (err: any) => {
 			console.log('Err', err);
