@@ -6,10 +6,11 @@
  **  @Description
  ***********************************************************/
 import {
+	END,
 	EventType,
 	PARK,
 	PersistentSubscriptionToStream,
-	PersistentSubscriptionToStreamSettings
+	PersistentSubscriptionToStreamSettings, persistentSubscriptionToStreamSettingsFromDefaults
 } from "@eventstore/db-client";
 import {
 	EventData,
@@ -238,18 +239,27 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		console.log('Create Persistent Configuration', streamName, this.group, this.credentials)
 		const status = await this.client.createPersistentSubscriptionToStream(
 			streamName,
-			this.group,
+			streamName,
 			// @ts-ignore
 			{
-				startFrom: START,
+				startFrom: END,
 				resolveLinkTos: true
 			},
 			{credentials: this.credentials}
-		).catch((err: any) => {
+		).catch(async (err: any) => {
 			console.log('Err', err);
 			const error = (err ? err.toString() : "").toLowerCase();
 			if (error.includes('EXIST') || error.includes('exist')) {
-				console.error('Error EventHandler.EXIST', err)
+				const x = await this.client.updatePersistentSubscriptionToStream(
+					streamName,
+					streamName,
+					persistentSubscriptionToStreamSettingsFromDefaults({
+						startFrom: END,
+						resolveLinkTos: true,
+						checkPointLowerBound: 20,
+					})
+				);
+				console.log('Update stream', x)
 				return true;
 			} else {
 				console.error('Error EventHandler.CreatePersistentSubscription', err);
