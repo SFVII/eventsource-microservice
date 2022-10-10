@@ -11,7 +11,7 @@ import {
 	PARK,
 	PersistentSubscriptionToStream,
 	PersistentSubscriptionToStreamSettings, persistentSubscriptionToStreamSettingsFromDefaults
-} from "@eventstore/db-client";
+}                                  from "@eventstore/db-client";
 import {
 	EventData,
 	EventStoreDBClient,
@@ -23,7 +23,7 @@ import {
 	jsonEvent,
 	md5,
 	START
-} from "../core/global";
+}                                  from "../core/global";
 import {EventParser, IEventCreate} from "../core/CommonResponse";
 
 export interface IMethodFunctionResponse {
@@ -238,7 +238,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 				this.group
 			);
 			return x;
-		} catch(err) {
+		} catch (err) {
 			console.log('--------SubscribeToPersistent----------->', err)
 			return null;
 		}
@@ -248,6 +248,14 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 	private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
 		console.log('Create Persistent Configuration', streamName, this.group, this.credentials)
+		console.log('FUKKKKKKKK', streamName,
+			this.group,
+			// @ts-ignore
+			persistentSubscriptionToStreamSettingsFromDefaults({
+				startFrom: END,
+				resolveLinkTos: true
+			}),
+			{credentials: this.credentials})
 		const status = await this.client.createPersistentSubscriptionToStream(
 			streamName,
 			this.group,
@@ -267,7 +275,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 					persistentSubscriptionToStreamSettingsFromDefaults({
 						startFrom: END,
 						resolveLinkTos: true,
-						checkPointLowerBound: 20,
+						checkPointLowerBound: 20
 					})
 				);
 				console.log('Update stream', x)
