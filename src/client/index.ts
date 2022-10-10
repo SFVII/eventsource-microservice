@@ -194,20 +194,22 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		try {
 			await this.CreatePersistentSubscription(this.streamName);
 			this.stream = this.SubscribeToPersistent(this.streamName);
-			for await (const resolvedEvent of this.stream) {
-				console.log('resolvedEvent %s', resolvedEvent.event)
-				const event: any = resolvedEvent.event;
-				console.log('before parse %s')
-				const eventParse = new EventParser(resolvedEvent);
-				console.log('after parse %s', eventParse)
-				const state: false | null | true = this.eventState(eventParse.state)
-				console.log('after parse %s', eventParse)
-				if (state) await this.add({
-					id: eventParse.correlationId,
-					event: {...event, data: eventParse.data},
-					date: new Date()
-				}).catch((err: any) => console.log('Add to cache queue error', err));
-				this.stream.ack(resolvedEvent);
+			if (this.stream) {
+				for await (const resolvedEvent of this.stream) {
+					console.log('resolvedEvent %s', resolvedEvent.event)
+					const event: any = resolvedEvent.event;
+					console.log('before parse %s')
+					const eventParse = new EventParser(resolvedEvent);
+					console.log('after parse %s', eventParse)
+					const state: false | null | true = this.eventState(eventParse.state)
+					console.log('after parse %s', eventParse)
+					if (state) await this.add({
+						id: eventParse.correlationId,
+						event: {...event, data: eventParse.data},
+						date: new Date()
+					}).catch((err: any) => console.log('Add to cache queue error', err));
+					this.stream.ack(resolvedEvent);
+				}
 			}
 		} catch (err) {
 			console.log('Stream crashed restart pod', err)
@@ -225,6 +227,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 	private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
 		try {
+			console.log('Create Persistent Configuration', streamName, this.group, this.credentials)
 			await this.client.createPersistentSubscription(
 				streamName,
 				this.group,
@@ -238,6 +241,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		} catch (err) {
 			const error = (err ? err.toString() : "").toLowerCase();
 			if (error.includes('EXIST') || error.includes('exist')) {
+				console.error('Error EventHandler.EXIST', err)
 				return true;
 			} else console.error('Error EventHandler.CreatePersistentSubscription', err);
 			return false;
