@@ -5,7 +5,7 @@
  **  @Date 09/02/2022
  **  @Description
  ***********************************************************/
-import {EventType}                 from "@eventstore/db-client";
+import {EventType, PARK}           from "@eventstore/db-client";
 import {
 	EventData,
 	EventStoreDBClient,
@@ -20,6 +20,7 @@ import {
 	START
 }                                  from "../core/global";
 import {EventParser, IEventCreate} from "../core/CommonResponse";
+import {PersistentSubscription}    from "@eventstore/db-client/dist/types";
 
 export interface IMethodFunctionResponse {
 	data: IEventResponseSuccess<any> | IEventResponseError,
@@ -191,11 +192,12 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 
 	private async InitStreamWatcher() {
-		try {
-			await this.CreatePersistentSubscription(this.streamName);
-			this.stream = this.SubscribeToPersistent(this.streamName);
-			if (this.stream) {
-				for await (const resolvedEvent of this.stream) {
+		const state = await this.CreatePersistentSubscription(this.streamName);
+		console.log('STREAM READY ? %s', state);
+		this.stream = this.SubscribeToPersistent(this.streamName);
+		if (this.stream) {
+			for await (const resolvedEvent of this.stream) {
+				try {
 					console.log('resolvedEvent %s', resolvedEvent.event)
 					const event: any = resolvedEvent.event;
 					console.log('before parse %s')
@@ -209,16 +211,19 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 						date: new Date()
 					}).catch((err: any) => console.log('Add to cache queue error', err));
 					this.stream.ack(resolvedEvent);
+				} catch (err) {
+					console.log('Event goes to parking')
+					this.stream.nack(resolvedEvent, PARK);
 				}
 			}
-		} catch (err) {
-			console.log('Stream crashed restart pod', err)
-			process.exit(0)
+		} else {
+			console.log('This stream doesn not exist');
+			console.log('restart...');
+			process.exit(0);
 		}
-
 	}
 
-	private SubscribeToPersistent(streamName: string) {
+	private SubscribeToPersistent(streamName: string) : PersistentSubscription<any> {
 		return this.client.subscribeToPersistentSubscription(
 			streamName,
 			this.group
@@ -241,10 +246,12 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 			if (error.includes('EXIST') || error.includes('exist')) {
 				console.error('Error EventHandler.EXIST', err)
 				return true;
-			} else console.error('Error EventHandler.CreatePersistentSubscription', err);
-			return false;
+			} else {
+				console.error('Error EventHandler.CreatePersistentSubscription', err);
+				console.error('Error reboot', err);
+				process.exit(0);
+			}
 		})
-
 		return !!status;
 	}
 
