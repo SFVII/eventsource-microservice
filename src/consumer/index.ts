@@ -18,14 +18,19 @@ import {
     jsonEvent,
     Method,
     MethodList,
-    PersistentSubscription,
     PersistentSubscriptionBase,
-    persistentSubscriptionSettingsFromDefaults,
     START,
     StreamSubscription
 } from "../core/global";
 
-import {JSONEventType, PARK, PersistentAction, ResolvedEvent, RETRY} from "@eventstore/db-client";
+import {
+    JSONEventType,
+    PARK,
+    PersistentAction,
+    PersistentSubscriptionToStream,
+    ResolvedEvent,
+    RETRY
+} from "@eventstore/db-client";
 import {EventParser} from "../core/CommonResponse";
 
 class EventConsumer<Contributor> {
@@ -65,7 +70,7 @@ class EventConsumer<Contributor> {
         })
     }
 
-    get subscription(): PersistentSubscription {
+    get subscription(): PersistentSubscriptionToStream {
         return <PersistentSubscriptionBase<any>>this.stream;
     }
 
@@ -188,7 +193,7 @@ class EventConsumer<Contributor> {
     }
 
     private SubscribeToPersistent(streamName: string) {
-        return this.client.subscribeToPersistentSubscription(
+        return this.client.subscribeToPersistentSubscriptionToStream(
             streamName,
             this.group
         )
@@ -204,13 +209,14 @@ class EventConsumer<Contributor> {
 
     private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
         try {
-            await this.client.createPersistentSubscription(
+            await this.client.createPersistentSubscriptionToStream(
                 streamName,
                 this.group,
-                persistentSubscriptionSettingsFromDefaults({
+                // @ts-ignore
+                {
                     startFrom: START,
                     resolveLinkTos: true
-                }),
+                },
                 {credentials: this.credentials}
             )
             return true;

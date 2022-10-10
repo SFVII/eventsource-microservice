@@ -5,7 +5,12 @@
  **  @Date 09/02/2022
  **  @Description
  ***********************************************************/
-import {EventType, PARK}           from "@eventstore/db-client";
+import {
+	EventType,
+	PARK,
+	PersistentSubscriptionToStream,
+	PersistentSubscriptionToStreamSettings
+} from "@eventstore/db-client";
 import {
 	EventData,
 	EventStoreDBClient,
@@ -16,11 +21,9 @@ import {
 	ITemplateEvent,
 	jsonEvent,
 	md5,
-	persistentSubscriptionSettingsFromDefaults,
 	START
-}                                  from "../core/global";
+} from "../core/global";
 import {EventParser, IEventCreate} from "../core/CommonResponse";
-import {PersistentSubscription}    from "@eventstore/db-client/dist/types";
 
 export interface IMethodFunctionResponse {
 	data: IEventResponseSuccess<any> | IEventResponseError,
@@ -223,8 +226,8 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		}
 	}
 
-	private SubscribeToPersistent(streamName: string) : PersistentSubscription<any> {
-		return this.client.subscribeToPersistentSubscription(
+	private SubscribeToPersistent(streamName: string): PersistentSubscriptionToStream<any> {
+		return this.client.subscribeToPersistentSubscriptionToStream(
 			streamName,
 			this.group
 		)
@@ -232,13 +235,14 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 	private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
 		console.log('Create Persistent Configuration', streamName, this.group, this.credentials)
-		const status = await this.client.createPersistentSubscription(
+		const status = await this.client.createPersistentSubscriptionToStream(
 			streamName,
 			this.group,
-			persistentSubscriptionSettingsFromDefaults({
+			// @ts-ignore
+			{
 				startFrom: START,
 				resolveLinkTos: true
-			}),
+			},
 			{credentials: this.credentials}
 		).catch((err: any) => {
 			console.log('Err', err);

@@ -5,8 +5,8 @@
  **  @Date 10/02/2022
  **  @Description
  ***********************************************************/
-import { IEvenStoreConfig, IEventHandlerGroup, IQueue, IQueueCustom, Method, MethodList, PersistentSubscription } from "../core/global";
-import { JSONEventType, PersistentAction } from "@eventstore/db-client";
+import { IEvenStoreConfig, IEventHandlerGroup, IQueue, IQueueCustom, Method, MethodList } from "../core/global";
+import { JSONEventType, PersistentAction, PersistentSubscriptionToStream } from "@eventstore/db-client";
 import { EventParser } from "../core/CommonResponse";
 declare class EventConsumer<Contributor> {
     QueueTTL: number;
@@ -21,7 +21,7 @@ declare class EventConsumer<Contributor> {
     private readonly Queue;
     private readonly publish;
     constructor(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue?: IQueue | IQueueCustom, publish?: boolean, group?: IEventHandlerGroup);
-    get subscription(): PersistentSubscription;
+    get subscription(): PersistentSubscriptionToStream;
     on(key: 'ready' & MethodList & string, callback: (message: JSONEventType[]) => any): void;
     AddToQueue(type: MethodList, ResolvedEvent: JSONEventType, name?: string): void;
     handler(eventParse: EventParser<any>): Promise<void>;

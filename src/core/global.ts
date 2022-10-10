@@ -12,14 +12,12 @@ import {
     EventStoreDBClient,
     jsonEvent,
     JSONType,
-    PersistentSubscriptionBase,
-    persistentSubscriptionSettingsFromDefaults,
+    PersistentSubscriptionBase, PersistentSubscriptionToStream,
+    PersistentSubscriptionToStreamSettings,
     START,
     StreamSubscription
 } from "@eventstore/db-client";
 import md5 from "md5";
-import EventCollection, {IEventCollection} from "./mongo-plugin";
-import {PersistentSubscription} from "@eventstore/db-client/dist/types";
 import bigInt from "big-integer";
 import {EventEmitter} from 'events';
 import * as querystring from "querystring";
@@ -82,15 +80,12 @@ interface IReadStreamConfig {
     credentials: IEvenStoreConfig["credentials"]
 }
 
-interface IAvailableEvent extends IEventCollection {
-}
-
 interface IStartRevision {
     [key: string]: IStartRevisionValues;
 }
 
 interface IListStreamSubscription {
-    [key: string]: PersistentSubscription;
+    [key: string]: PersistentSubscriptionToStream;
 }
 
 interface ITriggerList {
@@ -167,9 +162,8 @@ export {
     IMetadata,
     EventEmitter,
     bigInt,
-    PersistentSubscription,
-    EventCollection,
-    persistentSubscriptionSettingsFromDefaults,
+   // PersistentSubscription,
+    PersistentSubscriptionToStreamSettings,
     PersistentSubscriptionBase,
     jsonEvent,
     EventStoreDBClient,
@@ -180,7 +174,6 @@ export {
     IListStreamSubscription,
     IStartRevision,
     StreamSubscription,
-    IAvailableEvent,
     IReadStreamConfig,
     IEvenStoreConfig,
     IQueue,

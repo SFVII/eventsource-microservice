@@ -5,10 +5,8 @@
  **  @Date 11/02/2022
  **  @Description
  ***********************************************************/
-import { BACKWARDS, END, EventData, EventStoreDBClient, jsonEvent, JSONType, PersistentSubscriptionBase, persistentSubscriptionSettingsFromDefaults, START, StreamSubscription } from "@eventstore/db-client";
+import { BACKWARDS, END, EventData, EventStoreDBClient, jsonEvent, JSONType, PersistentSubscriptionBase, PersistentSubscriptionToStream, PersistentSubscriptionToStreamSettings, START, StreamSubscription } from "@eventstore/db-client";
 import md5 from "md5";
-import EventCollection, { IEventCollection } from "./mongo-plugin";
-import { PersistentSubscription } from "@eventstore/db-client/dist/types";
 import bigInt from "big-integer";
 import { EventEmitter } from 'events';
 declare enum EMethodList {
@@ -58,13 +56,11 @@ interface IReadStreamConfig {
     maxCount: number;
     credentials: IEvenStoreConfig["credentials"];
 }
-interface IAvailableEvent extends IEventCollection {
-}
 interface IStartRevision {
     [key: string]: IStartRevisionValues;
 }
 interface IListStreamSubscription {
-    [key: string]: PersistentSubscription;
+    [key: string]: PersistentSubscriptionToStream;
 }
 interface ITriggerList {
     causationId: string;
@@ -109,4 +105,4 @@ declare type IEventResponseSuccess<CustomSchema> = {
     updatedFields?: keyof CustomSchema[] | [];
 };
 declare type IEventResponse<CustomSchema> = IEventResponseSuccess<CustomSchema> | IEventResponseError;
-export { IEventResponse, IEventErrorResult, IEventResponseError, IEventResponseSuccess, IMd5DataHash, ICausationId, ICausationRoute, ITypeOrigin, ITriggerList, IContributorBinding, IContributor, IMetadata, EventEmitter, bigInt, PersistentSubscription, EventCollection, persistentSubscriptionSettingsFromDefaults, PersistentSubscriptionBase, jsonEvent, EventStoreDBClient, END, START, IDataLinkEvent, IEventHandlerGroup, IListStreamSubscription, IStartRevision, StreamSubscription, IAvailableEvent, IReadStreamConfig, IEvenStoreConfig, IQueue, IQueueCustom, IStream, ITemplateEvent, EventType, IStartRevisionValues, Method, MethodList, EMethodList, JSONType, BACKWARDS, EventData, md5 };
+export { IEventResponse, IEventErrorResult, IEventResponseError, IEventResponseSuccess, IMd5DataHash, ICausationId, ICausationRoute, ITypeOrigin, ITriggerList, IContributorBinding, IContributor, IMetadata, EventEmitter, bigInt, PersistentSubscriptionToStreamSettings, PersistentSubscriptionBase, jsonEvent, EventStoreDBClient, END, START, IDataLinkEvent, IEventHandlerGroup, IListStreamSubscription, IStartRevision, StreamSubscription, IReadStreamConfig, IEvenStoreConfig, IQueue, IQueueCustom, IStream, ITemplateEvent, EventType, IStartRevisionValues, Method, MethodList, EMethodList, JSONType, BACKWARDS, EventData, md5 };

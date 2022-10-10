@@ -15,11 +15,10 @@ import {
     ITemplateEvent,
     ITriggerList,
     jsonEvent,
-    Method,
-    PersistentSubscription,
-    persistentSubscriptionSettingsFromDefaults
-} from "../core/global";
-import {EventParser} from "../core/CommonResponse";
+    Method
+}                                       from "../core/global";
+import {EventParser}                    from "../core/CommonResponse";
+import {PersistentSubscriptionToStream} from "@eventstore/db-client";
 
 class EventHandler {
     protected methods: Method;
@@ -61,7 +60,7 @@ class EventHandler {
         Object.keys(this.stream).forEach((name: string) => this.dispatcher(this.stream[name]))
     }
 
-    private async dispatcher(subscription: PersistentSubscription) {
+    private async dispatcher(subscription: PersistentSubscriptionToStream) {
         for await (const resolvedEvent of subscription) {
             const {event} = resolvedEvent;
             if (event) {
@@ -110,7 +109,7 @@ class EventHandler {
     }
 
     private SubscribeToPersistent(streamName: string) {
-        return this.client.subscribeToPersistentSubscription(
+        return this.client.subscribeToPersistentSubscriptionToStream(
             streamName,
             this.group,
             {
@@ -121,13 +120,14 @@ class EventHandler {
 
     private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
         try {
-            await this.client.createPersistentSubscription(
+            await this.client.createPersistentSubscriptionToStream(
                 streamName,
                 this.group,
-                persistentSubscriptionSettingsFromDefaults({
+                // @ts-ignore
+                {
                     startFrom: this.StartRevision[streamName],
                     resolveLinkTos: true
-                }),
+                },
                 {credentials: this.credentials}
             )
             return true;
