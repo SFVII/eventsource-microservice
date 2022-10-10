@@ -196,9 +196,9 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 
 	private async InitStreamWatcher() {
-		const state = await this.CreatePersistentSubscription(this.streamName);
+	/*	const state = await this.CreatePersistentSubscription(this.streamName);
 		console.log('STREAM READY ? %s', state);
-
+*/
 		this.stream = this.SubscribeToPersistent(this.streamName);
 		if (this.stream) {
 			for await (const resolvedEvent of this.stream) {
