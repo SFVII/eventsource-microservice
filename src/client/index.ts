@@ -195,14 +195,18 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 			await this.CreatePersistentSubscription(this.streamName);
 			this.stream = this.SubscribeToPersistent(this.streamName);
 			for await (const resolvedEvent of this.stream) {
+				console.log('resolvedEvent %s', resolvedEvent.event)
 				const event: any = resolvedEvent.event;
+				console.log('before parse %s')
 				const eventParse = new EventParser(resolvedEvent);
+				console.log('after parse %s', eventParse)
 				const state: false | null | true = this.eventState(eventParse.state)
-				if (state === true) await this.add({
+				console.log('after parse %s', eventParse)
+				if (state) await this.add({
 					id: eventParse.correlationId,
 					event: {...event, data: eventParse.data},
 					date: new Date()
-				});
+				}).catch((err: any) => console.log('Add to cache queue error', err));
 				this.stream.ack(resolvedEvent);
 			}
 		} catch (err) {
