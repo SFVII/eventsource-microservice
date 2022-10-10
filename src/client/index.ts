@@ -251,19 +251,13 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		console.log('FUKKKKKKKK', streamName,
 			this.group,
 			// @ts-ignore
-			persistentSubscriptionToStreamSettingsFromDefaults({
-				startFrom: END,
-				resolveLinkTos: true
-			}),
+			persistentSubscriptionToStreamSettingsFromDefaults(),
 			{credentials: this.credentials})
 		const status = await this.client.createPersistentSubscriptionToStream(
 			streamName,
 			this.group,
 			// @ts-ignore
-			persistentSubscriptionToStreamSettingsFromDefaults({
-				startFrom: END,
-				resolveLinkTos: true
-			}),
+			persistentSubscriptionToStreamSettingsFromDefaults(),
 			{credentials: this.credentials}
 		).catch(async (err: any) => {
 			console.log('Err', err);
