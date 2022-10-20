@@ -27,7 +27,7 @@ import {
     JSONEventType,
     PARK,
     PersistentAction,
-    PersistentSubscriptionToStream,
+    PersistentSubscriptionToStream, persistentSubscriptionToStreamSettingsFromDefaults,
     ResolvedEvent,
     RETRY
 } from "@eventstore/db-client";
@@ -212,11 +212,7 @@ class EventConsumer<Contributor> {
             await this.client.createPersistentSubscriptionToStream(
                 streamName,
                 this.group,
-                // @ts-ignore
-                {
-                    startFrom: START,
-                    resolveLinkTos: true
-                },
+                persistentSubscriptionToStreamSettingsFromDefaults(),
                 {credentials: this.credentials}
             )
             return true;
