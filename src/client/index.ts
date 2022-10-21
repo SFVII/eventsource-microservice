@@ -122,8 +122,9 @@ class DataTreated {
 			this.clear_process = true;
 			const limit = new Date();
 			limit.setMinutes(limit.getMinutes() - this.IntervalClear)
-			console.log( 'start clear')
+			console.log( 'start data %s current length %d', limit, this.list.length);
 			this.list = this.list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime()) || [];
+			console.log('clear list length %d', this.list.length)
 			this.clear_process = false;
 		}, this.clearTime);
 	}
