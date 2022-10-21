@@ -292,6 +292,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		return new Promise(async (resolve, reject) => {
 			const requestId = this.GenerateEventInternalId(data, method);
 			const streamName = this.streamName
+			console.log('Event Exist man', this.exist(requestId));
 			if (this.exist(requestId)) {
 				const event: IDataTreatedListFoundResult = await this.find(requestId);
 				if (event && event.data) {
