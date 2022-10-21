@@ -118,9 +118,11 @@ class DataTreated {
 
 	clearOldFile() {
 		setInterval(() => {
+			console.log( 'start clear')
 			this.clear_process = true;
 			const limit = new Date();
-			limit.setMinutes(limit.getMinutes() - this.clearTime)
+			limit.setMinutes(limit.getMinutes() - this.IntervalClear)
+			console.log( 'start clear')
 			this.list = this.list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime()) || [];
 			this.clear_process = false;
 		}, this.clearTime);
