@@ -68,9 +68,9 @@ type IDataTreatedListFoundResult = EventType | false | undefined
  */
 class DataTreated {
 	public QueueLimitRetry: number = 100;
-	public IntervalClear: number = 1;
+	public IntervalClear: number = 15;
 	protected list: IDataTreatedList[] = [];
-	private _minutes = 1000 * 60;
+	private _minutes = 1000;
 	private clear_process: boolean = false;
 
 	constructor() {
@@ -122,9 +122,7 @@ class DataTreated {
 			this.clear_process = true;
 			const limit = new Date();
 			limit.setMinutes(limit.getMinutes() - this.IntervalClear)
-			console.log( 'start data %s current length %d', limit, this.list.length);
 			this.list = this.list.filter((doc: IDataTreatedList) => doc.date.getTime() >= limit.getTime()) || [];
-			console.log('clear list length %d', this.list.length)
 			this.clear_process = false;
 		}, this.clearTime);
 	}
@@ -200,22 +198,14 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 
 	private async InitStreamWatcher() {
-		console.log('STREAM NOT READY ? %s');
 		const state = await this.CreatePersistentSubscription(this.streamName);
-		console.log('STREAM READY ? %s', state);
 		this.stream = await this.SubscribeToPersistent(this.streamName);
-
-
 		if (this.stream) {
 			for await (const resolvedEvent of this.stream) {
 				try {
-					console.log('resolvedEvent %s', resolvedEvent.event)
 					const event: any = resolvedEvent.event;
-					console.log('before parse %s')
 					const eventParse = new EventParser(resolvedEvent);
-					console.log('after parse %s', eventParse)
 					const state: false | null | true = this.eventState(eventParse.state)
-					console.log('after parse %s', eventParse)
 					if (state) await this.add({
 						id: eventParse.correlationId,
 						event: {...event, data: eventParse.data},
@@ -251,19 +241,13 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 	private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
 		console.log('Create Persistent Configuration', streamName, this.group, this.credentials)
-		console.log('FUKKKKKKKK', streamName,
-			this.group,
-			// @ts-ignore
-			persistentSubscriptionToStreamSettingsFromDefaults(),
-			{credentials: this.credentials})
 		const status = await this.client.createPersistentSubscriptionToStream(
 			streamName,
 			this.group,
 			// @ts-ignore
-			persistentSubscriptionToStreamSettingsFromDefaults(),
+			persistentSubscriptionToStreamSettingsFromDefaults({startFrom : END}),
 			{credentials: this.credentials}
 		).catch(async (err: any) => {
-			console.log('Err', err);
 			const error = (err ? err.toString() : "").toLowerCase();
 			if (error.includes('EXIST') || error.includes('exist')) {
 				const x = await this.client.updatePersistentSubscriptionToStream(
@@ -275,7 +259,6 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 						checkPointLowerBound: 20
 					})
 				);
-				console.log('Update stream', x)
 				return true;
 			} else {
 				console.error('Error EventHandler.CreatePersistentSubscription', err);

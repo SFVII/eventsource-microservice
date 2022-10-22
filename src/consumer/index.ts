@@ -19,18 +19,19 @@ import {
     Method,
     MethodList,
     PersistentSubscriptionBase,
-    START,
     StreamSubscription
 } from "../core/global";
 
 import {
+    END,
     JSONEventType,
     PARK,
     PersistentAction,
-    PersistentSubscriptionToStream, persistentSubscriptionToStreamSettingsFromDefaults,
+    PersistentSubscriptionToStream,
+    persistentSubscriptionToStreamSettingsFromDefaults,
     ResolvedEvent,
     RETRY
-} from "@eventstore/db-client";
+}                    from "@eventstore/db-client";
 import {EventParser} from "../core/CommonResponse";
 
 class EventConsumer<Contributor> {
@@ -212,7 +213,7 @@ class EventConsumer<Contributor> {
             await this.client.createPersistentSubscriptionToStream(
                 streamName,
                 this.group,
-                persistentSubscriptionToStreamSettingsFromDefaults(),
+                persistentSubscriptionToStreamSettingsFromDefaults({startFrom : END}),
                 {credentials: this.credentials}
             )
             return true;
