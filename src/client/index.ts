@@ -59,7 +59,7 @@ export const addContributor = (contributor: IContributor<any> = {
 	}
 }
 
-type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date }
+type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date, causation : string }
 type IDataTreatedListFoundResult = EventType | false | undefined
 
 
@@ -97,16 +97,16 @@ class DataTreated {
 
 	}
 
-	async find(IdEvent: string, retry: number = 0): Promise<IDataTreatedListFoundResult> {
+	async find(IdEvent: string, catchStreamResult: string | undefined | null = null, retry: number = 0): Promise<IDataTreatedListFoundResult> {
 		if (retry && retry > this.QueueLimitRetry) return false;
 		if (!this.list.length) {
 			await this.sleep(this.clearTime / this.QueueLimitRetry);
-			return this.find(IdEvent, ++retry);
+			return this.find(IdEvent, catchStreamResult,  ++retry);
 		} else {
-			const lookup = this.list.find((doc: IDataTreatedList) => doc.id === IdEvent);
+			const lookup = this.list.find((doc: IDataTreatedList) => !catchStreamResult ? doc.id === IdEvent : (catchStreamResult === doc.causation && doc.id === IdEvent));
 			if (lookup && lookup.event === 'pending' || !lookup) {
 				await this.sleep(200);
-				return this.find(IdEvent, ++retry);
+				return this.find(IdEvent, catchStreamResult, ++retry);
 			} else return lookup.event as EventType;
 		}
 
@@ -158,7 +158,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		this.causationRoute = causationRoute;
 		for (const method of this.methods) {
 			// @ts-ignore
-			this[method] = async (data: ModelEventWrapper, contributor: IContributor, typeOrigin: 'create' | 'update' | 'delete' | 'recover' | string
+			this[method] = async (data: ModelEventWrapper, contributor: IContributor, typeOrigin: 'create' | 'update' | 'delete' | 'recover' | string, catchStreamResult?:string
 			): Promise<{
 				data: ModelEventWrapper,
 				request_id: string,
@@ -170,7 +170,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 					payload,
 					requestId,
 					error
-				} = await this.EventMiddlewareEmitter(data, method, typeOrigin, contributor)
+				} = await this.EventMiddlewareEmitter(data, method, typeOrigin, contributor, catchStreamResult)
 					// @ts-ignore
 					.catch((err: { payload: any, request_id: requestId }) => {
 						return {
@@ -209,7 +209,8 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 					if (state) await this.add({
 						id: eventParse.correlationId,
 						event: {...event, data: eventParse.data},
-						date: new Date()
+						date: new Date(),
+						causation : eventParse.causation
 					}).catch((err: any) => console.log('Add to cache queue error', err));
 					this.stream.ack(resolvedEvent);
 				} catch (err) {
@@ -262,7 +263,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	}
 
 
-	private EventMiddlewareEmitter(data: ModelEventWrapper, method: string, typeOrigin?: string, contributor?: IContributor<Contributor>): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?: any, requestId: string }> {
+	private EventMiddlewareEmitter(data: ModelEventWrapper, method: string, typeOrigin?: string, contributor?: IContributor<Contributor>, catchStreamResult?:string): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?: any, requestId: string }> {
 
 		return new Promise(async (resolve, reject) => {
 			const requestId = this.GenerateEventInternalId(data, method);
@@ -298,7 +299,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 			this.appendToStream(streamName, template)
 
-			const event: IDataTreatedListFoundResult = await this.find(requestId, 0);
+			const event: IDataTreatedListFoundResult = await this.find(requestId, catchStreamResult, 0);
 
 			if (event) resolve({payload: event.data as IEventResponseError | IEventResponseSuccess<any>, requestId});
 			else {
