@@ -270,7 +270,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 			const streamName = this.streamName
 			console.log('Event Exist man', this.exist(requestId));
 			if (this.exist(requestId)) {
-				const event: IDataTreatedListFoundResult = await this.find(requestId);
+				const event: IDataTreatedListFoundResult = await this.find(requestId, catchStreamResult);
 				if (event && event.data) {
 					return resolve({
 						payload: event?.data as IEventResponseError | IEventResponseSuccess<any>,
