@@ -17,8 +17,11 @@ import {
     jsonEvent,
     Method
 }                                       from "../core/global";
-import {EventParser}                    from "../core/CommonResponse";
-import {PersistentSubscriptionToStream} from "@eventstore/db-client";
+import {EventParser} from "../core/CommonResponse";
+import {
+    PersistentSubscriptionToStream,
+    persistentSubscriptionToStreamSettingsFromDefaults
+}                    from "@eventstore/db-client";
 
 class EventHandler {
     protected methods: Method;
@@ -124,10 +127,7 @@ class EventHandler {
                 streamName,
                 this.group,
                 // @ts-ignore
-                {
-                    startFrom: this.StartRevision[streamName],
-                    resolveLinkTos: true
-                },
+                persistentSubscriptionToStreamSettingsFromDefaults({startFrom : END}),
                 {credentials: this.credentials}
             )
             return true;
