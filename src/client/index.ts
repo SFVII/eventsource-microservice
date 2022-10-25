@@ -241,32 +241,24 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 	private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
 		console.log('Create Persistent Configuration', streamName, this.group, this.credentials)
-		const status = await this.client.createPersistentSubscriptionToStream(
-			streamName,
-			this.group,
-			// @ts-ignore
-			persistentSubscriptionToStreamSettingsFromDefaults({startFrom : END}),
-			{credentials: this.credentials}
-		).catch(async (err: any) => {
+
+
+		try {
+			await this.client.createPersistentSubscriptionToStream(
+				streamName,
+				this.group,
+				persistentSubscriptionToStreamSettingsFromDefaults({startFrom : END}),
+				{credentials: this.credentials}
+			)
+			return true;
+		} catch (err) {
 			const error = (err ? err.toString() : "").toLowerCase();
 			if (error.includes('EXIST') || error.includes('exist')) {
-				const x = await this.client.updatePersistentSubscriptionToStream(
-					streamName,
-					this.group,
-					persistentSubscriptionToStreamSettingsFromDefaults({
-						startFrom: END,
-						resolveLinkTos: true,
-						checkPointLowerBound: 20
-					})
-				);
+				console.log('Persistent subscription %s already exist', streamName)
 				return true;
-			} else {
-				console.error('Error EventHandler.CreatePersistentSubscription', err);
-				console.error('Error reboot', err);
-				process.exit(0);
-			}
-		})
-		return !!status;
+			} else console.error('Error EventHandler.CreatePersistentSubscription', err);
+			return false;
+		}
 	}
 
 
