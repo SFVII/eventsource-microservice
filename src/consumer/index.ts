@@ -101,7 +101,7 @@ class EventConsumer<Contributor> {
 	public async handler(eventParse: EventParser<any>) {
 		let publish: any = null;
 		// @ts-ignore
-		if (!eventParse.isError && this.publish && !eventParse.nextRoute) {
+		if (!eventParse.isError && this.publish) {
 			const pMetadata = {...eventParse.metadata, state: 'delivered'}
 			// @ts-ignore
 			publish = this.template(eventParse.type, eventParse.data, pMetadata);
