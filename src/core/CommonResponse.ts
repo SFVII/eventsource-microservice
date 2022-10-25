@@ -69,10 +69,8 @@ export class EventParser<CustomSchema> {
             this.isError = true;
         } else if (this.state === 'processing') {
             if (this.causationRoute && Array.isArray(this.causationRoute)) {
-                this._causationRoute.shift();
-                if (this._causationRoute.length === 0) this.Metadata.state = 'completed';
-                else this._next_route = this._causationRoute[0]
-
+                this._next_route = this._causationRoute.shift();
+                if (!this._next_route) this.Metadata.state = 'completed';
             }
         }
         this.payload = {...(eventData.data && eventData.data.data ? eventData.data.data : eventData.data)};
