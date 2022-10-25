@@ -110,7 +110,7 @@ class EventConsumer<Contributor> {
 					console.error(`Error EventHandler.handler.appendToStream`, err))
 		}
 		const template = this.template(eventParse.type as EventType, eventParse.data, eventParse.metadata);
-		await this.client.appendToStream(eventParse.nextRoute ? eventParse.nextRoute : eventParse.causation, [template])
+		await this.client.appendToStream(eventParse.causation, [template])
 			.catch((err: any) => {
 				console.error(`Error EventHandler.handler.appendToStream`, err);
 			})
