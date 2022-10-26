@@ -25,7 +25,7 @@ declare type IDataTreatedList = {
     id: string;
     event: EventType | 'pending';
     date: Date;
-    causation: string;
+    causation: string | null;
 };
 declare type IDataTreatedListFoundResult = EventType | false | undefined;
 /**

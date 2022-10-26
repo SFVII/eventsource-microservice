@@ -115,7 +115,7 @@ type IMetadata<Contributor> = {
     causationRoute: ICausationRoute,
     typeOrigin: ITypeOrigin,
     contributor: IContributor<Contributor | any>
-    consumer_job_name : string
+    consumer_job_name : string | null
 }
 
 

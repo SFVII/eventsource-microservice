@@ -59,7 +59,7 @@ export const addContributor = (contributor: IContributor<any> = {
 	}
 }
 
-type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date, causation: string }
+type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date, causation: string | null}
 type IDataTreatedListFoundResult = EventType | false | undefined
 
 
@@ -103,8 +103,11 @@ class DataTreated {
 			await this.sleep(this.clearTime / this.QueueLimitRetry);
 			return this.find(IdEvent, catchStreamResult, ++retry);
 		} else {
-			console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult, this.list)
-			const lookup = this.list.find((doc: IDataTreatedList) => !catchStreamResult ? doc.id === IdEvent : (catchStreamResult === doc.causation && doc.id === IdEvent));
+			console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult)
+			const lookup = this.list.find((doc: IDataTreatedList) => {
+				console.log('doc --->', doc);
+				return !catchStreamResult ? doc.id === IdEvent : (catchStreamResult === doc.causation && doc.id === IdEvent)
+			});
 			if (lookup && lookup.event === 'pending' || !lookup) {
 				await this.sleep(200);
 				return this.find(IdEvent, catchStreamResult, ++retry);
@@ -295,7 +298,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 						causationRoute: [...this.causationRoute],
 						typeOrigin: typeOrigin ? typeOrigin : method,
 						contributor: addContributor(contributor),
-						consumer_job_name : ""
+						consumer_job_name : null
 					}
 				}
 			})
