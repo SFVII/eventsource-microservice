@@ -105,17 +105,19 @@ class DataTreated {
 		} else {
 			console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult)
 			const lookup = this.list.find((doc: IDataTreatedList) => {
-				console.log('doc --->', doc);
-				return !catchStreamResult ? doc.id === IdEvent : (catchStreamResult === doc.causation && doc.id === IdEvent)
+				if (catchStreamResult) {
+					console.log('Catch stream', catchStreamResult, catchStreamResult === doc.causation && doc.id === IdEvent)
+					return  (catchStreamResult === doc.causation && doc.id === IdEvent)
+				} else {
+					console.log('No Catch stream', catchStreamResult)
+					return  doc.id === IdEvent
+				}
 			});
 			if (lookup && lookup.event === 'pending' || !lookup) {
 				await this.sleep(200);
 				return this.find(IdEvent, catchStreamResult, ++retry);
-			} else if (catchStreamResult && lookup) {
-				await this.sleep(200);
-				return this.find(IdEvent, catchStreamResult, ++retry);
-			} else
-				return lookup.event as EventType;
+			}
+			return lookup.event as EventType;
 		}
 
 	}
