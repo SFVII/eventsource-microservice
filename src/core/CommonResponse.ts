@@ -36,7 +36,7 @@ export class EventParser<CustomSchema> {
     private _causationRoute: ICausationRoute = [];
     private readonly _correlation_id: string;
 
-    constructor(ResolvedEvent: { event: { data: any, metadata: IMetadata<any>, [key: string]: any }, [key: string]: any }) {
+    constructor(ResolvedEvent: { event: { data: any, metadata: IMetadata<any>, [key: string]: any }, [key: string]: any }, handler : boolean = false) {
 
         this._type = ResolvedEvent.event.type;
 
@@ -67,7 +67,7 @@ export class EventParser<CustomSchema> {
 
         if (this.state === 'error') {
             this.isError = true;
-        } else if (this.state === 'processing') {
+        } else if (this.state === 'processing' && handler) {
             if (this.causationRoute && Array.isArray(this.causationRoute)) {
                 this._next_route = this._causationRoute.shift();
                 if (!this._next_route) this.Metadata.state = 'completed';

@@ -31,7 +31,7 @@ export declare class EventParser<CustomSchema> {
             [key: string]: any;
         };
         [key: string]: any;
-    });
+    }, handler?: boolean);
     get correlationId(): string;
     get origin(): string;
     get type(): string;

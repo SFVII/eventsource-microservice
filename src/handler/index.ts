@@ -75,7 +75,7 @@ class EventHandler {
     }
 
     private async handler(event: any) {
-        const eventParser = new EventParser<any>(event);
+        const eventParser = new EventParser<any>(event,true);
         const template = this.template(eventParser.type, eventParser.data, eventParser.metadata);
 
         console.log(
