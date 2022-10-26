@@ -106,10 +106,10 @@ class EventConsumer<Contributor> {
 
     public async handler(eventParse: EventParser<any>) {
         let publish: any = null;
-        const reworkMetadata  =  {...eventParse.metadata, consumer_job_name: eventParse.nextRoute || eventParse.metadata.consumer_job_name || this.streamName}
+        const reworkMetadata  =  {...eventParse.metadata, consumer_job_name: eventParse.nextRoute || this.streamName}
         // @ts-ignore
         if (!eventParse.isError && this.publish) {
-            const pMetadata = {...eventParse.metadata, state: 'delivered'}
+            const pMetadata = {...eventParse.metadata, state: 'delivered', consumer_job_name: eventParse.nextRoute || this.streamName}
             // @ts-ignore
             publish = this.template(eventParse.type, eventParse.data, pMetadata);
             this.client.appendToStream(this.streamName + '-publish', [publish])
