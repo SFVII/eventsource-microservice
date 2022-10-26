@@ -59,7 +59,7 @@ export const addContributor = (contributor: IContributor<any> = {
 	}
 }
 
-type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date, causation : string }
+type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date, causation: string }
 type IDataTreatedListFoundResult = EventType | false | undefined
 
 
@@ -101,13 +101,18 @@ class DataTreated {
 		if (retry && retry > this.QueueLimitRetry) return false;
 		if (!this.list.length) {
 			await this.sleep(this.clearTime / this.QueueLimitRetry);
-			return this.find(IdEvent, catchStreamResult,  ++retry);
+			return this.find(IdEvent, catchStreamResult, ++retry);
 		} else {
+			console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult, this.list)
 			const lookup = this.list.find((doc: IDataTreatedList) => !catchStreamResult ? doc.id === IdEvent : (catchStreamResult === doc.causation && doc.id === IdEvent));
 			if (lookup && lookup.event === 'pending' || !lookup) {
 				await this.sleep(200);
 				return this.find(IdEvent, catchStreamResult, ++retry);
-			} else return lookup.event as EventType;
+			} else if (catchStreamResult && lookup) {
+				await this.sleep(200);
+				return this.find(IdEvent, catchStreamResult, ++retry);
+			} else
+				return lookup.event as EventType;
 		}
 
 	}
@@ -118,7 +123,7 @@ class DataTreated {
 
 	clearOldFile() {
 		setInterval(() => {
-			console.log( 'start clear')
+			console.log('start clear')
 			this.clear_process = true;
 			const limit = new Date();
 			limit.setMinutes(limit.getMinutes() - this.IntervalClear)
@@ -158,7 +163,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		this.causationRoute = causationRoute;
 		for (const method of this.methods) {
 			// @ts-ignore
-			this[method] = async (data: ModelEventWrapper, contributor: IContributor, typeOrigin: 'create' | 'update' | 'delete' | 'recover' | string, catchStreamResult?:string
+			this[method] = async (data: ModelEventWrapper, contributor: IContributor, typeOrigin: 'create' | 'update' | 'delete' | 'recover' | string, catchStreamResult?: string
 			): Promise<{
 				data: ModelEventWrapper,
 				request_id: string,
@@ -210,7 +215,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 						id: eventParse.correlationId,
 						event: {...event, data: eventParse.data},
 						date: new Date(),
-						causation : eventParse.causation
+						causation: eventParse.causation
 					}).catch((err: any) => console.log('Add to cache queue error', err));
 					this.stream.ack(resolvedEvent);
 				} catch (err) {
@@ -248,7 +253,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 			await this.client.createPersistentSubscriptionToStream(
 				streamName,
 				this.group,
-				persistentSubscriptionToStreamSettingsFromDefaults({startFrom : END}),
+				persistentSubscriptionToStreamSettingsFromDefaults({startFrom: END}),
 				{credentials: this.credentials}
 			)
 			return true;
@@ -263,7 +268,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	}
 
 
-	private EventMiddlewareEmitter(data: ModelEventWrapper, method: string, typeOrigin?: string, contributor?: IContributor<Contributor>, catchStreamResult?:string): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?: any, requestId: string }> {
+	private EventMiddlewareEmitter(data: ModelEventWrapper, method: string, typeOrigin?: string, contributor?: IContributor<Contributor>, catchStreamResult?: string): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?: any, requestId: string }> {
 
 		return new Promise(async (resolve, reject) => {
 			const requestId = this.GenerateEventInternalId(data, method);
