@@ -215,7 +215,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 						id: eventParse.correlationId,
 						event: {...event, data: eventParse.data},
 						date: new Date(),
-						causation: eventParse.causation
+						causation: eventParse.metadata.consumer_job_name
 					}).catch((err: any) => console.log('Add to cache queue error', err));
 					this.stream.ack(resolvedEvent);
 				} catch (err) {
@@ -294,7 +294,8 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 						$causationId: this.streamName,
 						causationRoute: [...this.causationRoute],
 						typeOrigin: typeOrigin ? typeOrigin : method,
-						contributor: addContributor(contributor)
+						contributor: addContributor(contributor),
+						consumer_job_name : ""
 					}
 				}
 			})

@@ -106,16 +106,17 @@ class EventConsumer<Contributor> {
 
     public async handler(eventParse: EventParser<any>) {
         let publish: any = null;
+        const reworkMetadata  =  {...eventParse.metadata, consumer_job_name: this.streamName}
         // @ts-ignore
         if (!eventParse.isError && this.publish) {
-            const pMetadata = {...eventParse.metadata, state: 'delivered'}
+            const pMetadata = {...reworkMetadata, state: 'delivered'}
             // @ts-ignore
             publish = this.template(eventParse.type, eventParse.data, pMetadata);
             this.client.appendToStream(this.streamName + '-publish', [publish])
                 .catch((err: any) =>
                     console.error(`Error EventHandler.handler.appendToStream`, err))
         }
-        const template = this.template(eventParse.type as EventType, eventParse.data, eventParse.metadata);
+        const template = this.template(eventParse.type as EventType, eventParse.data, reworkMetadata);
         await this.client.appendToStream(eventParse.causation, [template]).catch((err: any) => {
             console.error(`Error EventHandler.handler.appendToStream`, err);
         })
