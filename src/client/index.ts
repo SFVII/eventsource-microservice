@@ -103,13 +103,12 @@ class DataTreated {
 			await this.sleep(this.clearTime / this.QueueLimitRetry);
 			return this.find(IdEvent, catchStreamResult, ++retry);
 		} else {
-			console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult)
+			//console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult)
 			const lookup = this.list.find((doc: IDataTreatedList) => {
 				if (catchStreamResult) {
-					console.log('Catch stream', catchStreamResult, catchStreamResult === doc.causation && doc.id === IdEvent)
+					//console.log('Catch stream', catchStreamResult, catchStreamResult === doc.causation && doc.id === IdEvent)
 					return  (catchStreamResult === doc.causation && doc.id === IdEvent)
 				} else {
-					console.log('No Catch stream', catchStreamResult)
 					return  doc.id === IdEvent
 				}
 			});
@@ -278,7 +277,6 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		return new Promise(async (resolve, reject) => {
 			const requestId = this.GenerateEventInternalId(data, method);
 			const streamName = this.streamName
-			console.log('Event Exist man', this.exist(requestId));
 			if (this.exist(requestId)) {
 				const event: IDataTreatedListFoundResult = await this.find(requestId, catchStreamResult);
 				if (event && event.data) {
