@@ -74,7 +74,7 @@ class DataTreated {
 	private clear_process: boolean = false;
 
 	constructor() {
-		this.clearOldFile();
+		setTimeout(() => this.clearOldFile(), 10000);
 	}
 
 	get clearTime(): number {
@@ -126,6 +126,7 @@ class DataTreated {
 	}
 
 	clearOldFile() {
+		console.log('Clearing time is set to %d ms ', this.clearTime )
 		setInterval(() => {
 			console.log('start clear')
 			this.clear_process = true;
