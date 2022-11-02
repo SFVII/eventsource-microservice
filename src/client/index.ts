@@ -111,8 +111,9 @@ class DataTreated {
 						console.log('specificQuery', specificQuery, doc, doc.event, doc.event?.data)
 						if (doc.causation === catchStreamResult && typeof doc.event === 'object' ) {
 							for (const x in specificQuery) {
+								console.log('Im here --------------->', x);
 								// @ts-ignore
-								if (!(doc.event?.data && doc.event.data[x])) return false;
+								if (!(doc.event?.data && doc.event?.data?.data && doc.event?.data?.data[x])) return false;
 							}
 
 							return true;
