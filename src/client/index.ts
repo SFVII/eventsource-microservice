@@ -107,11 +107,14 @@ class DataTreated {
 			const lookup = this.list.find((doc: IDataTreatedList) => {
 				if (catchStreamResult) {
 					if (specificQuery && typeof specificQuery === 'object') {
+						// @ts-ignore
+						console.log('specificQuery', specificQuery, doc, doc.event, doc.event?.data)
 						if (doc.causation === catchStreamResult && typeof doc.event === 'object' ) {
 							for (const x in specificQuery) {
 								// @ts-ignore
 								if (!(doc.event?.data && doc.event.data[x])) return false;
 							}
+
 							return true;
 						} else return false;
 					} else {
