@@ -41,7 +41,7 @@ declare class DataTreated {
     get clearTime(): number;
     exist(IdEvent: string): boolean;
     add(entry: IDataTreatedList): Promise<void>;
-    find(IdEvent: string, catchStreamResult?: string | undefined | null, retry?: number): Promise<IDataTreatedListFoundResult>;
+    find(IdEvent: string, catchStreamResult?: string | undefined | null, specificQuery?: any, retry?: number): Promise<IDataTreatedListFoundResult>;
     sleep(ms: number): Promise<unknown>;
     clearOldFile(): void;
 }

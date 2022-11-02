@@ -97,24 +97,34 @@ class DataTreated {
 
 	}
 
-	async find(IdEvent: string, catchStreamResult: string | undefined | null = null, retry: number = 0): Promise<IDataTreatedListFoundResult> {
+	async find(IdEvent: string, catchStreamResult: string | undefined | null = null, specificQuery?:any, retry: number = 0): Promise<IDataTreatedListFoundResult> {
 		if (retry && retry > this.QueueLimitRetry) return false;
 		if (!this.list.length) {
 			await this.sleep(this.clearTime / this.QueueLimitRetry);
-			return this.find(IdEvent, catchStreamResult, ++retry);
+			return this.find(IdEvent, catchStreamResult, specificQuery,  ++retry);
 		} else {
 			//console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult)
 			const lookup = this.list.find((doc: IDataTreatedList) => {
 				if (catchStreamResult) {
+					if (specificQuery && typeof specificQuery === 'object') {
+						if (doc.causation === catchStreamResult && typeof doc.event === 'object' ) {
+							for (const x in specificQuery) {
+								// @ts-ignore
+								if (!(doc.event?.data && doc.event.data[x])) return false;
+							}
+							return true;
+						} else return false;
+					} else {
+						return  (catchStreamResult === doc.causation && doc.id === IdEvent)
+					}
 					//console.log('Catch stream', catchStreamResult, catchStreamResult === doc.causation && doc.id === IdEvent)
-					return  (catchStreamResult === doc.causation && doc.id === IdEvent)
 				} else {
 					return  doc.id === IdEvent
 				}
 			});
 			if (lookup && lookup.event === 'pending' || !lookup) {
 				await this.sleep(200);
-				return this.find(IdEvent, catchStreamResult, ++retry);
+				return this.find(IdEvent, catchStreamResult, specificQuery, ++retry);
 			}
 			return lookup.event as EventType;
 		}
@@ -168,7 +178,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		this.causationRoute = causationRoute;
 		for (const method of this.methods) {
 			// @ts-ignore
-			this[method] = async (data: ModelEventWrapper, contributor: IContributor, typeOrigin: 'create' | 'update' | 'delete' | 'recover' | string, catchStreamResult?: string
+			this[method] = async (data: ModelEventWrapper, contributor: IContributor, typeOrigin: 'create' | 'update' | 'delete' | 'recover' | string, catchStreamResult?: string, specificQuery ?: any
 			): Promise<{
 				data: ModelEventWrapper,
 				request_id: string,
@@ -180,7 +190,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 					payload,
 					requestId,
 					error
-				} = await this.EventMiddlewareEmitter(data, method, typeOrigin, contributor, catchStreamResult)
+				} = await this.EventMiddlewareEmitter(data, method, typeOrigin, contributor, catchStreamResult, specificQuery)
 					// @ts-ignore
 					.catch((err: { payload: any, request_id: requestId }) => {
 						return {
@@ -273,13 +283,13 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	}
 
 
-	private EventMiddlewareEmitter(data: ModelEventWrapper, method: string, typeOrigin?: string, contributor?: IContributor<Contributor>, catchStreamResult?: string): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?: any, requestId: string }> {
+	private EventMiddlewareEmitter(data: ModelEventWrapper, method: string, typeOrigin?: string, contributor?: IContributor<Contributor>, catchStreamResult?: string, specificQuery?:any): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?: any, requestId: string }> {
 
 		return new Promise(async (resolve, reject) => {
 			const requestId = this.GenerateEventInternalId(data, method);
 			const streamName = this.streamName
 			if (this.exist(requestId)) {
-				const event: IDataTreatedListFoundResult = await this.find(requestId, catchStreamResult);
+				const event: IDataTreatedListFoundResult = await this.find(requestId, catchStreamResult, specificQuery);
 				if (event && event.data) {
 					return resolve({
 						payload: event?.data as IEventResponseError | IEventResponseSuccess<any>,
@@ -309,7 +319,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 			this.appendToStream(streamName, template)
 
-			const event: IDataTreatedListFoundResult = await this.find(requestId, catchStreamResult, 0);
+			const event: IDataTreatedListFoundResult = await this.find(requestId, catchStreamResult, specificQuery, 0);
 
 			if (event) resolve({payload: event.data as IEventResponseError | IEventResponseSuccess<any>, requestId});
 			else {
