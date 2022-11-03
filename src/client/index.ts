@@ -25,6 +25,7 @@ import {
 	START
 }                                  from "../core/global";
 import {EventParser, IEventCreate} from "../core/CommonResponse";
+import {uuid}                      from "uuidv4";
 
 export interface IMethodFunctionResponse {
 	data: IEventResponseSuccess<any> | IEventResponseError,
@@ -386,7 +387,8 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	}
 
 	private GenerateEventInternalId(data: ModelEventWrapper | ModelEventWrapper[], method: string) {
-		return md5(JSON.stringify({payload: data, method, company: 'nowla'}));
+		return uuid().toString();
+		//return md5(JSON.stringify({payload: data, method, company: 'nowla'}));
 	}
 }
 
