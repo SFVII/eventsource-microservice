@@ -104,20 +104,23 @@ class DataTreated {
 			await this.sleep(this.clearTime / this.QueueLimitRetry);
 			return this.find(IdEvent, catchStreamResult, specificQuery,  ++retry);
 		} else {
-			//console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult)
+			console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult)
 			const lookup = this.list.find((doc: IDataTreatedList) => {
 				if (catchStreamResult) {
 					if (specificQuery && typeof specificQuery === 'object') {
+						console.log('Specficif query', specificQuery)
 						// @ts-ignore
 						if (doc.causation === catchStreamResult && typeof doc.event === 'object' && doc.id === IdEvent ) {
 							for (const x in specificQuery) {
 								// @ts-ignore
 								if (!(doc.event?.data && doc.event?.data?.data && doc.event?.data?.data[x])) return false;
 							}
-
+							// @ts-ignore
+							console.log('Find It', doc.event.data, doc.event.data?.data);
 							return true;
 						} else return false;
 					} else {
+						console.log('Specficif query', specificQuery)
 						return  (catchStreamResult === doc.causation && doc.id === IdEvent)
 					}
 					//console.log('Catch stream', catchStreamResult, catchStreamResult === doc.causation && doc.id === IdEvent)
