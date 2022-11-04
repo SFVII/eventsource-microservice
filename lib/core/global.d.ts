@@ -49,6 +49,21 @@ interface IEvenStoreConfig {
         username: string;
         password: string;
     };
+    settings: {
+        ResolveLinkTos?: boolean;
+        StartFrom?: 'end' | 'start' | BigInt;
+        ExtraStatistics?: boolean;
+        MessageTimeout?: number;
+        MaxRetryCount?: number;
+        LiveBufferSize?: number;
+        ReadBatchSize?: number;
+        HistoryBufferSize?: number;
+        CheckPointAfter?: number;
+        MinCheckPointCount?: number;
+        MaxCheckPointCount?: number;
+        MaxSubscriberCount?: number;
+        NamedConsumerStrategy: 'RoundRobin' | 'DispatchToSingle' | 'Pinned';
+    };
 }
 interface IReadStreamConfig {
     direction: "backwards" | "forwards";

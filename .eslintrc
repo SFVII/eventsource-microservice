@@ -23,7 +23,8 @@
     "no-async-promise-executor": 0,
     "no-undef": 0,
     "no-extra-boolean-cast" : 0,
-    "no-useless-catch": 0
+    "no-useless-catch": 0,
+    "no-mixed-spaces-and-tabs" : 0
   },
   "env" : {
     "node": true

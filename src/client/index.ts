@@ -104,7 +104,7 @@ class DataTreated {
 			await this.sleep(this.clearTime / this.QueueLimitRetry);
 			return this.find(IdEvent, catchStreamResult, specificQuery,  ++retry);
 		} else {
-			console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult)
+		//	console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult)
 			const lookup = this.list.find((doc: IDataTreatedList) => {
 				if (catchStreamResult) {
 					if (specificQuery && typeof specificQuery === 'object') {
