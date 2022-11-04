@@ -21,6 +21,7 @@ declare class EventConsumer<Contributor> {
     private readonly Queue;
     private readonly publish;
     private readonly settings;
+    private readonly streamSettings;
     constructor(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue?: IQueue | IQueueCustom, publish?: boolean, group?: IEventHandlerGroup);
     get subscription(): PersistentSubscriptionToStream;
     on(key: 'ready' & MethodList & string, callback: (message: JSONEventType[]) => any): void;

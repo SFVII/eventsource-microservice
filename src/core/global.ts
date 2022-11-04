@@ -103,7 +103,12 @@ interface IEvenStoreConfig {
 				The main aim of this strategy is to decrease the likelihood of concurrency and ordering issues while maintaining load balancing. This is not a guarantee, and you should handle the usual ordering and concurrency issues.
 
 		 */
-		NamedConsumerStrategy: 'RoundRobin' | 'DispatchToSingle' | 'Pinned' // default RoundRobin
+		NamedConsumerStrategy?: 'RoundRobin' | 'DispatchToSingle' | 'Pinned' // default RoundRobin
+	};
+	streamSettings?: {
+		subscriptionDropped?: '', //The action to call if the subscription is dropped.
+		bufferSize?: number, //	The number of in-flight messages this client is allowed. Default: 10
+		autoAck?: boolean   //	Whether to automatically acknowledge messages after eventAppeared returns. Default: true
 	}
 }
 

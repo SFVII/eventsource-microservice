@@ -49,7 +49,7 @@ interface IEvenStoreConfig {
         username: string;
         password: string;
     };
-    settings: {
+    settings?: {
         ResolveLinkTos?: boolean;
         StartFrom?: 'end' | 'start' | BigInt;
         ExtraStatistics?: boolean;
@@ -62,7 +62,12 @@ interface IEvenStoreConfig {
         MinCheckPointCount?: number;
         MaxCheckPointCount?: number;
         MaxSubscriberCount?: number;
-        NamedConsumerStrategy: 'RoundRobin' | 'DispatchToSingle' | 'Pinned';
+        NamedConsumerStrategy?: 'RoundRobin' | 'DispatchToSingle' | 'Pinned';
+    };
+    streamSettings?: {
+        subscriptionDropped?: '';
+        bufferSize?: number;
+        autoAck?: boolean;
     };
 }
 interface IReadStreamConfig {

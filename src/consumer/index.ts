@@ -31,7 +31,7 @@ import {
 	persistentSubscriptionToStreamSettingsFromDefaults,
 	ResolvedEvent,
 	RETRY
-} from "@eventstore/db-client";
+}                    from "@eventstore/db-client";
 import {EventParser} from "../core/CommonResponse";
 
 class EventConsumer<Contributor> {
@@ -47,6 +47,7 @@ class EventConsumer<Contributor> {
 	private readonly Queue: IQueue | IQueueCustom;
 	private readonly publish: boolean;
 	private readonly settings: IEvenStoreConfig['settings'];
+	private readonly streamSettings: IEvenStoreConfig['streamSettings']
 
 	constructor(EvenStoreConfig: IEvenStoreConfig,
 	            StreamName: string,
@@ -67,7 +68,8 @@ class EventConsumer<Contributor> {
 			EvenStoreConfig.connexion,
 			EvenStoreConfig.security,
 			EvenStoreConfig.credentials);
-		this.settings = EvenStoreConfig.settings || {}
+		this.settings = EvenStoreConfig.settings || {};
+		this.streamSettings = EvenStoreConfig.streamSettings || {}
 		this.init().catch((err) => {
 			console.log('Error Constructor._EventHandler', err);
 		})
@@ -204,7 +206,8 @@ class EventConsumer<Contributor> {
 	private SubscribeToPersistent(streamName: string) {
 		return this.client.subscribeToPersistentSubscriptionToStream(
 			streamName,
-			this.group
+			this.group,
+			{ bufferSize : this.streamSettings?.bufferSize || 10}
 		)
 	}
 
@@ -228,6 +231,12 @@ class EventConsumer<Contributor> {
 		} catch (err) {
 			const error = (err ? err.toString() : "").toLowerCase();
 			if (error.includes('EXIST') || error.includes('exist')) {
+				await this.client.updatePersistentSubscriptionToStream(
+					streamName,
+					this.group,
+					persistentSubscriptionToStreamSettingsFromDefaults({startFrom: END, ...this.settings}),
+					{credentials: this.credentials}
+				)
 				console.log('Persistent subscription %s already exist', streamName)
 				return true;
 			} else console.error('Error EventHandler.CreatePersistentSubscription', err);
