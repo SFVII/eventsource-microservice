@@ -71,7 +71,7 @@ interface IEvenStoreConfig {
 		username: string;
 		password: string;
 	};
-	settings: {
+	settings?: {
 		ResolveLinkTos?: boolean,   //	Whether the subscription should resolve link events to their linked events.	false
 		StartFrom?: 'end' | 'start' | BigInt, //The exclusive position in the stream or transaction file the subscription should start from.	null (start from the end of the stream)
 		ExtraStatistics?: boolean,  // Whether to track latency statistics on this subscription.	false
