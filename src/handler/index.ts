@@ -116,7 +116,7 @@ class EventHandler {
             streamName,
             this.group,
             {
-                bufferSize: 10
+                bufferSize: 200
             }
         )
     }
