@@ -282,6 +282,12 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		} catch (err) {
 			const error = (err ? err.toString() : "").toLowerCase();
 			if (error.includes('EXIST') || error.includes('exist')) {
+				/*await this.client.updatePersistentSubscriptionToStream(
+					streamName,
+					this.group,
+					persistentSubscriptionToStreamSettingsFromDefaults({startFrom: END}),
+					{credentials: this.credentials}
+				)*/
 				console.log('Persistent subscription %s already exist', streamName)
 				return true;
 			} else console.error('Error EventHandler.CreatePersistentSubscription', err);

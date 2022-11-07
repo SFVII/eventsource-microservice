@@ -231,12 +231,12 @@ class EventConsumer<Contributor> {
 		} catch (err) {
 			const error = (err ? err.toString() : "").toLowerCase();
 			if (error.includes('EXIST') || error.includes('exist')) {
-				await this.client.updatePersistentSubscriptionToStream(
+				/*await this.client.updatePersistentSubscriptionToStream(
 					streamName,
 					this.group,
 					persistentSubscriptionToStreamSettingsFromDefaults({startFrom: END, ...this.settings}),
 					{credentials: this.credentials}
-				)
+				)*/
 				console.log('Persistent subscription %s already exist', streamName)
 				return true;
 			} else console.error('Error EventHandler.CreatePersistentSubscription', err);
