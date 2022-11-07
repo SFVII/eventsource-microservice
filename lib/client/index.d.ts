@@ -46,6 +46,8 @@ declare class DataTreated {
     clearOldFile(): void;
 }
 declare class EventsPlugin<DataModel, Contributor> extends DataTreated {
+    QueueLimitRetry: number;
+    IntervalClear: number;
     create: IMethodFunction<DataModel, 'create'>;
     update: IMethodFunction<DataModel, 'update'>;
     delete: IMethodFunction<DataModel, 'delete'>;
