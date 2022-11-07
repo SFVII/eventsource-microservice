@@ -157,7 +157,6 @@ class DataTreated {
 class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	public QueueLimitRetry: number = 100;
 	public IntervalClear: number = 15;
-
 	public create: IMethodFunction<DataModel, 'create'>;
 	public update: IMethodFunction<DataModel, 'update'>;
 	public delete: IMethodFunction<DataModel, 'delete'>;

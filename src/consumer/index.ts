@@ -31,7 +31,7 @@ import {
 	persistentSubscriptionToStreamSettingsFromDefaults,
 	ResolvedEvent,
 	RETRY
-} from "@eventstore/db-client";
+}                    from "@eventstore/db-client";
 import {EventParser} from "../core/CommonResponse";
 
 class EventConsumer<Contributor> {
@@ -48,6 +48,7 @@ class EventConsumer<Contributor> {
 	private readonly publish: boolean;
 	private readonly settings: IEvenStoreConfig['settings'];
 	private readonly streamSettings: IEvenStoreConfig['streamSettings']
+	private readonly overridePublishName!: string;
 
 	constructor(EvenStoreConfig: IEvenStoreConfig,
 	            StreamName: string,
@@ -58,8 +59,9 @@ class EventConsumer<Contributor> {
 		            recover: []
 	            },
 	            publish: boolean = false,
-	            group: IEventHandlerGroup = 'consumers') {
-
+	            group: IEventHandlerGroup = 'consumers',
+	            overridePublishName ?: string) {
+		if (overridePublishName) this.overridePublishName = overridePublishName;
 		this.publish = publish;
 		this.Queue = {...queue, ...{worker: []}}
 		this.streamName = StreamName;
@@ -121,7 +123,7 @@ class EventConsumer<Contributor> {
 			}
 			// @ts-ignore
 			publish = this.template(eventParse.type, eventParse.data, pMetadata);
-			this.client.appendToStream(this.streamName + '-publish', [publish])
+			this.client.appendToStream(this.overridePublishName ? this.overridePublishName : this.streamName + '-publish', [publish])
 				.catch((err: any) =>
 					console.error(`Error EventHandler.handler.appendToStream`, err))
 		}
