@@ -31,7 +31,7 @@ import {
 	persistentSubscriptionToStreamSettingsFromDefaults,
 	ResolvedEvent,
 	RETRY
-}                    from "@eventstore/db-client";
+} from "@eventstore/db-client";
 import {EventParser} from "../core/CommonResponse";
 
 class EventConsumer<Contributor> {
@@ -207,7 +207,7 @@ class EventConsumer<Contributor> {
 		return this.client.subscribeToPersistentSubscriptionToStream(
 			streamName,
 			this.group,
-			{ bufferSize : this.streamSettings?.bufferSize || 200}
+			{bufferSize: this.streamSettings?.bufferSize || 200}
 		)
 	}
 
@@ -224,7 +224,10 @@ class EventConsumer<Contributor> {
 			await this.client.createPersistentSubscriptionToStream(
 				streamName,
 				this.group,
-				persistentSubscriptionToStreamSettingsFromDefaults({startFrom: END, ...this.settings}),
+				persistentSubscriptionToStreamSettingsFromDefaults({
+					startFrom: END,
+					NamedConsumerStrategy: 'DispatchToSingle', ...this.settings
+				}),
 				{credentials: this.credentials}
 			)
 			return true;

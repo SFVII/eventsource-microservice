@@ -116,7 +116,7 @@ class EventHandler {
             streamName,
             this.group,
             {
-                bufferSize: 500
+                bufferSize: 20
             }
         )
     }
@@ -127,7 +127,7 @@ class EventHandler {
                 streamName,
                 this.group,
                 // @ts-ignore
-                persistentSubscriptionToStreamSettingsFromDefaults({startFrom : END}),
+                persistentSubscriptionToStreamSettingsFromDefaults({startFrom : END, NamedConsumerStrategy : 'DispatchToSingle'}),
                 {credentials: this.credentials}
             )
             return true;
