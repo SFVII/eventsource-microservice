@@ -155,6 +155,8 @@ class DataTreated {
 }
 
 class EventsPlugin<DataModel, Contributor> extends DataTreated {
+	public QueueLimitRetry: number = 100;
+	public IntervalClear: number = 15;
 
 	public create: IMethodFunction<DataModel, 'create'>;
 	public update: IMethodFunction<DataModel, 'update'>;
@@ -171,6 +173,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	private readonly group: string = 'client-';
 
 	constructor(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]) {
+
 		super()
 		this.methods = methods;
 		this.streamName = streamName;
