@@ -207,7 +207,7 @@ class EventConsumer<Contributor> {
 		return this.client.subscribeToPersistentSubscriptionToStream(
 			streamName,
 			this.group,
-			{ bufferSize : this.streamSettings?.bufferSize || 10}
+			{ bufferSize : this.streamSettings?.bufferSize || 200}
 		)
 	}
 

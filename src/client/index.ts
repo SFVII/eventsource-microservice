@@ -60,7 +60,7 @@ export const addContributor = (contributor: IContributor<any> = {
 	}
 }
 
-type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date, causation: string | null}
+type IDataTreatedList = { id: string, event: EventType | 'pending', date: Date, causation: string | null }
 type IDataTreatedListFoundResult = EventType | false | undefined
 
 
@@ -98,19 +98,19 @@ class DataTreated {
 
 	}
 
-	async find(IdEvent: string, catchStreamResult: string | undefined | null = null, specificQuery?:any, retry: number = 0): Promise<IDataTreatedListFoundResult> {
+	async find(IdEvent: string, catchStreamResult: string | undefined | null = null, specificQuery?: any, retry: number = 0): Promise<IDataTreatedListFoundResult> {
 		if (retry && retry > this.QueueLimitRetry) return false;
 		if (!this.list.length) {
 			await this.sleep(this.clearTime / this.QueueLimitRetry);
-			return this.find(IdEvent, catchStreamResult, specificQuery,  ++retry);
+			return this.find(IdEvent, catchStreamResult, specificQuery, ++retry);
 		} else {
-		//	console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult)
+			//	console.log('AYOOOO event : %s, catchstreamresult %s === %s', IdEvent, catchStreamResult)
 			const lookup = this.list.find((doc: IDataTreatedList) => {
 				if (catchStreamResult) {
 					if (specificQuery && typeof specificQuery === 'object') {
 						console.log('Specficif query', specificQuery)
 						// @ts-ignore
-						if (doc.causation === catchStreamResult && typeof doc.event === 'object' && doc.id === IdEvent ) {
+						if (doc.causation === catchStreamResult && typeof doc.event === 'object' && doc.id === IdEvent) {
 							for (const x in specificQuery) {
 								// @ts-ignore
 								if (!(doc.event?.data && doc.event?.data?.data && doc.event?.data?.data[x])) return false;
@@ -121,11 +121,11 @@ class DataTreated {
 						} else return false;
 					} else {
 						console.log('Specficif query', specificQuery)
-						return  (catchStreamResult === doc.causation && doc.id === IdEvent)
+						return (catchStreamResult === doc.causation && doc.id === IdEvent)
 					}
 					//console.log('Catch stream', catchStreamResult, catchStreamResult === doc.causation && doc.id === IdEvent)
 				} else {
-					return  doc.id === IdEvent
+					return doc.id === IdEvent
 				}
 			});
 			if (lookup && lookup.event === 'pending' || !lookup) {
@@ -142,7 +142,7 @@ class DataTreated {
 	}
 
 	clearOldFile() {
-		console.log('Clearing time is set to %d ms ', this.clearTime )
+		console.log('Clearing time is set to %d ms ', this.clearTime)
 		setInterval(() => {
 			console.log('start clear')
 			this.clear_process = true;
@@ -255,7 +255,8 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		try {
 			const x = this.client.subscribeToPersistentSubscriptionToStream<any>(
 				streamName,
-				this.group
+				this.group,
+				{bufferSize: 200}
 			);
 			return x;
 		} catch (err) {
@@ -289,7 +290,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	}
 
 
-	private EventMiddlewareEmitter(data: ModelEventWrapper, method: string, typeOrigin?: string, contributor?: IContributor<Contributor>, catchStreamResult?: string, specificQuery?:any): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?: any, requestId: string }> {
+	private EventMiddlewareEmitter(data: ModelEventWrapper, method: string, typeOrigin?: string, contributor?: IContributor<Contributor>, catchStreamResult?: string, specificQuery?: any): Promise<{ payload: IEventResponseError | IEventResponseSuccess<any> | null, error?: any, requestId: string }> {
 
 		return new Promise(async (resolve, reject) => {
 			const requestId = this.GenerateEventInternalId(data, method);
@@ -315,7 +316,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 						causationRoute: [...this.causationRoute],
 						typeOrigin: typeOrigin ? typeOrigin : method,
 						contributor: addContributor(contributor),
-						consumer_job_name : null
+						consumer_job_name: null
 					}
 				}
 			})
