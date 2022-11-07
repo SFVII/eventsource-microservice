@@ -113,7 +113,7 @@ class EventConsumer<Contributor> {
 		let publish: any = null;
 		const reworkMetadata = {...eventParse.metadata, consumer_job_name: eventParse.nextRoute || this.streamName}
 		// @ts-ignore
-		if (!eventParse.isError && this.publish && eventParse.metadata.state === "completed") {
+		if (!eventParse.isError && this.publish) {
 			const pMetadata = {
 				...eventParse.metadata,
 				state: 'delivered',
