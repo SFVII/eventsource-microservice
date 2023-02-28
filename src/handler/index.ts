@@ -22,6 +22,7 @@ import {
     PersistentSubscriptionToStream,
     persistentSubscriptionToStreamSettingsFromDefaults
 }                    from "@eventstore/db-client";
+const timerBeforeReboot = 0.5 * 1000 * 60;
 
 class EventHandler {
     protected methods: Method;
@@ -47,7 +48,9 @@ class EventHandler {
             EvenStoreConfig.credentials);
         this.init().catch((err) => {
             console.log('Error Constructor._EventHandler', err);
-            process.exit(0);
+            setTimeout(() => {
+                process.exit(-1);
+            }, timerBeforeReboot)
         })
     }
 

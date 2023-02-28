@@ -34,6 +34,7 @@ import {
 }                    from "@eventstore/db-client";
 import {EventParser} from "../core/CommonResponse";
 
+const timerBeforeReboot = 1 * 1000 * 60;
 class EventConsumer<Contributor> {
 	public QueueTTL = 100;
 	protected methods: Method;
@@ -74,6 +75,9 @@ class EventConsumer<Contributor> {
 		this.streamSettings = EvenStoreConfig.streamSettings || {}
 		this.init().catch((err) => {
 			console.log('Error Constructor._EventHandler', err);
+			setTimeout(() => {
+				process.exit(-1);
+			}, timerBeforeReboot)
 		})
 	}
 
@@ -248,10 +252,6 @@ class EventConsumer<Contributor> {
 				const errorsReboot = ['CANCELLED', 'canceled', 'UNAVAILABLE'];
 				for (const k of errorsReboot) {
 					if (error.includes(k))  {
-						console.error('Error EventHandler.CreatePersistentSubscription', k);
-						console.error('Error EventHandler.CreatePersistentSubscription', k);
-						console.error('Error EventHandler.CreatePersistentSubscription', k);
-						const timerBeforeReboot = 1 * 1000 * 60;
 						console.log('calling pod reboot in %d ms', timerBeforeReboot)
 						setTimeout(() => {
 							process.exit(-1);

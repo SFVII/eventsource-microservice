@@ -153,7 +153,8 @@ class DataTreated {
 		}, this.clearTime);
 	}
 }
-
+const errorsReboot = ['CANCELLED', 'canceled', 'UNAVAILABLE'];
+const timerBeforeReboot = 3 * 1000 * 60;
 class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	public QueueLimitRetry: number = 100;
 	public IntervalClear: number = 15;
@@ -219,7 +220,9 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		console.log('INIT STREAM')
 		this.InitStreamWatcher().catch((err: any) => {
 			console.log('ERROR InitStreamWatcher', err)
-			process.exit(0)
+			setTimeout(() => {
+				process.exit(-1);
+			}, timerBeforeReboot)
 		})
 		this.initAppendToStream();
 	}
@@ -293,11 +296,11 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 				console.log('Persistent subscription %s already exist', streamName)
 				return true;
 			} else {
-				const errorsReboot = ['CANCELLED', 'canceled', 'UNAVAILABLE'];
+
 				for (const k of errorsReboot) {
 					if (error.includes(k))  {
 						console.error('Error EventHandler.CreatePersistentSubscription', k);
-						const timerBeforeReboot = 3 * 1000 * 60;
+
 						console.log('calling pod reboot in %d ms', timerBeforeReboot)
 						setTimeout(() => {
 							process.exit(-1);
