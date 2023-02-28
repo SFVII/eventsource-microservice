@@ -133,10 +133,23 @@ class EventHandler {
             return true;
         } catch (err) {
             const error = (err ? err.toString() : "").toLowerCase();
+            const errorsReboot = ['CANCELLED', 'canceled', 'UNAVAILABLE'];
             if (error.includes('EXIST') || error.includes('exist')) {
-                console.log('Persistent subscription %s already exist', streamName)
+                console.log('Persistent sudbscription %s already exist', streamName)
                 return true;
-            } else console.error('Error EventHandler.CreatePersistentSubscription', err);
+            } else {
+                for (const k of errorsReboot) {
+                    if (error.includes(k))  {
+                        console.error('Error EventHandler.CreatePersistentSubscription', k);
+                        console.error('Error EventHandler.CreatePersistentSubscription', k);
+                        const timerBeforeReboot = 0.5 * 1000 * 60;
+                        console.log('calling pod reboot in %d ms', timerBeforeReboot)
+                        setTimeout(() => {
+                            process.exit(-1);
+                        }, timerBeforeReboot)
+                    }
+                }
+            }
             return false;
         }
     }

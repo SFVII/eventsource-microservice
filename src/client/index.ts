@@ -292,8 +292,22 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 				)*/
 				console.log('Persistent subscription %s already exist', streamName)
 				return true;
-			} else console.error('Error EventHandler.CreatePersistentSubscription', err);
-			return false;
+			} else {
+				const errorsReboot = ['CANCELLED', 'canceled', 'UNAVAILABLE'];
+				for (const k of errorsReboot) {
+					if (error.includes(k))  {
+						console.error('Error EventHandler.CreatePersistentSubscription', k);
+						const timerBeforeReboot = 3 * 1000 * 60;
+						console.log('calling pod reboot in %d ms', timerBeforeReboot)
+						setTimeout(() => {
+							process.exit(-1);
+						}, timerBeforeReboot)
+
+					}
+				}
+				return false;
+			}
+
 		}
 	}
 
