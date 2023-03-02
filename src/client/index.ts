@@ -220,7 +220,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		this.InitStreamWatcher().catch((err: any) => {
 			console.log('ERROR InitStreamWatcher', err)
 			setTimeout(() => {
-				process.exit(-1);
+				process.exit(1);
 			}, timerBeforeReboot)
 		})
 		this.initAppendToStream();
@@ -251,7 +251,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		} else {
 			console.log('This stream doesn not exist');
 			console.log('restart...');
-			process.exit(0);
+			process.exit(1);
 		}
 	}
 

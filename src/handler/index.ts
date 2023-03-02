@@ -49,7 +49,7 @@ class EventHandler {
         this.init().catch((err) => {
             console.log('Error Constructor._EventHandler', err);
             setTimeout(() => {
-                process.exit(-1);
+                process.exit(1);
             }, timerBeforeReboot)
         })
     }
@@ -148,7 +148,7 @@ class EventHandler {
                         const timerBeforeReboot = 0.5 * 1000 * 60;
                         console.log('calling pod reboot in %d ms', timerBeforeReboot)
                         setTimeout(() => {
-                            process.exit(-1);
+                            process.exit(1);
                         }, timerBeforeReboot)
                     }
                 }
