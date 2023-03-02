@@ -144,7 +144,6 @@ class DataTreated {
 	clearOldFile() {
 		console.log('Clearing time is set to %d ms ', this.clearTime)
 		setInterval(() => {
-			console.log('start clear')
 			this.clear_process = true;
 			const limit = new Date();
 			limit.setMinutes(limit.getMinutes() - this.IntervalClear)
@@ -257,19 +256,11 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	}
 
 	private SubscribeToPersistent(streamName: string): PersistentSubscriptionToStream<any> | null {
-		try {
-			const x = this.client.subscribeToPersistentSubscriptionToStream<any>(
+		return this.client.subscribeToPersistentSubscriptionToStream<any>(
 				streamName,
 				this.group,
 				{bufferSize: 200}
 			);
-			return x;
-		} catch (err) {
-			console.log('--------SubscribeToPersistent----------->', err)
-			return null;
-		}
-
-
 	}
 
 	private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
@@ -296,7 +287,6 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 				console.log('Persistent subscription %s already exist', streamName)
 				return true;
 			} else {
-
 				for (const k of errorsReboot) {
 					if (error.includes(k))  {
 						console.error('Error EventHandler.CreatePersistentSubscription', k);
