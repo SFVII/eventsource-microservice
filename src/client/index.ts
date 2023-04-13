@@ -238,15 +238,15 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		const state = await this.CreatePersistentSubscription(this.streamName);
 		this.stream = await this.SubscribeToPersistent(this.streamName);
 		if (this.stream) {
-			this.streamCursor.on('error', (err:any) => {
+			this.stream.on('error', (err:any) => {
 				console.error('error CreatePersistentSubscription', err)
 				process.exit(-1)
 			})
-			this.streamCursor.on('end', (err:any) => {
+			this.stream.on('end', (err:any) => {
 				console.error('error CreatePersistentSubscription', err)
 				process.exit(-1)
 			})
-			this.streamCursor.on('close', (err:any) => {
+			this.stream.on('close', (err:any) => {
 				console.error('error CreatePersistentSubscription', err)
 				process.exit(-1)
 			})
