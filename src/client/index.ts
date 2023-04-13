@@ -152,8 +152,10 @@ class DataTreated {
 		}, this.clearTime);
 	}
 }
+
 const errorsReboot = ['CANCELLED', 'canceled', 'UNAVAILABLE'];
 const timerBeforeReboot = 3 * 1000 * 60;
+
 class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	public QueueLimitRetry: number = 100;
 	public IntervalClear: number = 15;
@@ -169,6 +171,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	private _pendingTemplates: { [key: string]: EventData[] } = {};
 	private readonly causationRoute: string[];
 	private stream: any;
+	private streamCursor: any;
 	private readonly group: string = 'client-';
 
 	constructor(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]) {
@@ -216,9 +219,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 				}
 			}
 		}
-		console.log('INIT STREAM')
 		this.InitStreamWatcher().catch((err: any) => {
-			console.log('ERROR InitStreamWatcher', err)
 			setTimeout(() => {
 				process.exit(1);
 			}, timerBeforeReboot)
@@ -231,6 +232,12 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		const state = await this.CreatePersistentSubscription(this.streamName);
 		this.stream = await this.SubscribeToPersistent(this.streamName);
 		if (this.stream) {
+			setInterval(() => {
+				if (!this.streamCursor.isConnected()) {
+					console.log('stream connection broken');
+					process.exit(0);
+				}
+			}, 5000)
 			for await (const resolvedEvent of this.stream) {
 				try {
 					const event: any = resolvedEvent.event;
@@ -244,23 +251,23 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 					}).catch((err: any) => console.log('Add to cache queue error', err));
 					this.stream.ack(resolvedEvent);
 				} catch (err) {
-					console.log('Event goes to parking')
+					console.error('Event goes to parking')
 					this.stream.nack(resolvedEvent, PARK);
 				}
 			}
 		} else {
-			console.log('This stream doesn not exist');
-			console.log('restart...');
+			console.error('This stream doesn not exist');
+			console.error('restart...');
 			process.exit(1);
 		}
 	}
 
 	private SubscribeToPersistent(streamName: string): PersistentSubscriptionToStream<any> | null {
 		return this.client.subscribeToPersistentSubscriptionToStream<any>(
-				streamName,
-				this.group,
-				{bufferSize: 200}
-			);
+			streamName,
+			this.group,
+			{bufferSize: 200}
+		);
 	}
 
 	private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
@@ -268,12 +275,13 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 
 		try {
-			await this.client.createPersistentSubscriptionToStream(
+			this.streamCursor = await this.client.createPersistentSubscriptionToStream(
 				streamName,
 				this.group,
 				persistentSubscriptionToStreamSettingsFromDefaults({startFrom: END}),
 				{credentials: this.credentials}
 			)
+
 			return true;
 		} catch (err) {
 			const error = (err ? err.toString() : "").toLowerCase();
@@ -288,12 +296,12 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 				return true;
 			} else {
 				for (const k of errorsReboot) {
-					if (error.includes(k))  {
+					if (error.includes(k)) {
 						console.error('Error EventHandler.CreatePersistentSubscription', k);
 
 						console.log('calling pod reboot in %d ms', timerBeforeReboot)
 						setTimeout(() => {
-							process.exit(-1);
+							process.exit(1);
 						}, timerBeforeReboot)
 
 					}
@@ -342,9 +350,10 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 			this.appendToStream(streamName, template)
 
 			const event: IDataTreatedListFoundResult = await this.find(requestId, catchStreamResult, specificQuery, 0);
-
-			if (event) resolve({payload: event.data as IEventResponseError | IEventResponseSuccess<any>, requestId});
-			else {
+			this.stream.if(event)
+			resolve({payload: event.data as IEventResponseError | IEventResponseSuccess<any>, requestId});
+		else
+			{
 				reject({payload: {error: 'Error on pending items create'}, request_id: requestId})
 			}
 		})
@@ -357,7 +366,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 					const current_queue = this._pendingTemplates[streamName].length
 					const current_selection = this._pendingTemplates[streamName]
 						.splice(0, this._pendingTemplates[streamName].length >= 50 ? 50 : this._pendingTemplates[streamName].length)
-					console.log('%s - sending %d of current list of %d and left %d', streamName, current_selection.length, current_queue, this._pendingTemplates[streamName].length)
+					//		console.log('%s - sending %d of current list of %d and left %d', streamName, current_selection.length, current_queue, this._pendingTemplates[streamName].length)
 					this.client.appendToStream(streamName || this.streamName, current_selection)
 						.catch((err) => {
 							console.log('Error EventsPlugin.add', err)

@@ -76,7 +76,7 @@ class EventConsumer<Contributor> {
 		this.init().catch((err) => {
 			console.log('Error Constructor._EventHandler', err);
 			setTimeout(() => {
-				process.exit(-1);
+				process.exit(1);
 			}, timerBeforeReboot)
 		})
 	}
@@ -254,7 +254,7 @@ class EventConsumer<Contributor> {
 					if (error.includes(k))  {
 						console.log('calling pod reboot in %d ms', timerBeforeReboot)
 						setTimeout(() => {
-							process.exit(-1);
+							process.exit(1);
 						}, timerBeforeReboot)
 					}
 				}

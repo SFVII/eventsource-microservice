@@ -34,6 +34,7 @@ export class HandleResponse<CustomSchema> {
         return this._request_id;
     }
 
+
     get raw_result() {
         return this._eventDataRaw;
     }

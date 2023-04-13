@@ -16,7 +16,7 @@ import {
     ITriggerList,
     jsonEvent,
     Method
-}                                       from "../core/global";
+}                          from "../core/global";
 import {EventParser} from "../core/CommonResponse";
 import {
     PersistentSubscriptionToStream,
