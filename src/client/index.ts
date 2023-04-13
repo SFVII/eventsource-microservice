@@ -10,7 +10,8 @@ import {
 	EventType,
 	PARK,
 	PersistentSubscriptionToStream,
-	PersistentSubscriptionToStreamSettings, persistentSubscriptionToStreamSettingsFromDefaults
+	PersistentSubscriptionToStreamSettings,
+	persistentSubscriptionToStreamSettingsFromDefaults
 }                                  from "@eventstore/db-client";
 import {
 	EventData,
@@ -228,14 +229,27 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	}
 
 
+	public getStreamStatus() {
+		return this.streamCursor.isConnected();
+	}
+
+
 	private async InitStreamWatcher() {
 		const state = await this.CreatePersistentSubscription(this.streamName);
 		this.stream = await this.SubscribeToPersistent(this.streamName);
 		if (this.stream) {
-			if (!this.streamCursor.isConnected()) {
-				console.log('stream connection broken');
-				process.exit(0);
-			}
+			this.streamCursor.on('error', (err:any) => {
+				console.error('error CreatePersistentSubscription', err)
+				process.exit(-1)
+			})
+			this.streamCursor.on('end', (err:any) => {
+				console.error('error CreatePersistentSubscription', err)
+				process.exit(-1)
+			})
+			this.streamCursor.on('close', (err:any) => {
+				console.error('error CreatePersistentSubscription', err)
+				process.exit(-1)
+			})
 			for await (const resolvedEvent of this.stream) {
 				try {
 					const event: any = resolvedEvent.event;
@@ -283,6 +297,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		} catch (err) {
 			const error = (err ? err.toString() : "").toLowerCase();
 			if (error.includes('EXIST') || error.includes('exist')) {
+
 				/*await this.client.updatePersistentSubscriptionToStream(
 					streamName,
 					this.group,

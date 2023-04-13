@@ -227,7 +227,7 @@ class EventConsumer<Contributor> {
 
 	private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
 		try {
-			await this.client.createPersistentSubscriptionToStream(
+			const subscription = await this.client.createPersistentSubscriptionToStream(
 				streamName,
 				this.group,
 				persistentSubscriptionToStreamSettingsFromDefaults({
@@ -235,7 +235,7 @@ class EventConsumer<Contributor> {
 					NamedConsumerStrategy: 'DispatchToSingle', ...this.settings
 				}),
 				{credentials: this.credentials}
-			)
+			);
 			return true;
 		} catch (err) {
 			const error = (err ? err.toString() : "").toLowerCase();
