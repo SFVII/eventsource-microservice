@@ -29,7 +29,7 @@ const listStreams = async (client: EventStoreDBClient) => {
 	// @ts-ignore
 	const result = await client.readStream('$all').catch(console.error);
 
-	return result.streams.map(s => s.streamId);
+	return result.streams.map((s : any) => s.streamId);
 }
 
 
