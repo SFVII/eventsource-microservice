@@ -15,8 +15,8 @@ import {
 	ITemplateEvent,
 	ITriggerList,
 	jsonEvent,
-	Method
-}                    from "../core/global";
+	Method, START
+} from "../core/global";
 import {EventParser} from "../core/CommonResponse";
 import {
 	PersistentSubscriptionToStream,
@@ -26,10 +26,18 @@ import {
 const timerBeforeReboot = 0.5 * 1000 * 60;
 
 const listStreams = async (client: EventStoreDBClient) => {
-	// @ts-ignore
-	const result = await client.readStream('$all').catch(console.error);
-
-	return result.streams.map((s : any) => s.streamId);
+	const iterator = client.readAll({
+		direction: 'backwards',
+		maxCount: Number.MAX_SAFE_INTEGER,// adjust as needed
+		resolveLinkTos: false,
+		fromPosition: START
+	});
+	const streams = new Set();
+	for await (const event of iterator) {
+		// @ts-ignore
+		streams.add(event.event.streamId);
+	}
+	return streams;
 }
 
 
