@@ -27,8 +27,8 @@ const timerBeforeReboot = 0.5 * 1000 * 60;
 
 const listStreams = async (client: EventStoreDBClient) => {
 	const iterator = client.readAll({
-		direction: 'backwards',
-		maxCount: Number.MAX_SAFE_INTEGER,// adjust as needed
+		direction: 'forwards',
+		maxCount: 10000,// adjust as needed
 		resolveLinkTos: false,
 		fromPosition: START
 	});
