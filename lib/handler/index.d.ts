@@ -13,7 +13,7 @@ declare class EventHandler {
     protected streamList: string[];
     protected credentials: IEvenStoreConfig["credentials"];
     protected triggerOnComplete: ITriggerList[];
-    private client;
+    private readonly client;
     private StartRevision;
     private stream;
     constructor(EvenStoreConfig: IEvenStoreConfig, streamList: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup);

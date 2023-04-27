@@ -173,7 +173,7 @@ class EventHandler {
 				// @ts-ignore
 				persistentSubscriptionToStreamSettingsFromDefaults({
 					startFrom: END,
-					NamedConsumerStrategy: 'DispatchToSingle'
+				//	NamedConsumerStrategy: 'DispatchToSingle'
 				}),
 				{credentials: this.credentials}
 			)

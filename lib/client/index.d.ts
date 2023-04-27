@@ -14,20 +14,20 @@ export interface IMethodFunctionResponse {
     error?: any;
     ack: () => (requestId: string, method: string, payload: any, streamName: string, causationRoute: string[]) => void;
 }
-export declare type IMethodFunction<Contributor, Type> = (data: ModelEventWrapper, contributor?: IContributor<Contributor>, typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type, streamName?: string, customs?: any, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
+export type IMethodFunction<Contributor, Type> = (data: ModelEventWrapper, contributor?: IContributor<Contributor>, typeOrigin?: 'create' | 'update' | 'delete' | 'recover' | Type, streamName?: string, customs?: any, causationRoute?: string[]) => Promise<IMethodFunctionResponse>;
 export interface ModelEventWrapper extends IEventCreate {
 }
 export declare const addContributor: (contributor?: IContributor<any>) => {
     account: any;
     group: any;
 };
-declare type IDataTreatedList = {
+type IDataTreatedList = {
     id: string;
     event: EventType | 'pending';
     date: Date;
     causation: string | null;
 };
-declare type IDataTreatedListFoundResult = EventType | false | undefined;
+type IDataTreatedListFoundResult = EventType | false | undefined;
 /**
  *
  */

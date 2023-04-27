@@ -17,19 +17,19 @@ declare enum EMethodList {
     worker = 4,
     init = 5
 }
-declare type MethodList = keyof typeof EMethodList;
-declare type Method = MethodList[];
-declare type IStartRevisionValues = bigint | 'start' | 'end';
-declare type EventType = keyof typeof EMethodList;
-declare type IEventHandlerGroup = 'dispatch' | 'consumers' | 'global-event-handler' | string;
-declare type IDataLinkEvent = [string, any];
-declare type IStream = {
+type MethodList = keyof typeof EMethodList;
+type Method = MethodList[];
+type IStartRevisionValues = bigint | 'start' | 'end';
+type EventType = keyof typeof EMethodList;
+type IEventHandlerGroup = 'dispatch' | 'consumers' | 'global-event-handler' | string;
+type IDataLinkEvent = [string, any];
+type IStream = {
     [V in MethodList]?: StreamSubscription;
 };
-declare type IQueue = {
+type IQueue = {
     [V in MethodList]?: StreamSubscription[];
 };
-declare type IQueueCustom = {
+type IQueueCustom = {
     [V in MethodList]?: {
         [key: string]: StreamSubscription[];
     };
@@ -86,15 +86,15 @@ interface ITriggerList {
     causationId: string;
     trigger: string[];
 }
-declare type IMd5DataHash = string;
-declare type ICausationId = string;
-declare type ICausationRoute = ICausationId[];
-declare type ITypeOrigin = 'create' | 'delete' | 'update' | 'recover' | string;
-declare type IContributorBinding<T> = keyof T;
-declare type IContributor<T> = {
+type IMd5DataHash = string;
+type ICausationId = string;
+type ICausationRoute = ICausationId[];
+type ITypeOrigin = 'create' | 'delete' | 'update' | 'recover' | string;
+type IContributorBinding<T> = keyof T;
+type IContributor<T> = {
     [key in IContributorBinding<T>]: T[key];
 };
-declare type IMetadata<Contributor> = {
+type IMetadata<Contributor> = {
     $correlationId: IMd5DataHash;
     $causationId: ICausationId;
     state: 'processing' | 'completed' | 'error' | 'delivered' | 'trigger' | 'system' | string;
@@ -103,11 +103,11 @@ declare type IMetadata<Contributor> = {
     contributor: IContributor<Contributor | any>;
     consumer_job_name: string | null;
 };
-declare type IEventErrorResult = {
+type IEventErrorResult = {
     origin: string;
     details: any;
 };
-declare type IEventResponseError = {
+type IEventResponseError = {
     data: any | undefined;
     origin: string;
     model?: any;
@@ -116,7 +116,7 @@ declare type IEventResponseError = {
     type: ITypeOrigin;
     message: string;
 };
-declare type IEventResponseSuccess<CustomSchema> = {
+type IEventResponseSuccess<CustomSchema> = {
     origin: string;
     data: any;
     model?: any;
@@ -125,5 +125,5 @@ declare type IEventResponseSuccess<CustomSchema> = {
     type: ITypeOrigin;
     updatedFields?: keyof CustomSchema[] | [];
 };
-declare type IEventResponse<CustomSchema> = IEventResponseSuccess<CustomSchema> | IEventResponseError;
+type IEventResponse<CustomSchema> = IEventResponseSuccess<CustomSchema> | IEventResponseError;
 export { IEventResponse, IEventErrorResult, IEventResponseError, IEventResponseSuccess, IMd5DataHash, ICausationId, ICausationRoute, ITypeOrigin, ITriggerList, IContributorBinding, IContributor, IMetadata, EventEmitter, bigInt, PersistentSubscriptionToStreamSettings, PersistentSubscriptionBase, jsonEvent, EventStoreDBClient, END, START, IDataLinkEvent, IEventHandlerGroup, IListStreamSubscription, IStartRevision, StreamSubscription, IReadStreamConfig, IEvenStoreConfig, IQueue, IQueueCustom, IStream, ITemplateEvent, EventType, IStartRevisionValues, Method, MethodList, EMethodList, JSONType, BACKWARDS, EventData, md5 };
