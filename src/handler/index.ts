@@ -26,18 +26,10 @@ import {
 const timerBeforeReboot = 0.5 * 1000 * 60;
 
 const listStreams = async (client: EventStoreDBClient) => {
-	const iterator = client.readAll({
-		direction: 'backwards',
-		maxCount: 30, // adjust as needed
-		resolveLinkTos: false,
-		fromPosition: END
-	});
-	const streams = new Set();
-	for await (const event of iterator) {
-		// @ts-ignore
-		streams.add(event.event.streamId);
-	}
-	return streams;
+	// @ts-ignore
+	const result = await client.readStream('$all').catch(console.error);
+
+	return result.streams.map(s => s.streamId);
 }
 
 

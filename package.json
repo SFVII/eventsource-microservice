@@ -24,7 +24,7 @@
   "author": "brice daupiard",
   "license": "ISC",
   "dependencies": {
-    "@eventstore/db-client": "^4.0.0",
+    "@eventstore/db-client": "5.0.1",
     "big-integer": "^1.6.51",
     "google-protobuf": "3.21.0",
     "md5": "^2.3.0",
