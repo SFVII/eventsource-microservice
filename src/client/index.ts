@@ -12,7 +12,7 @@ import {
 	PersistentSubscriptionToStream,
 	PersistentSubscriptionToStreamSettings,
 	persistentSubscriptionToStreamSettingsFromDefaults
-}                                  from "@eventstore/db-client";
+}                                   from "@eventstore/db-client";
 import {
 	EventData,
 	EventStoreDBClient,
@@ -24,9 +24,11 @@ import {
 	jsonEvent,
 	md5,
 	START
-}                                  from "../core/global";
-import {EventParser, IEventCreate} from "../core/CommonResponse";
-import {uuid}                      from "uuidv4";
+}                                   from "../core/global";
+import {EventParser, IEventCreate}  from "../core/CommonResponse";
+import {uuid}                       from "uuidv4";
+import Peer                         from "peerjs"
+import {ServiceNamePatternSplitter} from "../core/Utils";
 
 export interface IMethodFunctionResponse {
 	data: IEventResponseSuccess<any> | IEventResponseError,
@@ -76,6 +78,7 @@ class DataTreated {
 	private clear_process: boolean = false;
 
 	constructor() {
+
 		setTimeout(() => this.clearOldFile(), 10000);
 	}
 
@@ -153,8 +156,10 @@ class DataTreated {
 		}, this.clearTime);
 	}
 }
+
 const errorsReboot = ['CANCELLED', 'canceled', 'UNAVAILABLE'];
 const timerBeforeReboot = 3 * 1000 * 60;
+
 class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	public QueueLimitRetry: number = 100;
 	public IntervalClear: number = 15;
@@ -170,12 +175,22 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	private _pendingTemplates: { [key: string]: EventData[] } = {};
 	private readonly causationRoute: string[];
 	private stream: any;
-	private streamCursor:any;
+	private streamCursor: any;
 	private readonly group: string = 'client-';
+	private PeerClient!: any;
 
 	constructor(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]) {
 
 		super()
+		streamName = ServiceNamePatternSplitter(streamName);
+		if (process.env.PEERJS_SERVER) {
+			this.PeerClient = new Peer(streamName, {
+				host: process.env.PEERJS_SERVER,
+				port: 9000,
+				path: '/'
+			});
+		}
+
 		this.methods = methods;
 		this.streamName = streamName;
 		this._pendingTemplates[streamName] = [];
@@ -222,6 +237,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		this.InitStreamWatcher().catch((err: any) => {
 			console.log('ERROR InitStreamWatcher', err)
 			setTimeout(() => {
+				this.PeerClient.disconnect()
 				process.exit(1);
 			}, timerBeforeReboot)
 		})
@@ -238,15 +254,18 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		const state = await this.CreatePersistentSubscription(this.streamName);
 		this.stream = await this.SubscribeToPersistent(this.streamName);
 		if (this.stream) {
-			this.stream.on('error', (err:any) => {
+			this.stream.on('error', (err: any) => {
+				this.PeerClient.disconnect()
 				console.error('error CreatePersistentSubscription', err)
 				process.exit(-1)
 			})
-			this.stream.on('end', (err:any) => {
+			this.stream.on('end', (err: any) => {
+				this.PeerClient.disconnect()
 				console.error('error CreatePersistentSubscription', err)
 				process.exit(-1)
 			})
-			this.stream.on('close', (err:any) => {
+			this.stream.on('close', (err: any) => {
+				this.PeerClient.disconnect()
 				console.error('error CreatePersistentSubscription', err)
 				process.exit(-1)
 			})
@@ -270,16 +289,17 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		} else {
 			console.log('This stream doesn not exist');
 			console.log('restart...');
+			this.PeerClient.disconnect()
 			process.exit(1);
 		}
 	}
 
 	private SubscribeToPersistent(streamName: string): PersistentSubscriptionToStream<any> | null {
 		return this.client.subscribeToPersistentSubscriptionToStream<any>(
-				streamName,
-				this.group,
-				{bufferSize: 200}
-			);
+			streamName,
+			this.group,
+			{bufferSize: 200}
+		);
 	}
 
 	private async CreatePersistentSubscription(streamName: string): Promise<boolean> {
@@ -287,7 +307,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 
 
 		try {
-			this.streamCursor =	await this.client.createPersistentSubscriptionToStream(
+			this.streamCursor = await this.client.createPersistentSubscriptionToStream(
 				streamName,
 				this.group,
 				persistentSubscriptionToStreamSettingsFromDefaults({startFrom: END}),
@@ -308,7 +328,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 				return true;
 			} else {
 				for (const k of errorsReboot) {
-					if (error.includes(k))  {
+					if (error.includes(k)) {
 						console.error('Error EventHandler.CreatePersistentSubscription', k);
 
 						console.log('calling pod reboot in %d ms', timerBeforeReboot)
@@ -374,10 +394,10 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		setInterval(() => {
 			Object.keys(this._pendingTemplates).forEach((streamName: string) => {
 				if (this._pendingTemplates[streamName].length) {
-					const current_queue = this._pendingTemplates[streamName].length
+					//	const current_queue = this._pendingTemplates[streamName].length
 					const current_selection = this._pendingTemplates[streamName]
 						.splice(0, this._pendingTemplates[streamName].length >= 50 ? 50 : this._pendingTemplates[streamName].length)
-			//		console.log('%s - sending %d of current list of %d and left %d', streamName, current_selection.length, current_queue, this._pendingTemplates[streamName].length)
+					//		console.log('%s - sending %d of current list of %d and left %d', streamName, current_selection.length, current_queue, this._pendingTemplates[streamName].length)
 					this.client.appendToStream(streamName || this.streamName, current_selection)
 						.catch((err) => {
 							console.log('Error EventsPlugin.add', err)
