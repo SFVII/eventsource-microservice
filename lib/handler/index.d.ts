@@ -16,8 +16,12 @@ declare class EventHandler {
     private client;
     private StartRevision;
     private stream;
+    private broker;
     constructor(EvenStoreConfig: IEvenStoreConfig, streamList: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup);
-    private init;
+    private soronEye;
+    private getStreamList;
+    private getPeers;
+    private initiateStream;
     private dispatcher;
     private handler;
     private template;

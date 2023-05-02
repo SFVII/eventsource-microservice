@@ -10,13 +10,13 @@ import EventConsumer from "./consumer";
 import EventsPlugin from "./client";
 import { IEvenStoreConfig, IEventHandlerGroup, IQueue, IQueueCustom, ITriggerList } from "./core/global";
 import { HandleResponse } from "./core/CommonHandler";
-export declare type IClient = {
+export type IClient = {
     new <DataModel, Contributor>(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]): EventsPlugin<DataModel, Contributor>;
 };
-export declare type IConsumer = {
+export type IConsumer = {
     new <Contributor>(EvenStoreConfig: IEvenStoreConfig, StreamName: string, queue: IQueue | IQueueCustom, publish?: boolean, group?: IEventHandlerGroup): EventConsumer<Contributor>;
 };
-export declare type IHandler = {
+export type IHandler = {
     new (EvenStoreConfig: IEvenStoreConfig, streamList?: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup): EventHandler;
 };
 declare const Instance: <T>(type: 'handler' | 'consumer' | 'client') => IClient | IConsumer | IHandler;
