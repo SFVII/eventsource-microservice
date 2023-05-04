@@ -20,3 +20,4 @@ export const ServiceNamePatternSplitter = (raw : string) => {
 		process.exit(0);
 	}
 }
+

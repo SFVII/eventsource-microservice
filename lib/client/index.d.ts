@@ -61,7 +61,8 @@ declare class EventsPlugin<DataModel, Contributor> extends DataTreated {
     private stream;
     private streamCursor;
     private readonly group;
-    private PeerClient;
+    private broker;
+    private brokerId;
     constructor(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]);
     getStreamStatus(): any;
     private InitStreamWatcher;

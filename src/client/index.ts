@@ -27,8 +27,8 @@ import {
 }                                   from "../core/global";
 import {EventParser, IEventCreate}  from "../core/CommonResponse";
 import {uuid}                       from "uuidv4";
-import Peer                         from "peerjs"
 import {ServiceNamePatternSplitter} from "../core/Utils";
+import {BrokerSocketClient}         from "../core/SocketClient";
 
 export interface IMethodFunctionResponse {
 	data: IEventResponseSuccess<any> | IEventResponseError,
@@ -177,18 +177,22 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	private stream: any;
 	private streamCursor: any;
 	private readonly group: string = 'client-';
-	private PeerClient!: any;
+	private broker!: any;
+	private brokerId!: string;
 
 	constructor(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]) {
 
 		super()
 		streamName = ServiceNamePatternSplitter(streamName);
 		if (process.env.PEERJS_SERVER) {
-			this.PeerClient = new Peer(streamName, {
-				host: process.env.PEERJS_SERVER,
-				port: 9000,
-				path: '/'
+			this.broker = new BrokerSocketClient(process.env.PEERJS_SERVER)
+			this.broker.on('connect', (data: string) => {
+				if (data) {
+					this.brokerId = data;
+					this.broker.emit('sign', {id : this.brokerId, streamName})
+				}
 			});
+
 		}
 
 		this.methods = methods;
@@ -237,7 +241,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		this.InitStreamWatcher().catch((err: any) => {
 			console.log('ERROR InitStreamWatcher', err)
 			setTimeout(() => {
-				this.PeerClient.disconnect()
+				this.broker.disconnect()
 				process.exit(1);
 			}, timerBeforeReboot)
 		})
@@ -255,17 +259,17 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		this.stream = await this.SubscribeToPersistent(this.streamName);
 		if (this.stream) {
 			this.stream.on('error', (err: any) => {
-				this.PeerClient.disconnect()
+				this.broker.disconnect()
 				console.error('error CreatePersistentSubscription', err)
 				process.exit(-1)
 			})
 			this.stream.on('end', (err: any) => {
-				this.PeerClient.disconnect()
+				this.broker.disconnect()
 				console.error('error CreatePersistentSubscription', err)
 				process.exit(-1)
 			})
 			this.stream.on('close', (err: any) => {
-				this.PeerClient.disconnect()
+				this.broker.disconnect()
 				console.error('error CreatePersistentSubscription', err)
 				process.exit(-1)
 			})
@@ -289,7 +293,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		} else {
 			console.log('This stream doesn not exist');
 			console.log('restart...');
-			this.PeerClient.disconnect()
+			this.broker.disconnect()
 			process.exit(1);
 		}
 	}
@@ -330,7 +334,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 				for (const k of errorsReboot) {
 					if (error.includes(k)) {
 						console.error('Error EventHandler.CreatePersistentSubscription', k);
-
+						this.broker.disconnect();
 						console.log('calling pod reboot in %d ms', timerBeforeReboot)
 						setTimeout(() => {
 							process.exit(1);

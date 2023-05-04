@@ -20,7 +20,6 @@ declare class EventHandler {
     constructor(EvenStoreConfig: IEvenStoreConfig, streamList: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup);
     private soronEye;
     private getStreamList;
-    private getPeers;
     private initiateStream;
     private dispatcher;
     private handler;

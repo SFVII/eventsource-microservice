@@ -16,13 +16,14 @@ import {
 	ITriggerList,
 	jsonEvent,
 	Method
-}                    from "../core/global";
-import {EventParser} from "../core/CommonResponse";
+}                           from "../core/global";
+import {EventParser}        from "../core/CommonResponse";
 import {
 	PersistentSubscriptionToStream,
 	persistentSubscriptionToStreamSettingsFromDefaults
-}                    from "@eventstore/db-client";
-import {PeerServer}  from 'peer';
+}                           from "@eventstore/db-client";
+import {BrokerSocketServer} from "../core/SocketServer";
+
 
 
 const timerBeforeReboot = 0.5 * 1000 * 60;
@@ -37,13 +38,12 @@ class EventHandler {
 	private client: EventStoreDBClient;
 	private StartRevision: IStartRevision;
 	private stream: IListStreamSubscription;
-	private broker: any;
+	private broker: any = new BrokerSocketServer();
 
 	constructor(EvenStoreConfig: IEvenStoreConfig,
 	            streamList: string[],
 	            triggerOnComplete: ITriggerList[] = [],
 	            group: IEventHandlerGroup = 'global-event-handler') {
-		this.broker = PeerServer({ port: 9000, path: '/'});
 
 		this.group = group;
 		this.streamList = streamList;
@@ -68,25 +68,18 @@ class EventHandler {
 	}
 
 	private async getStreamList() {
-		const peers = await this.getPeers();
-		const ExistingStream = Object.keys(this.stream);
-		if (ExistingStream.length) {
-			for (const stream of ExistingStream) {
+		const peers = await this.broker.streamName();
+		if (peers.length) {
+			for (const stream of peers) {
 				if (peers.indexOf(stream) === -1) await this.stream[stream].unsubscribe()
 			}
 		}
 		for (const peer of peers) {
-			if (ExistingStream.indexOf(peer) === -1) {
+			if (peers.indexOf(peer) === -1) {
 				await this.initiateStream(peer);
 				this.dispatcher(this.stream[peer]).catch((err: any) => console.log('ERROR.getStreamList', err))
 			}
 		}
-		// PATTERN QUEUE_NAME-[XXXXX-XXXXX...]-<Replicate Number>
-	}
-
-	private async getPeers() {
-		return (await fetch('http://localhost:9000/_peers')
-			.then(response => response.json()))?.peers;
 	}
 
 	private async initiateStream(stream: string) {
