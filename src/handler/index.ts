@@ -68,6 +68,7 @@ class EventHandler {
 
 	private async getStreamList() {
 		const peers = this.broker.getStreamNames;
+		console.debug('Peers', peers)
 		if (peers.length) {
 			for (const stream of peers) {
 				if (peers.indexOf(stream) === -1) await this.stream[stream].unsubscribe()
