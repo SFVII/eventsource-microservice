@@ -25,7 +25,6 @@ import {
 import {BrokerSocketServer} from "../core/SocketServer";
 
 
-
 const timerBeforeReboot = 0.5 * 1000 * 60;
 
 class EventHandler {
@@ -68,7 +67,7 @@ class EventHandler {
 	}
 
 	private async getStreamList() {
-		const peers = await this.broker.streamName();
+		const peers = this.broker.getStreamNames;
 		if (peers.length) {
 			for (const stream of peers) {
 				if (peers.indexOf(stream) === -1) await this.stream[stream].unsubscribe()
