@@ -188,8 +188,8 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 			this.broker = new BrokerSocketClient(process.env.PEERJS_SERVER)
 			this.broker.on('connect', (data: string) => {
 				if (data) {
-					this.brokerId = data;
-					this.broker.emit('sign', {id : this.brokerId, streamName})
+					this.broker.Id = data;
+					this.broker.emit('sign', {id : this.broker.Id, streamName})
 				}
 			});
 
