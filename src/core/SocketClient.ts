@@ -9,13 +9,19 @@ import {io} from "socket.io-client";
 
 
 export class BrokerSocketClient {
-	private io: any;
+	private readonly io: any;
 	private id: string;
 
 	constructor(socketUrl: string, port: number = 3000) {
-		this.io = io(socketUrl, {
-			reconnectionDelayMax: 10000,
-			port: port
+		this.io = io(socketUrl + ':' + port, {
+			reconnectionDelayMax: 10000
+		});
+
+		console.log('socket url', socketUrl + ':' + port)
+
+		console.log('this', this.io);
+		this.io.on("disconnect", () => {
+			console.log(this.io.id); // undefined
 		});
 	}
 
@@ -35,7 +41,7 @@ export class BrokerSocketClient {
 		this.io.emit('unsigned', {id: socketId});
 	}
 
-	on(env: string, data: () => any | void) {
+	on(env: string, data: (msg:any) => any | void) {
 		this.io.on(env, data);
 	}
 }
