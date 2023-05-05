@@ -17,18 +17,24 @@ export class BrokerSocketClient {
 			reconnectionDelayMax: 10000
 		});
 
-		console.log('socket url', socketUrl + ':' + port)
+
 		this.io.on('connect', (data: any) => {
-			console.log('connect, DATA', data)
+			console.log('connected to handler at: %s',  socketUrl + ':' + port)
 		});
 
 		this.io.on('identification', (data:any) => {
 			this.Id = data;
-			console.debug('We are signing', this.Id, streamName)
 			this.sign(this.Id, streamName)
 		})
+		this.io.on("onerror", (err:any) => {
+			console.log(this.io.id); // undefined
+			console.error('Socket on error we lost connexion with handler, we are rebooting for prevent error', err)
+			process.exit(0)
+		});
 		this.io.on("disconnect", () => {
 			console.log(this.io.id); // undefined
+			console.error('Socket disconnected we lost connexion with handler, we are rebooting for prevent  error')
+			process.exit(0)
 		});
 	}
 
