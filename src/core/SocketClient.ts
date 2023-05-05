@@ -20,9 +20,6 @@ export class BrokerSocketClient {
 		console.log('socket url', socketUrl + ':' + port)
 		this.io.on('connect', (data: any) => {
 			console.log('connect, DATA', data)
-			if (data) {
-
-			}
 		});
 
 		this.io.on('identification', (data:any) => {
