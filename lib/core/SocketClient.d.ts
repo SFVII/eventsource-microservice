@@ -1,7 +1,7 @@
 export declare class BrokerSocketClient {
     private readonly io;
     private id;
-    constructor(socketUrl: string, port?: number);
+    constructor(streamName: string, socketUrl: string, port?: number);
     set Id(data: string);
     get Id(): string;
     sign(socketId: string, streamName: any): void;

@@ -186,15 +186,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		streamName = ServiceNamePatternSplitter(streamName);
 		console.log('THIS IS MY STREAM_NAME', streamName)
 		if (process.env.PEERJS_SERVER) {
-			this.broker = new BrokerSocketClient(process.env.PEERJS_SERVER)
-			this.broker.on('connect', (data: string) => {
-				if (data) {
-					this.broker.Id = data;
-					console.debug('We are signing', this.broker.Id, streamName)
-					this.broker.sign(this.broker.Id, streamName)
-				}
-			});
-
+			this.broker = new BrokerSocketClient(streamName, process.env.PEERJS_SERVER)
 		}
 
 		this.methods = methods;

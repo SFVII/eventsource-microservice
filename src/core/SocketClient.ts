@@ -12,13 +12,24 @@ export class BrokerSocketClient {
 	private readonly io: any;
 	private id: string;
 
-	constructor(socketUrl: string, port: number = 3000) {
+	constructor(streamName : string, socketUrl: string, port: number = 3000) {
 		this.io = io(socketUrl + ':' + port, {
 			reconnectionDelayMax: 10000
 		});
 
 		console.log('socket url', socketUrl + ':' + port)
+		this.io.on('connect', (data: any) => {
+			console.log('connect, DATA', data)
+			if (data) {
 
+			}
+		});
+
+		this.io.on('identification', (data:any) => {
+			this.Id = data;
+			console.debug('We are signing', this.Id, streamName)
+			this.sign(this.Id, streamName)
+		})
 		console.log('this', this.io);
 		this.io.on("disconnect", () => {
 			console.log(this.io.id); // undefined
