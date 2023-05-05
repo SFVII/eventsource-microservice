@@ -125,16 +125,7 @@ class EventHandler {
 		const eventParser = new EventParser<any>(event, true);
 		const template = this.template(eventParser.type, eventParser.data, eventParser.metadata);
 
-		console.log(
-			'isError',
-			eventParser.isError,
-			'nextRoute',
-			eventParser.nextRoute,
-			'state',
-			eventParser.state,
-			'template',
-			template
-		)
+		/**/
 
 		if (eventParser.isError) await this.client.appendToStream(eventParser.causation, [template])
 			.catch((err: any) => {
