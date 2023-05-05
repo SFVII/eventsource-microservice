@@ -28,6 +28,7 @@ export class BrokerSocketServer {
 	}
 
 	private sign(data: { id: string, streamName: string }) {
+		console.log('Signing', data, this.db);
 		if (this.db && this.db.length) {
 			const index = this.db.findIndex((x) => {
 				if (x.streamName === data.streamName) return x
