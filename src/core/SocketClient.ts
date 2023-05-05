@@ -27,7 +27,6 @@ export class BrokerSocketClient {
 			console.debug('We are signing', this.Id, streamName)
 			this.sign(this.Id, streamName)
 		})
-		console.log('this', this.io);
 		this.io.on("disconnect", () => {
 			console.log(this.io.id); // undefined
 		});

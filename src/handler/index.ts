@@ -68,14 +68,21 @@ class EventHandler {
 
 	private async getStreamList() {
 		const peers = this.broker.getStreamNames;
+		const existingsStream = Object.keys(this.stream)
+
+		// dispatcher-uploads_0
 		console.debug('Peers', peers)
-		if (peers.length) {
-			for (const stream of peers) {
-				if (peers.indexOf(stream) === -1) await this.stream[stream].unsubscribe()
+		const toCreate = peers.filter((e: string) => existingsStream.indexOf(e) === -1)
+		const toDelete = existingsStream.filter((e: string) => peers.indexOf(e) === -1);
+
+		if (toDelete.length) {
+			for (const stream of toDelete) {
+				await this.stream[stream].unsubscribe()
 			}
 		}
-		for (const peer of peers) {
-			if (peers.indexOf(peer) === -1) {
+		if (toCreate.length) {
+			console.debug('subscribe to >', toCreate);
+			for (const peer of toCreate) {
 				await this.initiateStream(peer);
 				this.dispatcher(this.stream[peer]).catch((err: any) => console.log('ERROR.getStreamList', err))
 			}

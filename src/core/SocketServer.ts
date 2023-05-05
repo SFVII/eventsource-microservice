@@ -29,13 +29,10 @@ export class BrokerSocketServer {
 	}
 
 	private sign(data: { id: string, streamName: string }) {
-		console.log('Signing', data, MemoryDatabase);
 		if (MemoryDatabase) {
-			console.log('Entry', MemoryDatabase)
 			const index = MemoryDatabase.findIndex((x) => {
 				return x.streamName === data.streamName;
 			});
-			console.log('Index', index)
 			if (index > -1) MemoryDatabase[index] = data;
 			else MemoryDatabase.push(data);
 		}
