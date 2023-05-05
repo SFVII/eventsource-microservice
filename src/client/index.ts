@@ -190,7 +190,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 			this.broker.on('connect', (data: string) => {
 				if (data) {
 					this.broker.Id = data;
-					this.broker.emit('sign', {id : this.broker.Id, streamName})
+					this.broker.sign(this.broker.Id, streamName)
 				}
 			});
 
