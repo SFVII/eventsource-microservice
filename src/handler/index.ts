@@ -36,7 +36,7 @@ class EventHandler {
 	protected triggerOnComplete: ITriggerList[] = [];
 	private client: EventStoreDBClient;
 	private StartRevision: IStartRevision;
-	private stream: IListStreamSubscription;
+	private stream: IListStreamSubscription = {};
 	private broker: any = new BrokerSocketServer();
 
 	constructor(EvenStoreConfig: IEvenStoreConfig,
