@@ -7,9 +7,10 @@
  ***********************************************************/
 import io, {Socket} from "socket.io";
 
+const MemoryDatabase: { id: string; streamName: string; }[] = []
+
 export class BrokerSocketServer {
 	public socket: any;
-	private db: { id: string, streamName: string }[] = [];
 
 	constructor(port: number = 3000) {
 		this.socket = new io.Server().listen(port);
@@ -24,25 +25,27 @@ export class BrokerSocketServer {
 	}
 
 	get getStreamNames() {
-		return this.db.map((e: { id: string, streamName: string }) => e.streamName);
+		return MemoryDatabase.map((e: { id: string, streamName: string }) => e.streamName);
 	}
 
 	private sign(data: { id: string, streamName: string }) {
-		console.log('Signing', data, this.db);
-		if (this.db && this.db.length) {
-			const index = this.db.findIndex((x) => {
-				if (x.streamName === data.streamName) return x
+		console.log('Signing', data, MemoryDatabase);
+		if (MemoryDatabase && MemoryDatabase.length) {
+			console.log('Entry', MemoryDatabase)
+			const index = MemoryDatabase.findIndex((x) => {
+				return x.streamName === data.streamName;
 			});
-			if (index > -1) this.db[index] = data;
-			else this.db.push(data);
-		} else this.db = [data]
+			console.log('Index', index)
+			if (index > -1) MemoryDatabase[index] = data;
+			else MemoryDatabase.push(data);
+		}
 	}
 
 	private unsigned(data: any) {
-		const index = this.db.findIndex((x) => {
-			if (x.id === data.id) return x
+		const index = MemoryDatabase.findIndex((x) => {
+			return x.id === data.id;
 		});
-		if (index > -1) this.db.splice(index, 1);
+		if (index > -1) MemoryDatabase.splice(index, 1);
 	}
 
 }
