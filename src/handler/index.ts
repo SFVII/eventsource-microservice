@@ -35,7 +35,7 @@ class EventHandler {
 	protected credentials: IEvenStoreConfig["credentials"];
 	protected triggerOnComplete: ITriggerList[] = [];
 	private client: EventStoreDBClient;
-	private StartRevision: IStartRevision;
+	private StartRevision: IStartRevision = {};
 	private stream: IListStreamSubscription = {};
 	private broker: any = new BrokerSocketServer();
 
