@@ -36,6 +36,6 @@ export class BrokerSocketClient {
 	}
 
 	on(env: string, data: () => any | void) {
-		this.on(env, data);
+		this.io.on(env, data);
 	}
 }
