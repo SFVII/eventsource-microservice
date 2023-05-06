@@ -74,7 +74,7 @@ class EventConsumer<Contributor> {
 		this.settings = EvenStoreConfig.settings || {};
 		this.streamSettings = EvenStoreConfig.streamSettings || {}
 		this.init().catch((err) => {
-			console.log('Error Constructor._EventHandler', err);
+			console.error('Error Constructor._EventHandler', err);
 			setTimeout(() => {
 				process.exit(1);
 			}, timerBeforeReboot)
@@ -246,13 +246,13 @@ class EventConsumer<Contributor> {
 					persistentSubscriptionToStreamSettingsFromDefaults({startFrom: END, ...this.settings}),
 					{credentials: this.credentials}
 				)*/
-				console.debug('Persistent subscription %s already exist', streamName)
+				console.warn('Persistent subscription %s already exist', streamName)
 				return true;
 			} else {
 				const errorsReboot = ['CANCELLED', 'canceled', 'UNAVAILABLE'];
 				for (const k of errorsReboot) {
 					if (error.includes(k))  {
-						console.debug('calling pod reboot in %d ms', timerBeforeReboot)
+						console.error('calling pod reboot in %d ms', timerBeforeReboot)
 						setTimeout(() => {
 							process.exit(1);
 						}, timerBeforeReboot)
