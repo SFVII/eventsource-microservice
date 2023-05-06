@@ -13,8 +13,9 @@ export class BrokerSocketClient {
 	private id: string;
 
 	constructor(streamName : string, socketUrl: string, port: number = 3000) {
-		this.io = io(socketUrl + ':' + port, {
-			reconnectionDelayMax: 10000
+		this.io = io(socketUrl, {
+			reconnectionDelayMax: 10000,
+			port : port
 		});
 
 
