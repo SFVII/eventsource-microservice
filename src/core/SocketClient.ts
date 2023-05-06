@@ -12,11 +12,11 @@ export class BrokerSocketClient {
 	private readonly io: any;
 	private id: string;
 
-	constructor(streamName : string, socketUrl: string, port: number = 3000) {
+	constructor(streamName : string, socketUrl: string, port: string = '3000') {
 		this.io = io(socketUrl, {
 			reconnectionDelayMax: 10000,
 			port : port
-		});
+		}).connect();
 
 
 		console.log('WTF ???? Hapenned here ?', this.io, socketUrl + ':' + port);
