@@ -85,7 +85,16 @@ class EventHandler {
 			console.debug('subscribe to >', toCreate);
 			for (const peer of toCreate) {
 				await this.initiateStream(peer);
-				this.dispatcher(this.stream[peer]).catch((err: any) => console.log('ERROR.getStreamList', err))
+				this.dispatcher(this.stream[peer]).catch((err: any) => {
+					console.log('ERROR.getStreamList', err)
+					try {
+						this.stream[peer].unsubscribe()
+					} catch (e) {
+						console.debug('peer can not be unsubscribe', peer)
+					}
+					// @ts-ignore
+					this.stream[peer] = undefined
+				})
 			}
 		}
 	}
