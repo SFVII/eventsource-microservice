@@ -6,3 +6,4 @@
  **  @Description
  ***********************************************************/
 export declare const ServiceNamePatternSplitter: (raw: string) => string;
+export declare const sleep: (ms: number) => Promise<unknown>;

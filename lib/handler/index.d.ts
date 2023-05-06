@@ -17,6 +17,7 @@ declare class EventHandler {
     private StartRevision;
     private stream;
     private broker;
+    private isSync;
     constructor(EvenStoreConfig: IEvenStoreConfig, streamList: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup);
     private soronEye;
     private getStreamList;
