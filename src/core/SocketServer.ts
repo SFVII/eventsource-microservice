@@ -14,7 +14,6 @@ export class BrokerSocketServer {
 
 	constructor(port: number = 3000) {
 		this.socket = new io.Server().listen(port);
-		console.log('My Socket', this.socket);
 		this.socket.on('connection', (socket: Socket) => {
 			console.debug('new service connected... waiting for authentication');
 			socket.emit('identification', socket.id);

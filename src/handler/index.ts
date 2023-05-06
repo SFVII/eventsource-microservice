@@ -23,6 +23,7 @@ import {
 	persistentSubscriptionToStreamSettingsFromDefaults
 }                           from "@eventstore/db-client";
 import {BrokerSocketServer} from "../core/SocketServer";
+import {sleep}              from "../core/Utils";
 
 
 const timerBeforeReboot = 0.5 * 1000 * 60;
@@ -38,7 +39,7 @@ class EventHandler {
 	private StartRevision: IStartRevision = {};
 	private stream: IListStreamSubscription = {};
 	private broker: any = new BrokerSocketServer();
-
+	private isSync: boolean = false;
 	constructor(EvenStoreConfig: IEvenStoreConfig,
 	            streamList: string[],
 	            triggerOnComplete: ITriggerList[] = [],
@@ -62,11 +63,12 @@ class EventHandler {
 
 	private soronEye() {
 		setInterval(async () => {
-			await this.getStreamList()
+			if (!this.isSync) await this.getStreamList()
 		}, 1000 * 30)
 	}
 
 	private async getStreamList() {
+		this.isSync = true;
 		const peers = this.broker.getStreamNames;
 		const existStreams = Object.keys(this.stream)
 
@@ -78,25 +80,31 @@ class EventHandler {
 		if (toDelete.length) {
 			console.debug('unsubscribe to >', toDelete);
 			for (const stream of toDelete) {
-				await this.stream[stream].unsubscribe()
+				await sleep(2000)
+				await this.stream[stream].unsubscribe().catch((err) => {
+					console.debug('stream can not be unsubscribe', stream, err)
+				})
+
 			}
 		}
 		if (toCreate.length) {
 			console.debug('subscribe to >', toCreate);
 			for (const peer of toCreate) {
+				await sleep(2000)
 				await this.initiateStream(peer);
-				this.dispatcher(this.stream[peer]).catch((err: any) => {
+				await sleep(2000)
+				this.dispatcher(this.stream[peer]).catch(async (err: any) => {
 					console.log('ERROR.getStreamList', err)
-					try {
-						this.stream[peer].unsubscribe()
-					} catch (e) {
-						console.debug('peer can not be unsubscribe', peer)
-					}
+					await this.stream[peer].unsubscribe().catch((err) => {
+						console.debug('stream can not be unsubscribe', peer, err)
+					})
+
 					// @ts-ignore
 					this.stream[peer] = undefined
 				})
 			}
 		}
+		this.isSync = false;
 	}
 
 	private async initiateStream(stream: string) {

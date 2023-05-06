@@ -8,7 +8,7 @@
 
 
 
-export const ServiceNamePatternSplitter = (raw : string) => {
+export const ServiceNamePatternSplitter = (raw: string) => {
 	const pattern = raw.match(/_.*-\d+/)
 	if (pattern) {
 		console.log('pattern', pattern);
@@ -21,3 +21,10 @@ export const ServiceNamePatternSplitter = (raw : string) => {
 	}
 }
 
+export const sleep = async (ms: number) => {
+	return new Promise((resolve) => {
+		setTimeout(() => {
+			resolve(true);
+		}, ms)
+	})
+}
