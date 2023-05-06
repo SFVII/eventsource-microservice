@@ -16,7 +16,7 @@ export class BrokerSocketClient {
 		this.io = io(socketUrl, {
 			reconnectionDelayMax: 10000,
 			port : port
-		}).connect();
+		})
 
 
 		console.log('WTF ???? Hapenned here ?', this.io, socketUrl + ':' + port);
