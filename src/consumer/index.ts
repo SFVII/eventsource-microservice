@@ -87,11 +87,11 @@ class EventConsumer<Contributor> {
 
 	on(key: 'ready' & MethodList & string, callback: (message: JSONEventType[]) => any) {
 		this.eventEmitter.on(key, (msg: JSONEventType[]) => {
-			console.log('key_consume : %s', key)
+
 			const [type, main, sub_key] = (key as string).split('.');
 			// @ts-ignore
 			const queue_length = sub_key ? this.Queue[main][sub_key]?.length : this.Queue[main]?.length;
-			console.log('/ \t\tPACKET\t\t  >\n\n Job Length %d  Queue Length %d \n\n< \t\tPACKET\t\t  / \n', msg.length, queue_length)
+			//console.log('/ \t\tPACKET\t\t  >\n\n Job Length %d  Queue Length %d \n\n< \t\tPACKET\t\t  / \n', msg.length, queue_length)
 			setTimeout(() => {
 				callback(msg), 200
 			});
@@ -108,7 +108,7 @@ class EventConsumer<Contributor> {
 			// @ts-ignore
 			this.Queue[type].push(ResolvedEvent);
 		} else {
-			console.log('Error _EventConsumer.AddToQueue Queue does not exist')
+			console.error('Error _EventConsumer.AddToQueue Queue does not exist')
 		}
 		/*
 
@@ -246,13 +246,13 @@ class EventConsumer<Contributor> {
 					persistentSubscriptionToStreamSettingsFromDefaults({startFrom: END, ...this.settings}),
 					{credentials: this.credentials}
 				)*/
-				console.log('Persistent subscription %s already exist', streamName)
+				console.debug('Persistent subscription %s already exist', streamName)
 				return true;
 			} else {
 				const errorsReboot = ['CANCELLED', 'canceled', 'UNAVAILABLE'];
 				for (const k of errorsReboot) {
 					if (error.includes(k))  {
-						console.log('calling pod reboot in %d ms', timerBeforeReboot)
+						console.debug('calling pod reboot in %d ms', timerBeforeReboot)
 						setTimeout(() => {
 							process.exit(1);
 						}, timerBeforeReboot)
