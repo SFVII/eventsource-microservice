@@ -171,7 +171,7 @@ class EventHandler {
 			streamName,
 			this.group,
 			{
-				bufferSize: 20
+				bufferSize: Number(process.env.BUFFER_SIZE_HANDLER) || 100
 			}
 		)
 	}
