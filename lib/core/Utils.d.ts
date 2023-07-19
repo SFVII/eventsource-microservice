@@ -6,4 +6,5 @@
  **  @Description
  ***********************************************************/
 export declare const ServiceNamePatternSplitter: (raw: string) => string;
+export declare const getQueueName: (raw: string) => string | null;
 export declare const sleep: (ms: number) => Promise<unknown>;

@@ -10,7 +10,7 @@ import {IEventResponseSuccess, IMetadata} from "./global";
 
 export class HandleResponse<CustomSchema> {
     private readonly _isError : boolean = false;
-    private readonly _payload : CustomSchema | CustomSchema;
+    private readonly _payload : CustomSchema;
     private readonly _request_id : string;
     private readonly _state : IMetadata<any>['state']
     private readonly _eventDataRaw : IEventResponseSuccess<CustomSchema>['data']

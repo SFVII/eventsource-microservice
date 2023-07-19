@@ -27,7 +27,7 @@ import {
 }                                   from "../core/global";
 import {EventParser, IEventCreate}  from "../core/CommonResponse";
 import {uuid}                       from "uuidv4";
-import {ServiceNamePatternSplitter} from "../core/Utils";
+import {getQueueName, ServiceNamePatternSplitter} from "../core/Utils";
 import {BrokerSocketClient}         from "../core/SocketClient";
 
 export interface IMethodFunctionResponse {
@@ -183,6 +183,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 	constructor(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]) {
 
 		super()
+		const group = getQueueName(streamName)
 		streamName = ServiceNamePatternSplitter(streamName);
 		console.log('THIS IS MY STREAM_NAME', streamName)
 		if (process.env.PEERJS_SERVER) {
@@ -192,7 +193,7 @@ class EventsPlugin<DataModel, Contributor> extends DataTreated {
 		this.methods = methods;
 		this.streamName = streamName;
 		this._pendingTemplates[streamName] = [];
-		this.group += streamName
+		this.group += group
 		this.client = new EventStoreDBClient(
 			EvenStoreConfig.connexion,
 			EvenStoreConfig.security,

@@ -21,6 +21,16 @@ export const ServiceNamePatternSplitter = (raw: string) => {
 	}
 }
 
+
+export const getQueueName = (raw: string) => {
+	const pattern = raw.match(/_.*-\d+/)
+	if (pattern) {
+		console.log('pattern', pattern);
+		const [queueName, ServiceNameAndReplicate] = raw.split('_');
+		return queueName;
+	} else return null
+}
+
 export const sleep = async (ms: number) => {
 	return new Promise((resolve) => {
 		setTimeout(() => {

@@ -19,9 +19,6 @@ export class BrokerSocketClient {
 		})
 
 
-		console.log('WTF ???? Hapenned here ?', this.io, socketUrl + ':' + port);
-
-
 		this.io.on('connect', (data: any) => {
 			console.log('connected to handler at: %s',  socketUrl + ':' + port)
 		});
