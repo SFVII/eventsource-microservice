@@ -30,8 +30,8 @@ import {
 	PersistentSubscriptionToStream,
 	persistentSubscriptionToStreamSettingsFromDefaults,
 	ResolvedEvent,
-	RETRY
-}                    from "@eventstore/db-client";
+	RETRY, StreamMetadata
+} from "@eventstore/db-client";
 import {EventParser} from "../core/CommonResponse";
 
 const timerBeforeReboot = 1 * 1000 * 60;
@@ -50,6 +50,7 @@ class EventConsumer<Contributor> {
 	private readonly settings: IEvenStoreConfig['settings'];
 	private readonly streamSettings: IEvenStoreConfig['streamSettings']
 	private readonly overridePublishName!: string;
+	private readonly StreamMaxAge : number = 1;
 
 	constructor(EvenStoreConfig: IEvenStoreConfig,
 	            StreamName: string,
@@ -63,6 +64,7 @@ class EventConsumer<Contributor> {
 	            group: IEventHandlerGroup = 'consumers',
 	            overridePublishName ?: string) {
 		if (overridePublishName) this.overridePublishName = overridePublishName;
+		if (process.env.STREAM_MAX_AGE) this.StreamMaxAge = Number(process.env.STREAM_MAX_AGE);
 		this.publish = publish;
 		this.Queue = {...queue, ...{worker: []}}
 		this.streamName = StreamName;
@@ -236,6 +238,11 @@ class EventConsumer<Contributor> {
 				}),
 				{credentials: this.credentials}
 			);
+			const metadata: StreamMetadata = {
+				maxAge: 3600 * 24 * this.StreamMaxAge
+			};
+			await this.client.setStreamMetadata(streamName, metadata);
+
 			return true;
 		} catch (err) {
 			const error = (err ? err.toString() : "").toLowerCase();

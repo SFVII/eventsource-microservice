@@ -63,6 +63,7 @@ declare class EventsPlugin<DataModel, Contributor> extends DataTreated {
     private readonly group;
     private broker;
     private brokerId;
+    private StreamMaxAge;
     constructor(EvenStoreConfig: IEvenStoreConfig, streamName: string, methods: string[], causationRoute: string[]);
     getStreamStatus(): any;
     private InitStreamWatcher;

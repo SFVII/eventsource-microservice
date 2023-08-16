@@ -20,8 +20,8 @@ import {
 import {EventParser}        from "../core/CommonResponse";
 import {
 	PersistentSubscriptionToStream,
-	persistentSubscriptionToStreamSettingsFromDefaults
-}                           from "@eventstore/db-client";
+	persistentSubscriptionToStreamSettingsFromDefaults, StreamMetadata
+} from "@eventstore/db-client";
 import {BrokerSocketServer} from "../core/SocketServer";
 import {sleep}              from "../core/Utils";
 
@@ -40,11 +40,13 @@ class EventHandler {
 	private stream: IListStreamSubscription = {};
 	private broker: any = new BrokerSocketServer();
 	private isSync: boolean = false;
+	private readonly StreamMaxAge : number = 1;
 	constructor(EvenStoreConfig: IEvenStoreConfig,
 	            streamList: string[],
 	            triggerOnComplete: ITriggerList[] = [],
 	            group: IEventHandlerGroup = 'global-event-handler') {
 
+		if (process.env.STREAM_MAX_AGE) this.StreamMaxAge = Number(process.env.STREAM_MAX_AGE);
 		this.group = group;
 		this.streamList = streamList;
 		this.triggerOnComplete = triggerOnComplete || [];
@@ -187,6 +189,10 @@ class EventHandler {
 				}),
 				{credentials: this.credentials}
 			)
+			const metadata: StreamMetadata = {
+				maxAge: 3600 * 24 * this.StreamMaxAge
+			};
+			await this.client.setStreamMetadata(streamName, metadata);
 			return true;
 		} catch (err) {
 			const error = (err ? err.toString() : "").toLowerCase();

@@ -18,6 +18,7 @@ declare class EventHandler {
     private stream;
     private broker;
     private isSync;
+    private readonly StreamMaxAge;
     constructor(EvenStoreConfig: IEvenStoreConfig, streamList: string[], triggerOnComplete?: ITriggerList[], group?: IEventHandlerGroup);
     private soronEye;
     private getStreamList;
